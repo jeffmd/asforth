@@ -1,0 +1,483 @@
+Compiler: (54 words)
+---------
+
+exit ( -- ) exit current word, performs a asm ret instuction
+."
+s"
+s,
+Edefer
+Rdefer
+is
+sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
+>mark ( -- start ) places current dictionary position for forward branch resolve
+>resolve ( start -- ) resolve forward jump: compiles relative jump to resolve position at the start position which is on TOS 
+<mark ( -- dest ) place destination for backward branch
+<resolve ( dest -- ) resolve backward branch: compiles relative jump to start position at the resolve position
+if ( f -- ) (C: -- orig ) start conditional branch: compiles zerosense, branch on not equal, and relative jump
+?if ( f -- f ) (C: -- orig ) start conditional branch: compiles dupzerosense, branch on not equal, and relative jump
+else (C: orig1 -- orig2 ) resolve the forward reference and place a new unresolved forward reference
+then ( -- ) (C: orig -- ) finish if: resolve forward reference
+begin ( -- ) (C: -- dest ) put the destination address for the backward branch
+while ( f -- ) (C: dest -- orig dest ) at runtime skip to after repeat if non-true: same as if. use repeat at end of while.
+?while ( f -- f ) (C: dest -- orig dest ) at runtime skip to after repeat if non-true: same as if. use repeat at end of while. does not consume flag.
+repeat ( --  ) (C: orig dest -- ) continue execution at dest, resolve orig
+until ( f -- ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime
+?until ( f -- f ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime. does not consume flag
+again ( -- ) (C: dest -- ) compile a jump back to dest
+does>
+:
+;
+:noname
+[
+]
+var ( cchar -- ) create a dictionary entry for a variable and allocate 1 cell RAM
+con ( x -- ) (C: x "<spaces>name" -- ) create a constant in the dictionary
+	example: 10 con myconstant -> create a word called "myconstant" that will put the value 10 on the top of the stack
+user
+recurse
+immediate
+[char]
+create
+latest
+wid
+(create)
+header
+\
+(
+)
+compile
+cxt
+,
+dp+1
+dp+
+[']
+'
+value
+to
+inline
+lit
+
+
+
+System: (24 words)
+-------
+:core:
+exec ( xt -- ?? ) execute xt - calls address on TOS
+up@
+up!
+defx
+nfa>lfa
+state
+>in
+#tib
+tib
+refill-tib
+source-tib
+pad
+dp
+edp
+here
+allot
+source
+quit ( -- ) main loop of asforth. accept - interpret in an endless loop
+pause ( -- ) Fetch pause vector and EXEC it. may make a context/task switch
+cold ( -- ) start up amforth.
+warm ( nx* -- ) (R: ny* -- ) initialize asforth further. EXECs turnkey operation and go to quit
+defer!
+defer@
+ee-user
+
+Interpreter: (6 words)
+------------
+
+interpret
+recx
+rec@
+rec-num
+rec-word
+rec-unk
+
+
+
+Parameter Stack: (17 words)
+----------------
+:core:
+
+dup ( n -- n n ) duplicate top of stack : inline
+?dup ( n1 -- [ n1 n1 ] | 0) duplicate top of stack if non-zero
+swap ( n1 n2 -- n2 n1) swaps the two top level stack cells
+over ( x1 x2 -- x1 x2 x1 ) Place a copy of x1 on top of the stack
+2over ( x1 x2 -- x1 x2 x1 x2 ) Place a copy of x1 and x2 on top of the stack
+drop ( n -- ) drop the top of stack : inline
+2drop ( n n -- ) drop top of stack and next on stack
+nip ( n1 n2 -- n2) drop next on stack, one before top of stack
+tuck ( n1 n2 -- n2 n1 n2) tuck TOS before NOS, same as SWAP OVER
+flip ( n1 n2 n3 -- n3 n2 n1) exchange TOS and stack cell before NOS, same as SWAP ROT
+rot ( n1 n2 n3 -- n2 n3 n1) rotate the three top level cells
+rrot ( n1 n2 n3 -- n3 n1 n2) reverse rotate the three top level cells equivalent to rotate twice but faster
+sp@ (  -- addr ) current data stack pointer
+sp! ( addr -- i*x) set data stack pointer to addr
+sp0 ( -- addr) start address of the data stack
+sp ( -- addr) address of user variable to store top-of-stack for inactive tasks
+depth ( -- n ) number of single-cell values contained in the data stack before n was placed on the stack.
+
+Return Stack: (9 words)
+-------------
+:core:
+
+r> ( -- n ) (R: n -- ) move top of return stack to top of parameter stack
+r>drop ( -- ) (R: n -- ) drop top of return stack : inline
+dup>r ( n -- n ) (R: -- n ) copy TOS to TOR
+>r ( n -- ) (R: -- n ) move TOS to TOR
+r@ ( -- x) (R: n -- n ) use TOR as address to fetch content from ram
+r>r+ ( -- n) (R: n -- n+1 ) fetch content of TOR and then increment TOR by 1
+rp@ (  -- n) current return stack pointer address
+rp! ( addr  -- ) (R: -- x*y) set return stack pointer
+rp0 ( -- addr) start address of return stack in ram
+
+
+Operators: (50 words)
+----------
+:core:
+compare:
+
+<>
+0=
+=
+<
+>
+0<
+0>
+u<
+u>
+u<=
+u>=
+min
+max
+within
+
+
+arithmetics:
+0:
+0
+1
+2
+10
+true
+0?
+?0?
+-
++
+/
+/mod
+u/mod
+um/mod
+*
+m*
+*/
+*/mod
+invert
+swnib
+2/
+2*
+1+
+1-
+2+
+2-
+><
+0~
+~0
+w_
+btow
+<<
+>>
+negate
+abs
+
+logic:
+
+and
+or
+xor
+
+Memory: (34 words)
+-------
+
+cmove
+c>
+c!
+c@
+@
+!
+@u
+!u
+!e
+@e
+!i
+@i
+a@
+a@i
+ac@
+a!
+ac!
+na!
+a+
+>a
+>b
+:a
+:b
+nip>a
+nip>b
+a
+b
++!
+fill
+itoi
+@e[]
+!e[]
+ee>ram
+compare
+icompare
+
+Environment: (7 words)
+------------
+
+/pad
+/hold
+fname
+version
+cpu
+mcu-info
+/user
+
+
+Numeric/Character IO: (31 words)
+---------------------
+
+u.
+base
+bin
+decimal
+hex
+bl
+emit
+emit?
+key
+key?
+hld
+hold
+<#
+#
+#>
+#s
+sign
+.
+.r
+digit?
+itype
+type
+cr
+space
+spaces
+
+accept
+refill
+char
+number
+praefix
+>number
+
+
+
+String: (7 words)
+-------
+
+cskip
+cscan
+parse
+/$
+$l
+srcin
+parse-name
+
+
+Exceptions: (4 words)
+-----------
+
+handle
+catch
+abort
+throw
+
+ASM: (11 words)
+----
+
+mask!
+P,b,
+rd,k,
+ldi,
+ret,
+cbi,
+sbi,
+sbic,
+sbis,
+rjmp
+rjmpc
+
+Tools: (10 words)
+------
+
+.s ( -- )  stack dump - prints contents of stack to output device
+words ( -- ) prints a list of all (visible) words in the dictionary
+find-name ( addr len --  0 | xt -1 | xt 1 ) search wordlists for the name from string addr/len
+?stack
+ver
+unused
+search-wordlist
+dbg-
+dbg+
+init-user
+
+***** Core words done in assembly
+exit
+exec
+dup
+?dup
+swap
+over
+2over
+drop
+2drop
+nip
+tuck
+flip
+rot
+rrot
+r>
+r>drop
+popret
+dup>r
+>r
+r@
+r>r+
+<>
+0=
+=
+<
+>
+0<
+u>
+0>
+0:
+0
+1
+2
+10
+true
+0?
+?0?
+u<
+-
++
+invert
+swnib
+2/
+2*
+and
+or
+xor
+1+
+1-
+2+
+2-
+w_
+<<
+>>
+rp@
+rp!
+sp@
+sp!
+c>
+><
+0~
+~0
+up@
+up!
+defx
+!e
+@e
+!i
+@i
+@
+!
+c!
+c@
+@u
+!u
+a@
+a@i
+na@
+ac@
+>a
+>b
+:a
+:b
+nip>a
+nip>b
+a
+b
++!
+a!
+ac!
+na!
+a+
+
+
+core words needed for bootstrap:
+quit:
+sp0
+sp!
+rp0
+rp!
+[
+state
+@
+refill
+dup
+<
+prompterror
+promptrdy
+promptok
+
+refill-tib:
+tib
+accept
+#tib
+!
+0
+>in
+!
+
+accept:
+>r
+xon
+key
+10
+<>
+=
+r>
+r@
+over
+drop
+emit
+space
+1-
+1+
+bl
+over
+c!
+2drop
+swap
+-
+cr
+xoff
