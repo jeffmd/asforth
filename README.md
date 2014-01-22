@@ -19,8 +19,9 @@ Converted amForth from indirect threaded code to subroutine threaded.  This resu
 
 ### Licensing:
 
-as per the Amforth Project.
+*GNU Public License v2 (GPL)* - as per the Amforth Project.
 
+### Targets:
 
 asforth can be flashed onto the following MCU:
 
