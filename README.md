@@ -8,7 +8,7 @@ Converted amForth from indirect threaded code to subroutine threaded.  This resu
 
  Jeff Doyle: conversion of amForth to subroutine threaded.
 
- **amForth:**   *Andy Kirby* (andy@kirbyand.co.uk), Based on the Amforth Application Template. - http://amforth.sourceforge.net/
+ **amForth:**   *Andy Kirby* - http://amforth.sourceforge.net/
  
  **FlashForth:**   *Mikael Nordman* - http://flashforth.sourceforge.net/
  
