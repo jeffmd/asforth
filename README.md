@@ -12,9 +12,9 @@ Licensing: as per the Amforth Project.
 
 asforth can be flashed onto the following MCU:
 
-Model		Microcontroler	Host	Xtal	DBG-LED	Flash	B-Load (words)    	Ram	Fuses (E,H,L)
-Duemilanove	ATMega 328	    uart0	16Mhz	PB5	    32k	    256b/512b/1k/2k		2k	05 D9 FF
-Uno         ATMega 328	    uart0	16Mhz	PB5	    32k	    256b/512b/1k/2k		2k	05 D9 FF
+    Model		Microcontroler	Host	Xtal	DBG-LED	Flash	B-Load (words)    	Ram	Fuses (E,H,L)
+    Duemilanove	ATMega 328	    uart0	16Mhz	PB5	    32k	    256b/512b/1k/2k		2k	05 D9 FF
+    Uno         ATMega 328	    uart0	16Mhz	PB5	    32k	    256b/512b/1k/2k		2k	05 D9 FF
 
 
 Notes
