@@ -165,23 +165,6 @@ HEADER_error:
     doliteral_ -16
     rjmp THROW
 
-; ( "ccc<eol>" -- )
-; Compiler
-; everything up to the end of the current line is a comment
-
-forthword_ BACKSLASH, 0x0001, "\\"
-    rcall SOURCE
-    nip_
-    rcall G_IN
-    jmp STORE
-
-; ( "ccc<paren>" -- )
-; Compiler
-; skip everything up to the closing bracket on the same line
-forthword_ LPARENTHESIS, 0x0001, "("
-    doliteral_ 0x29
-    rcall PARSE
-    jmp TWODROP
 
 ; ( -- )
 ; Dictionary
@@ -2182,21 +2165,6 @@ forthword_ INLINE, 0x8006, "inline"
     rcall DPPLUS
     rjmp ITOI
 
-
-
-; ( -- )
-; System
-; Arduino pin 13 (portB bit 5) debug.
-
-forthword_ DBGOFF, 0x8004, "dbg-"
-	sbi 4,5
-	cbi 5,5
-    ret
-
-forthword_ DBGON, 0x8004, "dbg+"
-	sbi 4,5
-	sbi 5,5
-    ret
 
 ; ( -- addr )
 ; System Variable

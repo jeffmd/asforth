@@ -1279,30 +1279,3 @@ forthword_ NASTORE, 0x8003, "na!"
 forthword_ APLUS, 0x8102, "a+"
    aplus_
    ret
-
-; ( -- ) 
-; Tools
-; prints a list of all (visible) words in the dictionary
-forthword_ WORDS, 0x8005, "words"
-    rcall ZERO           ; ( -- 0 )
-    doliteral_ EE_FORTHWORDLIST
-    rcall FETCHE
-PFA_SHOWWORDLIST3:
-    rcall QDUP           ; ( -- cnt addr addr )
-    zerosense_           ; ( -- cnt addr ) is nfa = counted string
-    breq PFA_SHOWWORDLIST2       ;
-    dup_                 ; ( -- cnt addr addr )
-    call ICOUNT          ; ( -- cnt addr addr n )
-    anditos_ 0x00FF      ; mask immediate bit
-    call ITYPE           ; ( -- cnt addr )
-    call SPACE           ; ( -- cnt addr )
-    rcall NFA2LFA        ; ( -- cnt lfa )
-    rcall FETCHI         ; ( -- cnt addr )
-    rcall SWAP           ; ( -- addr cnt )
-    oneplus_             ; ( -- addr cnt+1 )
-    rcall SWAP           ; ( -- cnt+1 addr )
-    rjmp PFA_SHOWWORDLIST3
-PFA_SHOWWORDLIST2:
-    call CR
-    call DOT
-    ret
