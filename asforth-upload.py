@@ -78,8 +78,8 @@ def write_line_flow(string, dest):
 		if string[-1] != "\n":
 		    string = string + "\n"
 		    
-	string = re.sub("(^| )\( .*?\)"," ",string)
-	string = re.sub("(^| )\( [^\)]*$"," \n",string)
+	#string = re.sub("(^| )\( .*?\)"," ",string)
+	#string = re.sub("(^| )\( [^\)]*$"," \n",string)
     #string = re.sub("(^| )\\\\ .*","",string)
 
 #	if re.match("^\s*$",string):
