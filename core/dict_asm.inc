@@ -46,23 +46,23 @@ forthword_ LDI, 0x0004, "ldi,"
 ; Operands P-port,bit
 ; Assembler
 ; ( Port bit opcode mask -- xxxx.xxxx.PPPP.Pbbb )
-forthword_ P_b_, 0x8004, "P,b,"
+forthword_ P_b_, 0x0004, "P,b,"
     call TO_R
-    call TO_R     ; ( -- P b) (R: -- mask opcode)
-    anditos_ 7
-    call SWAP
-    doliteral_ 3
-    call LSHIFT  ; ( -- 0bbb PPPPP000)
-    call OR
-    call R_FROM
-    call R_FROM
-    rcall MASKNOT
+    call TO_R     ; ( P b ) (R: -- mask opcode)
+    anditos_ 7    ; ( P b )
+    call SWAP     ; ( b P )
+    doliteral_ 3  ; ( b P 3 )
+    call LSHIFT   ; ( 0bbb PPPPP000)
+    call OR       ; ( PPPPPbbb )
+    call R_FROM   ; ( PPPPPbbb opcode )
+    call R_FROM   ; ( PPPPPbbb opcode mask)
+    rcall MASKNOT ; ( inst )
     jmp COMMA   ; PPbb opcode mask mask! to flash
 
 ; Clear bit in I/O port
 ; Assembler
 ;   ( Port bit -- )
-forthword_ CBI_C, 0x8004, "cbi,"
+forthword_ CBI_C, 0x0004, "cbi,"
     doliteral_ 0x9800
     doliteral_ 0xff00
     rjmp P_b_
@@ -70,7 +70,7 @@ forthword_ CBI_C, 0x8004, "cbi,"
 ; Set bit in I/O port
 ; Assembler
 ;   ( Port bit -- )
-forthword_ SBI_C, 0x8004, "sbi,"
+forthword_ SBI_C, 0x0004, "sbi,"
     doliteral_ 0x9a00
     doliteral_ 0xff00
     rjmp P_b_
@@ -78,7 +78,7 @@ forthword_ SBI_C, 0x8004, "sbi,"
 ; Skip next instruction if bit in I/O port is clear
 ; Assembler
 ;   ( Port bit -- )
-forthword_ SBIC_C, 0x8005, "sbic,"
+forthword_ SBIC_C, 0x0005, "sbic,"
     doliteral_ 0x9900
     doliteral_ 0xff00
     rjmp P_b_
@@ -86,7 +86,7 @@ forthword_ SBIC_C, 0x8005, "sbic,"
 ; Skip next instruction if bit in I/O port is set
 ; Assembler
 ;   ( Port bit -- )
-forthword_ SBIS_C, 0x8005, "sbis,"
+forthword_ SBIS_C, 0x0005, "sbis,"
     doliteral_ 0x9b00
     doliteral_ 0xff00
     rjmp P_b_
@@ -215,8 +215,3 @@ forthword_ BRNZ1_COMPILE, 0x0005, "brnz1,"
 forthword_ DUPZEROSENSE_COMPILE, 0x0004, "?0?c"
     doliteral_ 0x9700
     jmp COMMA
-
-
-    
-     
-
