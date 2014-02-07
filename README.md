@@ -1,14 +1,27 @@
-asForth: a subroutine threaded forth writtin in AVR GNU assembly to be compiled with gnu avr assembler.
+asforth
+--------
+A subroutine threaded forth writtin in AVR GNU assembly to be compiled with gnu avr assembler. Currently only runs on an Atmega328.
 
 Based on amForth, FlashForth, AVRForth, CamelForth, TurboForth, eForth, FigForth
 
-Converted amForth from indirect threaded code to subroutine threaded.  This resulted in a speed up of 4 to 8 times faster than indirect threaded code.  used some features from FlashForth for inlining words that are less than 4 words in code length. 
+Converted amForth from indirect threaded code to subroutine threaded.  This resulted in a speed up of 4 to 8 times faster than indirect threaded code.  Used some features from FlashForth for inlining words that are less than 4 words in code length.  Tail call optimization also implemented.
 
-Authours:
- amForth: Andy Kirby (andy@kirbyand.co.uk), Based on the Amforth Application Template.
-Jeff Doyle: conversion of amForth to subroutine threaded.
-Licensing: as per the Amforth Project.
 
+### Authours:
+
+ Jeff Doyle: conversion of amForth to subroutine threaded.
+
+ **amForth:**   *Andy Kirby* - http://amforth.sourceforge.net/
+ 
+ **FlashForth:**   *Mikael Nordman* - http://flashforth.sourceforge.net/
+ 
+ **CamelForth:**   *Brad Rodriguez* - http://www.camelforth.com
+
+### Licensing:
+
+*GNU Public License v2 (GPL)* - as per the Amforth Project.
+
+### Targets:
 
 asforth can be flashed onto the following MCU:
 
