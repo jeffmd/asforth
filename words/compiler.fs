@@ -1,3 +1,13 @@
+: immediate
+    wid
+    @e
+    dup
+    @i
+    $7FFF and
+    swap
+    !i
+;
+
 : \
     source
     nip

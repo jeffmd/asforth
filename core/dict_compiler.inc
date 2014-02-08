@@ -341,18 +341,6 @@ forthword_ RECURSE, 0x0007, "recurse"
     rcall FETCH
     jmp COMMA
 
-; ( -- ) 
-; Compiler
-; set immediate flag for the most recent word definition
-forthword_ IMMEDIATE, 0x8009, "immediate"
-    rcall GET_CURRENT
-    rcall FETCHE
-    dup_
-    rcall FETCHI
-    anditos_ 0x7fff
-    rcall SWAP
-    rjmp STOREI
-
 ; ( -- c ) (C: "<space>name" -- )
 ; Tools
 ; skip leading space delimites, place the first character of the word on the stack

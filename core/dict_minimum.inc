@@ -1755,15 +1755,6 @@ forthword_ VER, 0x8003, "ver"
     rjmp ITYPE
 
 
-
-; ( -- n )
-; Tools
-; Amount of available RAM (incl. PAD)
-forthword_ UNUSED, 0x8006, "unused"
-    call SP0
-    rcall HERE
-    jmp MINUS
-
 ; ( n <name> -- )
 ; Compiler
 ; create a dictionary entry for a value and allocate 1 cell in EEPROM.
@@ -1786,7 +1777,7 @@ forthword_ VALUE, 0x8003, "val"
     addr_ FETCHE
     rcall COMPILE
     addr_ STOREE
-    call EXIT
+    ret
 
 ; ( n <name> -- )
 ; Tools
@@ -1804,9 +1795,8 @@ forthword_ TO, 0x0002, "to"
 ; ( n -- ) (R: IP -- IP+2)
 ; Tools
 ; runtime portion of to
-;forthword_ DOTO, 0x8004, "(to)"
-;must be called
-DOTO:
+; must be called
+forthword_ DOTO, 0x8004, "(to)"
     call R_FETCHPLUS    ; ( n -- n raddr ) (R: raddr -- raddr+1 )
     ; next cell contains address of deferred word
     call FETCHI         ; ( n defxt )
