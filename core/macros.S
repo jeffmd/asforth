@@ -42,6 +42,7 @@
 ; if bit 0 and 1 are cleared then last instruction was an inline or tail call optimization was disabled by word
 ; bit 2 : disable tail call optimization
 .set DIS_CALL_OPT_FB, 2
+; disable tail call optimization : | with word count flag ie: 0x8004 | DIS_CALL_OPT
 .set DIS_CALL_OPT, 0x0400
 
 ; forth flags register
