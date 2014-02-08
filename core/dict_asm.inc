@@ -153,7 +153,7 @@ forthword_ RJMPC, 0x8005, "rjmpc"
 forthword_ COMPILEXT, 0x8003, "cxt"
     ; default to tail call optimization enabled
     cbr fflags, 1<<DIS_CALL_OPT_FB
-    ; check bit 2 of word flags: if clear then tail call optimization stays enabled
+    ; check bit 2 of word high byte flags: if clear then tail call optimization stays enabled
     sbrc tosh, DIS_CALL_OPT_FB
     ; bit 2 of high byte flag is set so disable tail call optimization
     sbr fflags, 1<<DIS_CALL_OPT_FB
