@@ -169,8 +169,9 @@ HEADER_error:
 ; ( -- )
 ; Dictionary
 ; read the following cell from the dictionary and append it to the current dictionary position.
+; must use call/rcall
 
-forthword_ COMPILE, 0x8007, "compile"
+forthword_ DOCOMPILE, 0x8009 | DIS_CALL_OPT, "docompile"
     call R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
     call FETCHI         ; ( xt1 )
     ; don't allow inlining
@@ -222,10 +223,11 @@ forthword_ DPPLUS, 0x8003, "dp+"
 ; what ' does in the interpreter mode, do in colon definitions
 
 forthword_ BRACKETTICK, 0x0003, "[']"
-    rcall COMPILE
-    addr_ -1; DOLITERAL ********* FIXME
+    
+    ;addr_ -1; DOLITERAL ********* FIXME
     rcall TICK
-    rjmp COMMA
+    jmp LIT
+    ;rjmp COMMA
 
 ; (  -- )
 ; doesn't do anything - no operation
@@ -576,7 +578,6 @@ forthword_ DOTR, 0x8002, ".r"
 ; Numeric IO
 ; tries to convert a character to a number, set flag accordingly
 forthword_ DIGITQ, 0x8006, "digit?"
-    ;rcall TOUPPER
     doliteral_ 0x30
     call MINUS
     dup_
@@ -1763,7 +1764,7 @@ forthword_ VALUE, 0x8003, "val"
     call GET_CURRENT
     call STOREE
 
-    rcall COMPILE
+    rcall DOCOMPILE
     addr_ DOVALUE
     rcall EDP
     dup_
@@ -1773,9 +1774,9 @@ forthword_ VALUE, 0x8003, "val"
     rcall DOTO
     .word EDP
     call STOREE
-    rcall COMPILE
+    rcall DOCOMPILE
     addr_ FETCHE
-    rcall COMPILE
+    rcall DOCOMPILE
     addr_ STOREE
     ret
 
@@ -1788,7 +1789,7 @@ forthword_ TO, 0x0002, "to"
     call FETCH
     zerosense_
     breq PFA_TO1        ; not in compile state, so jump to runtime operation
-    rcall COMPILE
+    rcall DOCOMPILE
     addr_ DOTO
     rjmp COMMA
 

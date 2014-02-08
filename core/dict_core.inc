@@ -981,7 +981,7 @@ PFA_DOTS2:
 ; compiles string into dictionary to be printed at runtime
 forthword_ DOTSTRING, 0x0002, ".\""
     rcall SQUOTE
-    call COMPILE
+    call DOCOMPILE
     addr_ ITYPE
     ret
 
@@ -997,7 +997,7 @@ forthword_ SQUOTE, 0x0002, "s\""
     ; skip if not in compile mode
     zerosense_
     breq SQUOTE_end
-      call COMPILE
+      call DOCOMPILE
       addr_ DOSLITERAL    ; ( -- addr n)
       call SCOMMA
 SQUOTE_end:
@@ -1010,15 +1010,15 @@ forthword_ EDEFER, 0x8006, "Edefer"
     call DOCREATE
     rcall GET_CURRENT
     rcall STOREE
-    call COMPILE
+    call DOCOMPILE
     addr_ DODEFER
 
     call EDP            ; ( -- EDP )
     dup_                ; ( -- EDP EDP )
     call COMMA          ; ( -- EDP )
-    call COMPILE
+    call DOCOMPILE
     addr_ FETCHE
-    call COMPILE
+    call DOCOMPILE
     addr_ STOREE
     ; increment EDP one cell then save it
     twoplus_          ; ( -- EDP+2 )
@@ -1034,7 +1034,7 @@ forthword_ RDEFER, 0x8006, "Rdefer"
     rcall GET_CURRENT
     rcall STOREE
 
-    call COMPILE
+    call DOCOMPILE
     addr_ DODEFER
 
     call HERE
@@ -1042,9 +1042,9 @@ forthword_ RDEFER, 0x8006, "Rdefer"
     rcall TWO
     call ALLOT
 
-    call COMPILE
+    call DOCOMPILE
     addr_ FETCHE
-    call COMPILE
+    call DOCOMPILE
     addr_ STOREE
     ret
 
@@ -1057,7 +1057,7 @@ forthword_ IS, 0x0002, "is"
     zerosense_
     breq PFA_IS1
     call BRACKETTICK
-    call COMPILE
+    call DOCOMPILE
     addr_ DEFERSTORE
     ret
 PFA_IS1:

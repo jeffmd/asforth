@@ -3,7 +3,7 @@
 ; String
 ; compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
 forthword_ SLITERAL, 0x0008, "sliteral"
-    call COMPILE
+    call DOCOMPILE
     addr_ DOSLITERAL    ; ( -- addr n)
     jmp SCOMMA
 
@@ -134,15 +134,6 @@ forthword_ AGAIN, 0x0005, "again"
 
 
 
-; ( -- a-addr ) (C: "<spaces>name" -- )
-; Dictionary
-; create a dictionary header. XT is (constant), with the address of the data field of name
-forthword_ CREATE, 0x8006, "create"
-    rcall RWORD
-    ; leave address after call on tos
-    call COMPILE
-    addr_ POPRET
-    ret
 
 ; ( -- addr ) 
 ; System Variable
@@ -158,11 +149,11 @@ ram_LATEST: .space 2
 ; ( i*x -- j*y ) (R: nest-sys1 -- ) (C: colon-sys1 -- colon-sys2 )
 ; Compiler
 ; organize the XT replacement to call other colon code
-forthword_ DOES, 0x0005, "does>"
+;forthword_ DOES, 0x0005, "does>"
     ; compile pop return to tos which is used as 'THIS' pointer
-    call COMPILE
-    addr_ DODOES
-    call COMPILE
+    call DOCOMPILE
+    ;addr_ DODOES
+    call DOCOMPILE
     addr_ R_FROM
     ret 
 
@@ -170,7 +161,7 @@ forthword_ DOES, 0x0005, "does>"
 ; Compiler
 ; replace the XT written by CREATE to call the code that follows does>
 ; does not return to caller
-forthword_ DODOES, 0x8007, "(does>)"
+;forthword_ DODOES, 0x8007, "(does>)"
     ; change call at XT to code after (does>)
     ; get current word and then get its XT being compiled
     ; code at XT is 'call POPRET'
@@ -303,23 +294,6 @@ forthword_ RWORD, 0x8005, "rword"
     rcall GET_CURRENT  ; ( voc-link wid )
     rjmp STOREE        ; ( )
 
-; ( cchar -- ) 
-; Compiler
-; create a dictionary entry for a variable and allocate 1 cell RAM
-forthword_ VARIABLE, 0x8003, "var"
-    call HERE
-    rcall CONSTANT
-    rcall TWO
-    jmp ALLOT
-
-; ( x -- ) (C: x "<spaces>name" -- )
-; Compiler
-; create a constant in the dictionary
-forthword_ CONSTANT, 0x8003, "con"
-    call RWORD
-    call LIT           ;( )
-    jmp RET_C
-
 
 ; ( n cchar -- ) 
 ; Compiler
@@ -328,7 +302,7 @@ forthword_ CONSTANT, 0x8003, "con"
 forthword_ USER, 0x8004, "user"
     call RWORD
 
-    call COMPILE
+    call DOCOMPILE
     addr_ DOUSER
     jmp COMMA
 
@@ -355,20 +329,20 @@ forthword_ BRACKETCHAR, 0x0006, "[char]"
 
 forthword_ ABORTSTRING, 0x0006, "abort\""
     ; postpone if
-    call COMPILE
+    call DOCOMPILE
     addr_ 0 ; ******* FIXME
     call DP
-    call COMPILE
+    call DOCOMPILE
     .word -1
     
     rcall DOTSTRING
     
-    call COMPILE
+    call DOCOMPILE
     addr_ -1 ; DOLITERAL ******* FIXME
     
-    call COMPILE
+    call DOCOMPILE
     .word -2
-    call COMPILE
+    call DOCOMPILE
     addr_ THROW
     ; then
     call DP
