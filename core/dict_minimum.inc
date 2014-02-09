@@ -171,7 +171,7 @@ HEADER_error:
 ; read the following cell from the dictionary and append it to the current dictionary position.
 ; must use call/rcall
 
-forthword_ DOCOMPILE, 0x8009 | DIS_CALL_OPT, "docompile"
+forthword_ DOCOMPILE, 0x8009 | DIS_CALL_OPT, "(compile)"
     call R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
     call FETCHI         ; ( xt1 )
     ; don't allow inlining
@@ -622,8 +622,8 @@ forthword_ UGREATEREQUAL, 0x8003, "u>="
 ; return cell is string length
 ; string then occupies the following cells: c2c1 c4c3 ...
 
-;forthword_ DOSLITERAL, 0x800a, "(sliteral)"
-DOSLITERAL:
+forthword_ DOSLITERAL, 0x800a, "(sliteral)"
+
   ; get return address to get string length, calculate string address start,
   ; and calculate return address
   call R_FROM   ; ( -- raddr )  (R: raddr -- )
@@ -1756,30 +1756,6 @@ forthword_ VER, 0x8003, "ver"
 
 
 ; ( n <name> -- )
-; Compiler
-; create a dictionary entry for a value and allocate 1 cell in EEPROM.
-forthword_ VALUE, 0x8003, "val"
-    rcall DOCREATE
-    call GET_CURRENT
-    call STOREE
-
-    rcall DOCOMPILE
-    addr_ DOVALUE
-    rcall EDP
-    dup_
-    rcall COMMA
-    dup_
-    twoplus_
-    rcall DOTO
-    .word EDP
-    call STOREE
-    rcall DOCOMPILE
-    addr_ FETCHE
-    rcall DOCOMPILE
-    addr_ STOREE
-    ret
-
-; ( n <name> -- )
 ; Tools
 ; store the TOS to the named value (eeprom cell)
 forthword_ TO, 0x0002, "to"
@@ -1796,7 +1772,7 @@ forthword_ TO, 0x0002, "to"
 ; Tools
 ; runtime portion of to
 ; must be called
-forthword_ DOTO, 0x8004, "(to)"
+forthword_ DOTO, 0x8004 | DIS_CALL_OPT, "(to)"
     call R_FETCHPLUS    ; ( n -- n raddr ) (R: raddr -- raddr+1 )
     ; next cell contains address of deferred word
     call FETCHI         ; ( n defxt )
@@ -1855,8 +1831,7 @@ forthword_ DEFERFETCH, 0x8006, "defer@"
 ; ( i*x -- j*x )
 ; System
 ; runtime of defer
-;forthword_ DODEFER, 0x800a, "(defer)"
-DODEFER:
+forthword_ DODEFER, 0x8007, "(defer)"
     ; top of return stack has return address of caller
     ; return address is data for defer so pop it onto data stack
     ; will not be returning to the caller

@@ -1,140 +1,4 @@
 
-; (C: addr len -- ) 
-; String
-; compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
-forthword_ SLITERAL, 0x0008, "sliteral"
-    call DOCOMPILE
-    addr_ DOSLITERAL    ; ( -- addr n)
-    jmp SCOMMA
-
-; ( -- start ) 
-; Compiler
-; places current dictionary position for forward branch resolve on TOS and advances DP
-forthword_ GMARK, 0x8005, ">mark"
-    call DP
-    jmp DPPLUSONE           ; advance DP
-    
-; ( start -- ) 
-; Compiler
-; resolve forward jump
-forthword_ GRESOLVE, 0x8008, ">resolve"
-    call QSTACK          ; ( start ) make sure there is something on the stack
-    call DP              ; ( start dest )
-    jmp RJMPC            ; ( )
-
-
-; ( -- dest ) 
-; Compiler
-; place destination for backward branch
-forthword_ LMARK, 0x8005, "<mark"
-    jmp DP            ; ( dest )
-
-; ( dest -- ) 
-; Compiler
-; resolve backward branch
-forthword_ LRESOLVE, 0x8008, "<resolve"
-    call QSTACK         ; make sure there is something on the stack
-    ; compile a rjmp at current DP that jumps back to mark
-    call DP             ; ( dest start )
-    call SWAP           ; ( start dest )
-    call RJMPC
-    jmp DPPLUSONE       ; advance DP
-
-; Compiler
-; compile zerosense and conditional branch forward
-forthword_ IFBRANCH_COMPILE, 0x8004, "?brc"
-    ;inline zerosense 
-    doliteral_ pm(ZEROSENSE)
-    doliteral_ 3
-    call INLINE
-    jmp BRNZ1_COMPILE
-
-; compile dupzerosense and conditional branch forward
-forthword_ IFQBRANCH_COMPILE, 0x8005, "??brc"
-    call DUPZEROSENSE_COMPILE
-    jmp BRNZ1_COMPILE
-
-
-; ( f -- ) (C: -- orig )
-; Compiler
-; start conditional branch
-forthword_ IF, 0x0002, "if"
-    rcall IFBRANCH_COMPILE 
-    rjmp GMARK 
-
-; ( f -- f) (C: -- orig )
-; Compiler
-; start conditional branch, don't consume flag
-forthword_ QIF, 0x0003, "?if"
-    rcall IFQBRANCH_COMPILE
-    rjmp GMARK 
-
-; (C: orig1 -- orig2 ) 
-; Compiler
-; resolve the forward reference and place a new unresolved forward reference
-forthword_ ELSE, 0x0004, "else"
-    rcall GMARK         ; mark forward rjmp at end of true code
-    rcall SWAP          ; swap new mark with previouse mark
-    rjmp GRESOLVE       ; rjmp from previous mark to false code starting here
-
-; ( -- ) (C: orig -- ) 
-; Compiler
-; finish if
-forthword_ THEN, 0x0004, "then"
-    rjmp GRESOLVE
-
-; ( -- ) (C: -- dest ) 
-; Compiler
-; put the destination address for the backward branch: repeat, until, again 
-
-forthword_ BEGIN, 0x0005, "begin"
-    rjmp LMARK
-
-; ( f -- ) (C: dest -- orig dest ) 
-; Compiler
-; at runtime skip until repeat if non-true
-forthword_ WHILE, 0x0005, "while"
-    rcall IF
-    rjmp SWAP
-
-; ( f -- f) (C: dest -- orig dest ) 
-; Compiler
-; at runtime skip until repeat if non-true, does not consume flag
-forthword_ QWHILE, 0x0006, "?while"
-    rcall QIF
-    rjmp SWAP
-
-; ( --  ) (C: orig dest -- )
-; Compiler
-; continue execution at dest, resolve orig
-forthword_ REPEAT, 0x0006, "repeat"
-    rcall AGAIN
-    rjmp GRESOLVE
-
-; ( f -- ) (C: dest -- ) 
-; Compiler
-; finish begin with conditional branch, leaves the loop if true flag at runtime
-forthword_ UNTIL, 0x0005, "until"
-    rcall IFBRANCH_COMPILE
-    rjmp LRESOLVE
-
-; ( f -- ) (C: dest -- ) 
-; Compiler
-; finish begin with conditional branch, leaves the loop if true flag at runtime
-forthword_ QUNTIL, 0x0006, "?until"
-    rcall IFQBRANCH_COMPILE
-    rjmp LRESOLVE
-
-; ( -- ) (C: dest -- ) 
-; Compiler
-; compile a jump back to dest
-
-forthword_ AGAIN, 0x0005, "again"
-    rjmp LRESOLVE
-
-
-
-
 ; ( -- addr ) 
 ; System Variable
 ; system LATEST. Get flash program address of latest word being compiled. 
@@ -163,18 +27,6 @@ forthword_ COLON, 0x8001, ":"
 .pushsection .data
 COLON_SMUDGE: .space 2
 .popsection
-
-; ( -- xt )
-; Compiler
-; create an unnamed entry in the dictionary
-
-forthword_ COLONNONAME, 0x8007, ":noname"
-    call DP
-    dup_
-    rcall LATEST
-    rcall STORE
-
-    rjmp RBRACKET
 
 ; ( -- )
 ; tail call optimize: change last rcall/call into rjmp/jmp
@@ -259,34 +111,6 @@ forthword_ LBRACKET, 0x0001, "["
     call STATE
     rjmp STORE
 
-; ( -- ) (C: x "<spaces>name" -- )
-;compiler
-; create a dictionary entry and register in word list
-forthword_ RWORD, 0x8005, "rword"
-    call DOCREATE      ; ( voc-link )
-    rcall GET_CURRENT  ; ( voc-link wid )
-    rjmp STOREE        ; ( )
-
-
-; ( n cchar -- ) 
-; Compiler
-; create a dictionary entry for a user variable at offset n
-
-forthword_ USER, 0x8004, "user"
-    call RWORD
-
-    call DOCOMPILE
-    addr_ DOUSER
-    jmp COMMA
-
-
-; ( -- ) 
-; Compiler
-; compile the XT of the word currently being defined into the dictionary
-forthword_ RECURSE, 0x0007, "recurse"
-    rcall LATEST  ;****FIXME******
-    rcall FETCH
-    jmp COMMA
 
 ; ( -- c ) (C: "<space>name" -- )
 ; Tools
@@ -308,7 +132,7 @@ forthword_ ABORTSTRING, 0x0006, "abort\""
     call DOCOMPILE
     .word -1
     
-    rcall DOTSTRING
+    ;rcall DOTSTRING
     
     call DOCOMPILE
     addr_ -1 ; DOLITERAL ******* FIXME
@@ -331,22 +155,6 @@ forthword_ ABORT, 0x8005, "abort"
     jmp THROW
 
 
-; ( -- padsize ) 
-; Environment
-; Size of the PAD buffer in bytes
-forthword_ ENVSLASHPAD, 0x8004, "/pad"
-    rcall SP_FETCH
-    call PAD
-    rjmp MINUS
-
-; ( -- hldsize ) 
-; Environment
-; size of the pictured numeric output buffer in bytes
-
-forthword_ ENVSLASHHOLD, 0x8005, "/hold"
-    call PAD
-    call HERE
-    rjmp MINUS
 
 ; ( -- faddr len ) 
 ; Environment

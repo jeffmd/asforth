@@ -698,9 +698,9 @@ DOUSER:
 ; ( -- n )
 ; System
 ; runtime of value
-;forthword_ DOVALUE, 0x8007, "(value)"
+; must use call
+forthword_ DOVALUE, 0x8007 | DIS_CALL_OPT, "(value)"
 ; must be called, don't use jmp
-DOVALUE:
     ; Top of return stack has return address of caller
     ; return address is actually the address of the value
     ; won't be returning to this address
@@ -976,93 +976,7 @@ PFA_DOTS2:
     rjmp TWODROP
 
 
-; ( -- ) (C: "ccc<quote>" -- )
-; Compiler
-; compiles string into dictionary to be printed at runtime
-forthword_ DOTSTRING, 0x0002, ".\""
-    rcall SQUOTE
-    call DOCOMPILE
-    addr_ ITYPE
-    ret
 
-; ( -- addr len) (C: <cchar> -- ) 
-; Compiler
-; compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
-forthword_ SQUOTE, 0x0002, "s\""
-    doliteral_ 0x22
-    call PARSE       ; ( -- addr n)
-    call STATE
-    rcall FETCH
-    ; <if>
-    ; skip if not in compile mode
-    zerosense_
-    breq SQUOTE_end
-      call DOCOMPILE
-      addr_ DOSLITERAL    ; ( -- addr n)
-      call SCOMMA
-SQUOTE_end:
-    ret
-
-; ( c<name> -- ) 
-; Compiler
-; creates a defer vector which is kept in eeprom.
-forthword_ EDEFER, 0x8006, "Edefer"
-    call DOCREATE
-    rcall GET_CURRENT
-    rcall STOREE
-    call DOCOMPILE
-    addr_ DODEFER
-
-    call EDP            ; ( -- EDP )
-    dup_                ; ( -- EDP EDP )
-    call COMMA          ; ( -- EDP )
-    call DOCOMPILE
-    addr_ FETCHE
-    call DOCOMPILE
-    addr_ STOREE
-    ; increment EDP one cell then save it
-    twoplus_          ; ( -- EDP+2 )
-    call DOTO
-    addr_ EDP
-    ret
-
-; ( c<name> -- ) 
-; Compiler
-; creates a RAM based defer vector
-forthword_ RDEFER, 0x8006, "Rdefer"
-    call DOCREATE
-    rcall GET_CURRENT
-    rcall STOREE
-
-    call DOCOMPILE
-    addr_ DODEFER
-
-    call HERE
-    call COMMA
-    rcall TWO
-    call ALLOT
-
-    call DOCOMPILE
-    addr_ FETCHE
-    call DOCOMPILE
-    addr_ STOREE
-    ret
-
-; ( xt1 c<char> -- ) 
-; System
-; stores xt into defer or compiles code to do so at runtime
-;forthword_ IS, 0x0002, "is"
-;    call STATE
-;    rcall FETCH
-;    zerosense_
-;    breq PFA_IS1
-;    call BRACKETTICK
-;    call DOCOMPILE
-;    addr_ DEFERSTORE
-;    ret
-;PFA_IS1:
-;    call TICK
-;    jmp DEFERSTORE
 
 
 ; ( -- ) System
