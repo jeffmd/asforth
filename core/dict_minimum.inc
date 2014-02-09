@@ -218,16 +218,6 @@ forthword_ DPPLUS, 0x8003, "dp+"
     addr_ DP
     ret
 
-; ( -- xt ) (C: "<space>name" -- )
-; Compiler
-; what ' does in the interpreter mode, do in colon definitions
-
-forthword_ BRACKETTICK, 0x0003, "[']"
-    
-    ;addr_ -1; DOLITERAL ********* FIXME
-    rcall TICK
-    jmp LIT
-    ;rjmp COMMA
 
 ; (  -- )
 ; doesn't do anything - no operation
@@ -804,17 +794,26 @@ PFA_TYPE1:
 PFA_TYPE2:
     jmp DROP
 
+
+; ( "<spaces>name" -- XT XTflags)
+; Dictionary
+; search dictionary for name, returns XT and its flags or throw an exception -13
+forthword_ TICKF, 0x8002, "'f"
+    rcall PARSENAME
+    rcall FINDNAME
+    dupzerosense_
+    brne TICKFEXIT
+    doliteral_ -13
+    rjmp THROW
+TICKFEXIT:
+    ret
+
 ; ( "<spaces>name" -- XT )
 ; Dictionary
 ; search dictionary for name, returns XT or throw an exception -13
 forthword_ TICK, 0x8001, "'"
-    rcall PARSENAME
-    rcall FINDNAME
-    zerosense_
-    brne PFA_TICK1
-    doliteral_ -13
-    rjmp THROW
-PFA_TICK1:
+    rcall TICKF
+    drop_
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

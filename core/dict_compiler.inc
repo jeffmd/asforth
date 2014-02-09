@@ -146,33 +146,6 @@ forthword_ LATEST, 0x8006, "latest"
 ram_LATEST: .space 2
 .popsection
 
-; ( i*x -- j*y ) (R: nest-sys1 -- ) (C: colon-sys1 -- colon-sys2 )
-; Compiler
-; organize the XT replacement to call other colon code
-;forthword_ DOES, 0x0005, "does>"
-    ; compile pop return to tos which is used as 'THIS' pointer
-    call DOCOMPILE
-    ;addr_ DODOES
-    call DOCOMPILE
-    addr_ R_FROM
-    ret 
-
-; ( -- )
-; Compiler
-; replace the XT written by CREATE to call the code that follows does>
-; does not return to caller
-;forthword_ DODOES, 0x8007, "(does>)"
-    ; change call at XT to code after (does>)
-    ; get current word and then get its XT being compiled
-    ; code at XT is 'call POPRET'
-    ; want to change POPRET address to return address
-    rcall R_FROM
-    rcall GET_CURRENT
-    rcall FETCHE
-    rcall NFA2LFA
-    twoplus_   ; lfa>xt+1
-    rjmp STOREI
-
 
 ; ( -- ) (C: "<spaces>name" -- )
 ; Compiler

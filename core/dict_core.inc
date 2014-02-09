@@ -1051,18 +1051,18 @@ forthword_ RDEFER, 0x8006, "Rdefer"
 ; ( xt1 c<char> -- ) 
 ; System
 ; stores xt into defer or compiles code to do so at runtime
-forthword_ IS, 0x0002, "is"
-    call STATE
-    rcall FETCH
-    zerosense_
-    breq PFA_IS1
-    call BRACKETTICK
-    call DOCOMPILE
-    addr_ DEFERSTORE
-    ret
-PFA_IS1:
-    call TICK
-    jmp DEFERSTORE
+;forthword_ IS, 0x0002, "is"
+;    call STATE
+;    rcall FETCH
+;    zerosense_
+;    breq PFA_IS1
+;    call BRACKETTICK
+;    call DOCOMPILE
+;    addr_ DEFERSTORE
+;    ret
+;PFA_IS1:
+;    call TICK
+;    jmp DEFERSTORE
 
 
 ; ( -- ) System

@@ -59,3 +59,8 @@
 
     cr .
 ;
+
+( addr -- )
+\ Tools
+\ print the contents at ram addr
+: ? @ . ;
