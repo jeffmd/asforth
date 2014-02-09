@@ -148,7 +148,7 @@ forthword_ RJMPC, 0x8005, "rjmpc"
     jmp STOREI           ; ( )
 
 ; compile rcall to xt at the current dictionary position (DP) if relative distance is in range
-; otherwise do long call to xt
+; otherwise do long call to xt.  If word flag indicates inlining then the word is inlined.
 ; ( xt flags -- )
 forthword_ COMPILEXT, 0x8003, "cxt"
     ; default to tail call optimization enabled
@@ -205,7 +205,7 @@ forthword_ CALLC, 0x8005, "callc"
 
 ; branch 1 word if not zero
 ; ( -- )
-forthword_ BRNZ1_COMPILE, 0x0005, "brnz1,"
+forthword_ BRNZ1_COMPILE, 0x0006, "brnz1,"
     ;compile brne 1w : F409
     doliteral_ 0xf409
     jmp COMMA
