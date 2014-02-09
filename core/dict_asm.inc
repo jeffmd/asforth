@@ -212,6 +212,6 @@ forthword_ BRNZ1_COMPILE, 0x0005, "brnz1,"
 
 ; dupzerosense inline
 ; ( f -- f )
-forthword_ DUPZEROSENSE_COMPILE, 0x0004, "?0?c"
+forthword_ DUPZEROSENSE_COMPILE, 0x0004, "?0?,"
     doliteral_ 0x9700
     jmp COMMA
