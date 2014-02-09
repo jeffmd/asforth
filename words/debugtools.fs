@@ -26,6 +26,8 @@
   ]
 ;
 
+( val -- )
+\ output hex value in FFFF format
 : .hex4 hex <# # # # # #> type space decimal ;
 
 ( addr1 cnt -- addr2)
