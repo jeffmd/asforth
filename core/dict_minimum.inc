@@ -18,7 +18,7 @@ ram_state: .space 2
 forthword_ BASE, 0x8004, "base"
     call DOUSER
     addr_ USER_BASE
-    ret
+
 
 ; ( -- a-addr )
 ; System Variable
@@ -26,14 +26,6 @@ forthword_ BASE, 0x8004, "base"
 forthword_ G_IN, 0x8003, ">in"
     call DOUSER
     .word USER_G_IN
-
-; ( -- a-addr )
-; System Variable
-; pointer to current cursor position in input buffer
-; its where the next key input will go
-;forthword_ CURSOR, 0x8006, "cursor"
-;    call DOUSER
-;    .word USER_CURSOR
 
 
 ; ( -- addr )

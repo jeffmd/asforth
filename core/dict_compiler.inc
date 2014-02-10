@@ -124,27 +124,27 @@ forthword_ BRACKETCHAR, 0x0006, "[char]"
 ; Exceptions
 ; check flag. If true display the parsed text and throw exception -2 
 
-forthword_ ABORTSTRING, 0x0006, "abort\""
-    ; postpone if
-    call DOCOMPILE
-    addr_ 0 ; ******* FIXME
-    call DP
-    call DOCOMPILE
-    .word -1
+;forthword_ ABORTSTRING, 0x0006, "abort\""
+;    ; postpone if
+;    call DOCOMPILE
+;    addr_ 0 ; ******* FIXME
+;    call DP
+;    call DOCOMPILE
+;    .word -1
     
-    ;rcall DOTSTRING
+;    ;rcall DOTSTRING
     
-    call DOCOMPILE
-    addr_ -1 ; DOLITERAL ******* FIXME
+;    call DOCOMPILE
+;    addr_ -1 ; DOLITERAL ******* FIXME
     
-    call DOCOMPILE
-    .word -2
-    call DOCOMPILE
-    addr_ THROW
-    ; then
-    call DP
-    rcall SWAP
-    rjmp STOREI
+;    call DOCOMPILE
+;    .word -2
+;    call DOCOMPILE
+;    addr_ THROW
+;    ; then
+;    call DP
+;    rcall SWAP
+;    rjmp STOREI
 
 ; ( i*x -- ) (R: j*y -- )
 ; Exceptions
