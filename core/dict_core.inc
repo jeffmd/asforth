@@ -3,9 +3,9 @@
 ; ( -- ) (R: nest-sys -- )
 ; Compiler
 ; exit the word
-forthword_ EXIT, 0x8004, "exit"
-    r_drop_
-    ret
+;forthword_ EXIT, 0x8004, "exit"
+;    r_drop_
+;    ret
 
 ; ( xt -- ) 
 ; System
@@ -296,9 +296,9 @@ forthword_ GREATERZERO, 0x8002, "0>"
 ; ( -- 0 ) 
 ; Arithmetics
 ; set TOS to 0
-forthword_ ZEROSET, 0x8102, "0:"
-    zerotos_
-    ret
+;forthword_ ZEROSET, 0x8102, "0:"
+;    zerotos_
+;    ret
 
 ; ( -- 0 ) 
 ; Arithmetics
