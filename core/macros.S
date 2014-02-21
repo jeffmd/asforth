@@ -10,8 +10,14 @@
 
 .include "user.inc"
 
-  zerol = 2 ; always has zero / cleared
-  zeroh = 3
+  ; registers 0, 1 not used except in interrupt service routines
+  isrZL = 0
+  isrZH = 1
+
+  ; register 2, 3 not used except in interrupt service routines
+  isrXL = 2 
+  isrXH = 3
+  
   upl = 4 ; ram user area 
   uph = 5
 
@@ -22,7 +28,12 @@
   bl = 8
   bh = 9
   
-
+  ; registars 10, 11, 12, 13 not used except in interrupt service routines
+  isrt0 = 10
+  isrt1 = 11
+  isrt2 = 12
+  isrt3 = 13
+  
   temp4 = 14
   temp5 = 15
 
@@ -47,14 +58,18 @@
 
 ; forth flags register
   fflags = 22
-
+  
+; always has zero / cleared
+  zerol = 23
+  
   ; parameter top of stack [TOS] register
   tosl = 24
   tosh = 25
 
 
-  ; YL,YL is to hold the Forth VM Parameter/Data stack pointer
-  ; XL, XH general purpose addressing
+  ; XL (26), XH (27) general purpose addressing
+  ; YL (28), YH (29) is to hold the Forth VM Parameter/Data stack pointer
+  ; ZL (30), ZH (31) are used as memory pointer
   ; SP is used to hold the Forth VM return stack pointer and is the hardware stack pointer for the MCU
 
 ; Inline macros
@@ -131,7 +146,8 @@
 .endm
 
 .macro zerotos_
-    movw tosl, zerol
+    clr tosl
+    clr zerol
 .endm
 
 .macro anditos_ val

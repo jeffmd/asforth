@@ -284,12 +284,12 @@ forthword_ SLASH, 0x8001, "/"
 DIV16_16:
 	clr	temp4        	;clear remainder Low byte
     sub	temp5, temp5    ;clear remainder High byte and carry
-    ldi	temp7, 17	    ;init loop counter
+    ldi	XL, 17	    ;init loop counter
 
 DIV16_16_1:
 	rol	temp0		    ;shift left dividend
     rol	temp1
-    dec	temp7	    	;decrement counter
+    dec	XL	    	;decrement counter
     brne DIV16_16_2		;if done
     ret
 
@@ -330,8 +330,8 @@ forthword_ SLASHMOD, 0x8004, "/mod"
     ld temp0, Y+
     ld temp1, Y+
 
-    mov	temp6, temp1	;move dividend High to sign register
-    eor	temp6, temp3	;xor divisor High with sign register
+    mov	XL, temp1	;move dividend High to sign register
+    eor	XL, temp3	;xor divisor High with sign register
     sbrs	temp1, 7	;if MSB in dividend set
     rjmp	SLASHMOD_1
     com	temp1		;    change sign of dividend
@@ -350,7 +350,7 @@ SLASHMOD_1:
 SLASHMOD_2:
     rcall DIV16_16
 
-    sbrs	temp6, 7		;    if MSB in sign register set
+    sbrs	XL, 7		;    if MSB in sign register set
     rjmp	SLASHMOD_end
     com	temp1            	;        change sign of result
     com	temp0
@@ -359,8 +359,8 @@ SLASHMOD_2:
 
 SLASHMOD_end:
     ; put remainder on stack
-    st -Y,temp5
-    st -Y,temp4
+    st -Y, temp5
+    st -Y, temp4
     ; put quotient on stack
     movw tosl, temp0
     ret
@@ -1466,7 +1466,6 @@ forthword_ COLD, 0x8004, "cold"
     in_ r10, MCUSR
     clr r11
     clr zerol
-    clr zeroh
     out_ MCUSR, zerol
     ; init first user data area
     ; allocate space for User Area
@@ -1976,17 +1975,17 @@ forthword_ MSTAR, 0x8002, "m*"
     movw tosl, r0
     ; signed ah*bl
     mulsu temp3, temp0
-    sbc   temp5, zeroh
+    sbc   temp5, zerol
     add   tosh,  r0
     adc   temp4, r1
-    adc   temp5, zeroh
+    adc   temp5, zerol
 
     ; signed al*bh
     mulsu temp1, temp2
-    sbc   temp5, zeroh
+    sbc   temp5, zerol
     add   tosh,  r0
     adc   temp4, r1
-    adc   temp5, zeroh
+    adc   temp5, zerol
 
     pushtos
     movw tosl, temp4
@@ -2009,21 +2008,21 @@ forthword_ UMSLASHMOD, 0x8006, "um/mod"
 PFA_UMSLASHMODmod:
 
   ; set loop counter
-    ldi temp6, 0x10
+    ldi XL, 0x10
 
 PFA_UMSLASHMODmod_loop:
     ; shift left, saving high bit
-    clr temp7
+    clr XH
     lsl temp0
     rol temp1
     rol temp2
     rol temp3
-    rol temp7
+    rol XH
 
   ; try subtracting divisor
     cp temp2, temp4
     cpc temp3, temp5
-    cpc temp7,zerol
+    cpc XH,zerol
 
     brcs PFA_UMSLASHMODmod_loop_control
 
@@ -2036,7 +2035,7 @@ PFA_UMSLASHMODmod_subtract:
     sbc temp3, temp5
 
 PFA_UMSLASHMODmod_loop_control:
-    dec  temp6
+    dec  XL
     brne PFA_UMSLASHMODmod_loop
 
 PFA_UMSLASHMODmod_done:

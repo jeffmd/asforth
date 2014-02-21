@@ -270,7 +270,7 @@ PFA_GREATERDONE:
 ; compare with zero
 forthword_ LESSZERO, 0x8002, "0<"
     cp tosl, zerol
-    cpc tosh, zeroh
+    cpc tosh, zerol
     rjmp PFA_LESSDONE
 
 ; ( u1 u2 -- flag ) 
@@ -290,7 +290,7 @@ forthword_ UGREATER, 0x8002, "u>"
 ; true if n1 is greater than 0
 forthword_ GREATERZERO, 0x8002, "0>"
     cp tosl, zerol
-    cpc tosh, zeroh
+    cpc tosh, zerol
     rjmp PFA_GREATERDONE
 
 ; ( -- 0 ) 
@@ -537,7 +537,7 @@ PFA_RSHIFT2:
 ; Stack
 ; current return stack pointer address
 ; must be called, don't use jmp to optimize
-forthword_ RP_FETCH, 0x8003, "rp@"
+forthword_ RP_FETCH, 0x8003 | DIS_CALL_OPT, "rp@"
     pushtos
     in tosl, SPL
     in tosh, SPH
@@ -548,7 +548,8 @@ forthword_ RP_FETCH, 0x8003, "rp@"
 ; ( addr  -- ) (R: -- x*y)
 ; Stack
 ; set return stack pointer
-forthword_ RP_STORE, 0x8003, "rp!"
+; must be called
+forthword_ RP_STORE, 0x8003 | DIS_CALL_OPT, "rp!"
     in temp2, SREG
     cli
     ; keep the return address
@@ -1191,5 +1192,37 @@ forthword_ NASTORE, 0x8003, "na!"
 ; Extended VM
 ; update register A with post increment from last memory operation (Extended VM)
 forthword_ APLUS, 0x8102, "a+"
-   aplus_
-   ret
+    aplus_
+    ret
+   
+; ( -- )
+; ISR
+; define the start of an Interrupt Service Routine
+; must be called
+forthword_ ISTART, 0x8005 | DIS_CALL_OPT, "istart"
+    ; save important registers
+    movw isrZL, ZL
+    movw isrXL, XL
+    movw isrt0, temp0
+    movw isrt2, temp2
+    
+    ; pop return address
+    pop ZH
+    pop ZL
+    
+    ; save status register
+    in temp0, SREG
+    push temp0
+    ijmp
+; ( -- )
+; ISR
+; define the end of an Interupt Service Routine
+forthword_ IEND, 0x8004, "iend"
+    movw ZL, isrZL
+    movw XL, isrXL
+    movw temp0, isrt0
+    movw temp2, temp2
+    
+    pop isrt0
+    out SREG, isrt0    
+    reti
