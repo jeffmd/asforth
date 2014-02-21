@@ -1199,7 +1199,7 @@ forthword_ APLUS, 0x8102, "a+"
 ; ISR
 ; define the start of an Interrupt Service Routine
 ; must be called
-forthword_ ISTART, 0x8005 | DIS_CALL_OPT, "istart"
+forthword_ ISTART, 0x8006 | DIS_CALL_OPT, "istart"
     ; save important registers
     movw isrZL, ZL
     movw isrXL, XL
