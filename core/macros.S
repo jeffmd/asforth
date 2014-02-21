@@ -147,7 +147,7 @@
 
 .macro zerotos_
     clr tosl
-    clr zerol
+    clr tosh
 .endm
 
 .macro anditos_ val
