@@ -1,7 +1,6 @@
 Compiler: (54 words)
 ---------
 
-exit ( -- ) exit current word, performs a asm ret instuction
 ."
 s"
 s,
@@ -35,7 +34,7 @@ con ( x -- ) (C: x "<spaces>name" -- ) create a constant in the dictionary
 	example: 10 con myconstant -> create a word called "myconstant" that will put the value 10 on the top of the stack
 user
 recurse
-immediate
+immediate ( -- ) makes most recently defined word immediate : it will execute when in compile mode
 [char]
 create
 latest
@@ -337,6 +336,8 @@ search-wordlist
 dbg-
 dbg+
 init-user
+.hex4
+dmp
 
 ***** Core words done in assembly
 exit
