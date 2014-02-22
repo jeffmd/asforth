@@ -67,14 +67,6 @@
 \ print the contents at ram addr
 : ? @ . ;
 
-( n -- )
-\ Tools
-\ add an Interrupt Service Routine to the ISR vector table
-\ n is the address of the table entry
-\ only need to write the address 
-\ jmp instruction is already in vector table
-: isr 1+ ' swap !i ;
-
 ( bbb reg -- )
 \ tools
 \ set the bits of reg defined by bit pattern in bbb

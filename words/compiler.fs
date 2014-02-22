@@ -404,3 +404,21 @@
       defer!
     then
 ; immediate
+
+( n -- )
+\ Compiler
+\ add an Interrupt Service Routine to the ISR vector table
+\ n is the address of the table entry
+\ only need to write the address 
+\ jmp instruction is already in vector table
+: isr 1+ ' swap !i ;
+
+( C: name -- )
+\ Compiler
+\ start defining an Interrupt Service Routine
+: :isr : compile (i:) ; immediate
+
+( -- )
+\ Compiler
+\ finish defining an Interrupt Service Routine
+: ;isr compile (i;) [compile] ; ; immediate
