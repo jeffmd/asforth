@@ -1,5 +1,5 @@
 
- -- n )
+( -- n )
 \ Tools
 \ Amount of available RAM (incl. PAD)
 : unused
@@ -28,13 +28,13 @@
 
 ( val -- )
 \ output hex value in FFFF format
-: .hex4 hex <# # # # # #> type space decimal ;
+: .$ hex <# # # # # #> type space decimal ;
 
 ( addr1 cnt -- addr2)
 : dmp
- over .hex4 [char] : emit space
+ over .$ [char] : emit space
  begin
-   ?while 1- swap dup @i .hex4 1+ swap
+   ?while 1- swap dup @i .$ 1+ swap
  repeat
  drop
 ;
@@ -66,3 +66,21 @@
 \ Tools
 \ print the contents at ram addr
 : ? @ . ;
+
+( n -- )
+\ Tools
+\ add an Interrupt Service Routine to the ISR vector table
+\ n is the address of the table entry
+\ only need to write the address 
+\ jmp instruction is already in vector table
+: isr 1+ ' swap !i ;
+
+( bbb reg -- )
+\ tools
+\ set the bits of reg defined by bit pattern in bbb
+: rbs :a c@ or ac! ;
+
+( bbb reg --- )
+\ tools
+\ clear the bits of reg defined by bit pattern in bbb
+: rbc >a not ac@ and ac! ;

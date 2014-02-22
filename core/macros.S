@@ -131,7 +131,7 @@
     adiw YL, 2
 .endm
 
-.macro invert_
+.macro not_
     com tosl
     com tosh
 .endm

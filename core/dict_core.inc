@@ -401,8 +401,8 @@ forthword_ PLUS, 0x8001, "+"
 ; ( n1 -- n2) 
 ; Arithmetics
 ; 1-complement of TOS
-forthword_ INVERT, 0x8206, "invert"
-    invert_
+forthword_ NOT, 0x8203, "not"
+    not_
     ret
 
 ; ( ddddkkkk -- kkkkdddd )
@@ -1083,7 +1083,7 @@ forthword_ AFETCHI, 0x8003, "a@i"
 ; ( -- n ) 
 ; Extended VM
 ; Read a byte from ram pointed to by register A (Extended VM)
-forthword_ ACFETCH, 0x8004, "ac@"
+forthword_ ACFETCH, 0x8003, "ac@"
     movw ZL, al
     pushtos
     rjmp ZCFETCH
@@ -1092,7 +1092,7 @@ forthword_ ACFETCH, 0x8004, "ac@"
 ; ( n -- )
 ; Extended VM
 ; Move TOS to A register (Extended VM)
-forthword_ TO_A, 0x8002, ">a"
+forthword_ TO_A, 0x8302, ">a"
     copytoa_
     poptos
     ret
@@ -1100,7 +1100,7 @@ forthword_ TO_A, 0x8002, ">a"
 ; ( n -- )
 ; Extended VM
 ; Move TOS to B register (Extended VM)
-forthword_ TO_B, 0x8002, ">b"
+forthword_ TO_B, 0x8302, ">b"
     copytob_
     poptos
     ret
@@ -1136,7 +1136,7 @@ forthword_ NIPTOB, 0x8205, "nip>b"
 ; ( n1 -- n2 ) 
 ; Extended VM
 ; read the A register (Extended VM)
-forthword_ A_, 0x8001, "a"
+forthword_ A_, 0x8301, "a"
     pushtos
     movw tosl, al
     ret
@@ -1144,7 +1144,7 @@ forthword_ A_, 0x8001, "a"
 ; ( n1 -- n2 ) 
 ; Extended VM
 ; read the B register (Extended VM)
-forthword_ B_, 0x8001, "b"
+forthword_ B_, 0x8301, "b"
     pushtos
     movw tosl, bl
     ret

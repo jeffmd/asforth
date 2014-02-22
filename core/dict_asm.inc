@@ -7,7 +7,7 @@
 forthword_ MASKNOT, 0x0005, "mask!" 
     call ROT          ;( src mask dest1 )
     call OVER         ;( src mask dest1 mask )
-    invert_           ;( src mask dest1 !mask )
+    not_           ;( src mask dest1 !mask )
     call AND          ;( src mask dest1' )
     call RROT         ;( dest1' src mask )
     call AND          ;( dest1' src' )

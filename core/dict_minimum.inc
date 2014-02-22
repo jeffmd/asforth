@@ -268,7 +268,7 @@ forthword_ TURNKEY, 0x8007, "turnkey"
 ; Logic
 ; 2-complement
 forthword_ NEGATE, 0x8006, "negate"
-    invert_
+    not_
     oneplus_
     ret
 
@@ -595,7 +595,7 @@ PFA_DIGITQ2:
 ; compare two unsigned numbers, returns true flag if u1 is less then or equal to u2
 forthword_ ULESSEQUAL, 0x8003, "u<="
     call UGREATER
-    invert_
+    not_
     ret
 
 ; ( u1 u2 -- flag )
@@ -603,7 +603,7 @@ forthword_ ULESSEQUAL, 0x8003, "u<="
 ; compare two unsigned numbers, returns true flag if u1 is greater then or equal to u2
 forthword_ UGREATEREQUAL, 0x8003, "u>="
     call ULESS
-    invert_
+    not_
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
