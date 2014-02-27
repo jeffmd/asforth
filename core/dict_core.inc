@@ -1162,6 +1162,15 @@ forthword_ PLUSSTORE, 0x8002, "+!"
     adc tosh, temp3
     rjmp ZSTORE
     
+; ( a-addr -- ) 
+; Memory
+; add 1 to content of RAM address a-addr
+forthword_ ONEPLUSSTORE, 0x8003, "1+!"
+    movw ZL, tosl
+    ld tosl, Z
+    ldd tosh, Z+1
+    adiw tosl, 1
+    rjmp ZSTORE
 
 ; ( n -- )
 ; Extended VM
