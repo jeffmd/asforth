@@ -72,7 +72,17 @@
 \ set the bits of reg defined by bit pattern in bbb
 : rbs :a c@ or ac! ;
 
-( bbb reg --- )
+( bbb reg -- )
 \ tools
 \ clear the bits of reg defined by bit pattern in bbb
 : rbc >a not ac@ and ac! ;
+
+( reg -- )
+\ tools
+\ read register/ram byte contents and print in binary form
+: rb? c@ bin <# # # # # # # # # #> type space decimal ;
+
+( reg -- )
+\ tools
+\ read register/ram byte contents and print in hex form
+: r? c@ .$ ;
