@@ -340,7 +340,6 @@ init-user
 dmp
 
 ***** Core words done in assembly
-exit
 exec
 dup
 ?dup
