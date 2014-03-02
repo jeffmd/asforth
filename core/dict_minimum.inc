@@ -485,7 +485,7 @@ forthword_ SHARP, 0x8001, "#"
     
     ; <then>
 PFA_SHARP1:
-    doliteral_ 0x30              ; ( u2 char 0x30 )
+    doliteral_ 0x30     ; ( u2 char 0x30 )
     call PLUS           ; ( u2 char )
     rjmp HOLD           ; ( u2 )
 
@@ -619,21 +619,21 @@ forthword_ DOSLITERAL, 0x800a, "(sliteral)"
   ; get return address to get string length, calculate string address start,
   ; and calculate return address
   call R_FROM   ; ( -- raddr )  (R: raddr -- )
-  dup_      ; ( -- raddr raddr )
-  dup_      ; ( -- raddr raddr raddr )
+  dup_          ; ( -- raddr raddr )
+  dup_          ; ( -- raddr raddr raddr )
   ; get the string length
   call FETCHI   ; ( -- raddr raddr slength )
   call SWAP     ; ( -- raddr slength raddr )
   ; calculate string address
-  oneplus_    ; ( -- raddr slength straddr )
+  oneplus_      ; ( -- raddr slength straddr )
   ; calculate the number of words to skip over for return address
   call FLIP     ; ( -- straddr slength raddr )
   call OVER     ; ( -- straddr slength raddr slength)
   call WALIGN   ; ( -- straddr slength raddr k/2 )
   call PLUS     ; ( -- straddr slength raddr+k/2 )
   ; also skip string length
-  oneplus_    ; ( -- straddr slength raddr+k/2+1 )
-  call TO_R      ; ( -- )
+  oneplus_      ; ( -- straddr slength raddr+k/2+1 )
+  call TO_R     ; ( -- )
   ret
 
 ; ( addr len -- )
@@ -980,9 +980,9 @@ ACCEPT_echo:
     call PLUS             ; ( k tibaddr+#tib ) 
     call CSTORE           ; ( )
 
-    call ONE              ; ( 1 ) 
+    ;call ONE              ; ( 1 ) 
     rcall SHARPTIB        ; ( 1 #tibaddr )
-    call PLUSSTORE        ; ( )
+    call ONEPLUSSTORE        ; ( )
 
 ACCEPT_checkmaxinput:
     ; check if max number of char input
@@ -1392,9 +1392,9 @@ DOINTERPRET_reset:
   ; <then>
 DOINTERPRET_ok:
   ; make sure in buf pointer is not at zero
-  call ONE                ; ( 1 )
+  ;call ONE                ; ( 1 )
   call G_IN               ; ( 1 >inaddr )
-  call PLUSSTORE          ; ( )
+  call ONEPLUSSTORE       ; ( )
   rjmp PROMPTOK
 
 ; ( -- )
