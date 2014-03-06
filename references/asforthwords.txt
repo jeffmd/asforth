@@ -230,6 +230,7 @@ nip>b
 a
 b
 +!
+1+!
 fill
 itoi
 @e[]
@@ -308,7 +309,7 @@ catch
 abort
 throw
 
-ASM: (11 words)
+ASM: (13 words)
 ----
 
 mask!
@@ -322,8 +323,10 @@ sbic,
 sbis,
 rjmp
 rjmpc
+int+
+int-
 
-Tools: (10 words)
+Tools: (14 words)
 ------
 
 .s ( -- )  stack dump - prints contents of stack to output device
@@ -338,6 +341,10 @@ dbg+
 init-user
 .hex4
 dmp
+rbs
+rbc
+rb?
+r?
 
 ***** Core words done in assembly
 exec

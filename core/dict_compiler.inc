@@ -120,6 +120,137 @@ forthword_ BRACKETCHAR, 0x0006, "[char]"
     call CHAR
     jmp LIT
 
+; ( addr len len' -- )
+; Compiler
+; compiles a string from RAM to Flash
+forthword_ DOSCOMMA, 0x8004, "(s,)"
+    rcall COMMA        ; ( addr len )
+    rcall BTOW         ; ( addr len/2 rem )
+    rcall TO_R         ; ( addr len/2 ) (R: rem )
+    niptoa_            ; ( len/2 ) A: addr
+
+    ; begin
+PFA_SCOMMA1:
+    ; ?while
+    dupzerosense_      ; ( len )
+    breq PFA_SCOMMA2
+    rcall AFETCH       ; ( len c1c2 )
+    aplus_
+    rcall COMMA        ; ( len )
+    oneminus_          ; ( len-1 )
+    ; repeat
+    rjmp PFA_SCOMMA1
+
+PFA_SCOMMA2:
+    drop_              ; (  )
+    rcall R_FROM       ; ( rem ) (R: )
+    ; if
+    zerosense_         ; ( )
+    breq PFA_SCOMMA3
+      rcall ACFETCH    ; ( c1 )
+      rcall COMMA      ; ( )
+
+    ; then
+PFA_SCOMMA3:
+    ret
+
+; ( addr len -- )
+; Compiler
+; compiles a string from RAM to Flash
+forthword_ SCOMMA, 0x8002, "s,"
+    dup_
+    ; fall thru into DOSCOMMA
+    rjmp DOSCOMMA
+
+; ( n -- )
+; Dictionary
+; compile 16 bit into flash at (dictionary pointer) DP
+forthword_ COMMA, 0x8001, ","
+    call DP
+    rcall STOREI
+    rjmp DPPLUSONE
+
+; ( -- )
+; Dictionary
+; increment 16 bit (dictionary pointer) DP by one
+forthword_ DPPLUSONE, 0x8004, "dp+1"
+    rcall ONE
+    rjmp DPPLUS
+
+; ( offset -- )
+; Dictionary
+; add offset to 16 bit (dictionary pointer) DP
+forthword_ DPPLUS, 0x8003, "dp+"
+    call DP
+    rcall PLUS
+    call DOTO
+    addr_ DP
+    ret
+
+; ( --  ) (C: "<spaces>name" -- voc-link )
+; Compiler
+; parse the input and create an vocabulary entry without XT and data field (PF)
+forthword_ DOCREATE, 0x8008, "(create)"
+    call PARSENAME
+    rcall GET_CURRENT
+    ; fall thru into HEADER
+    rjmp HEADER
+
+; ( addr len wid -- voc-link )
+; Compiler
+; creates the vocabulary header without XT and data field (PF) in the wordlist wid
+forthword_ HEADER, 0x8006, "header"
+    call DP              ; ( addr len wid DP )
+    rcall TO_R           ; ( addr len wid ) (R: DP )
+    rcall TO_R           ; ( addr len ) (R: DP wid )
+    ; <if>
+    dupzerosense_
+    breq HEADER_error
+      dup_                ; ( addr len len )
+      sbr tosh, 0x80      ; ( addr len len' )
+      rcall DOSCOMMA      ; ( )
+      ; make voc link
+      rcall R_FROM        ; ( wid ) (R: DP )
+      call FETCHE         ; ( VE_HEAD )
+      rcall COMMA         ; ( )
+      rcall R_FROM         ; ( DP ) (R: )
+      ret
+
+    ; <then>
+HEADER_error:
+    ; -16: attempted to use zero length string as a name
+    doliteral_ -16
+    jmp THROW
+
+
+; ( -- )
+; Dictionary
+; read the following cell from the dictionary and append it to the current dictionary position.
+; must use call/rcall
+
+forthword_ DOCOMPILE, 0x8009 | DIS_CALL_OPT, "(compile)"
+    rcall R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
+    rcall FETCHI         ; ( xt1 )
+    ; don't allow inlining
+    rcall ZERO           ; ( xt1 0 )
+    jmp COMPILEXT
+    
+; ( start count -- )
+; compiler
+; copy code to current dictionary entry
+forthword_ INLINE, 0x8006, "inline"
+    ; set disable tail call optimize flag:
+    sbr fflags, 1<<DIS_CALL_OPT_FB
+
+    ; dp swap dup dp+ itoi
+    call DP
+    rcall SWAP
+    dup_
+    rcall DPPLUS
+    jmp ITOI
+
+
+
 ; ( i*x x1 -- | i*x ) (R: j*y -- | j*y ) (C: "ccc<quote>" -- )
 ; Exceptions
 ; check flag. If true display the parsed text and throw exception -2 

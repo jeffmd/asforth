@@ -122,53 +122,6 @@ forthword_ ALLOT, 0x8005, "allot"
     addr_ HERE
     ret
 
-; ( --  ) (C: "<spaces>name" -- voc-link )
-; Compiler
-; parse the input and create an vocabulary entry without XT and data field (PF)
-forthword_ DOCREATE, 0x8008, "(create)"
-    rcall PARSENAME
-    call GET_CURRENT
-    ; fall thru into HEADER
-    rjmp HEADER
-
-; ( addr len wid -- voc-link )
-; Compiler
-; creates the vocabulary header without XT and data field (PF) in the wordlist wid
-forthword_ HEADER, 0x8006, "header"
-    rcall DP            ; ( addr len wid DP )
-    call TO_R           ; ( addr len wid ) (R: DP )
-    call TO_R           ; ( addr len ) (R: DP wid )
-    ; <if>
-    dupzerosense_
-    breq HEADER_error
-      dup_                ; ( addr len len )
-      sbr tosh, 0x80      ; ( addr len len' )
-      rcall DOSCOMMA      ; ( )
-      ; make voc link
-      call R_FROM         ; ( wid ) (R: DP )
-      call FETCHE         ; ( VE_HEAD )
-      rcall COMMA         ; ( )
-      call R_FROM         ; ( DP ) (R: )
-      ret
-
-    ; <then>
-HEADER_error:
-    ; -16: attempted to use zero length string as a name
-    doliteral_ -16
-    rjmp THROW
-
-
-; ( -- )
-; Dictionary
-; read the following cell from the dictionary and append it to the current dictionary position.
-; must use call/rcall
-
-forthword_ DOCOMPILE, 0x8009 | DIS_CALL_OPT, "(compile)"
-    call R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
-    call FETCHI         ; ( xt1 )
-    ; don't allow inlining
-    call ZERO           ; ( xt1 0 )
-    jmp COMPILEXT
 
 ; ( distance -- distance flag )
 ; Tools
@@ -184,37 +137,6 @@ QDIST_HTEST:
     brsh QDIST_INRANGE
     jmp ZERO
 
-
-; ( n -- )
-; Dictionary
-; compile 16 bit into flash at (dictionary pointer) DP
-forthword_ COMMA, 0x8001, ","
-    rcall DP
-    call STOREI
-    rjmp DPPLUSONE
-
-; ( -- )
-; Dictionary
-; increment 16 bit (dictionary pointer) DP by one
-forthword_ DPPLUSONE, 0x8004, "dp+1"
-    call ONE
-    rjmp DPPLUS
-
-; ( offset -- )
-; Dictionary
-; add offset to 16 bit (dictionary pointer) DP
-forthword_ DPPLUS, 0x8003, "dp+"
-    rcall DP
-    call PLUS
-    rcall DOTO
-    addr_ DP
-    ret
-
-
-; (  -- )
-; doesn't do anything - no operation
-forthword_ NOOP, 0x8004, "noop"
-    ret
 
 ; ( -- )
 ; Numeric IO
@@ -263,130 +185,6 @@ forthword_ TURNKEY, 0x8007, "turnkey"
     addr_ FETCHE
     addr_ STOREE
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ( n1 -- n2 )
-; Logic
-; 2-complement
-forthword_ NEGATE, 0x8006, "negate"
-    not_
-    oneplus_
-    ret
-
-; ( n1 n2 -- n3)
-; Arithmetics
-; divide n1 by n2. giving the quotient
-forthword_ SLASH, 0x8001, "/"
-    rcall SLASHMOD
-    nip_
-    ret
-
-; code adapted from atmel avr200.asm
-DIV16_16:
-	clr	temp4        	;clear remainder Low byte
-    sub	temp5, temp5    ;clear remainder High byte and carry
-    ldi	XL, 17	    ;init loop counter
-
-DIV16_16_1:
-	rol	temp0		    ;shift left dividend
-    rol	temp1
-    dec	XL	    	;decrement counter
-    brne DIV16_16_2		;if done
-    ret
-
-DIV16_16_2:
-	rol	temp4	;shift dividend into remainder
-    rol	temp5
-    sub	temp4, temp2	;remainder = remainder - divisor
-    sbc	temp5, temp3	;
-    brcc	DIV16_16_3		;if result negative
-    add	temp4, temp2	;    restore remainder
-    adc	temp5, temp3
-    clc			;    clear carry to be shifted into result
-    rjmp	DIV16_16_1		;else
-
-DIV16_16_3:
-	sec			;    set carry to be shifted into result
-    rjmp	DIV16_16_1
-
-; ( n1 n2 -- rem quot)
-; Arithmetics
-; unsigned division n1/n2 with remainder and quotient
-forthword_ USLASHMOD, 0x8005, "u/mod"
-    movw temp2, tosl
-
-    ld temp0, Y+
-    ld temp1, Y+
-
-    rcall DIV16_16
-    rjmp SLASHMOD_end
-
-
-; ( n1 n2 -- rem quot)
-; Arithmetics
-; signed division n1/n2 with remainder and quotient
-forthword_ SLASHMOD, 0x8004, "/mod"
-    movw temp2, tosl
-
-    ld temp0, Y+
-    ld temp1, Y+
-
-    mov	XL, temp1	;move dividend High to sign register
-    eor	XL, temp3	;xor divisor High with sign register
-    sbrs	temp1, 7	;if MSB in dividend set
-    rjmp	SLASHMOD_1
-    com	temp1		;    change sign of dividend
-    com	temp0
-    subi	temp0, lo8(-1)
-    sbci	temp1, hi8(-1)
-
-SLASHMOD_1:
-    sbrs	temp3, 7	;if MSB in divisor set
-    rjmp	SLASHMOD_2
-    com	temp3		;    change sign of divisor
-    com	temp2
-    subi	temp2, lo8(-1)
-    sbci	temp3, hi8(-1)
-
-SLASHMOD_2:
-    rcall DIV16_16
-
-    sbrs	XL, 7		;    if MSB in sign register set
-    rjmp	SLASHMOD_end
-    com	temp1            	;        change sign of result
-    com	temp0
-    subi	temp0, lo8(-1)
-    sbci	temp1, hi8(-1)
-
-SLASHMOD_end:
-    ; put remainder on stack
-    st -Y, temp5
-    st -Y, temp4
-    ; put quotient on stack
-    movw tosl, temp0
-    ret
-
-; ( n1 n2 -- n3)
-; Arithmetics
-; divide n1 by n2 giving the remainder n3
-forthword_ MOD, 0x8003, "mod"
-    rcall SLASHMOD
-    drop_
-    ret
-
-; ( n1 -- u1 )
-; Arithmetics
-; get the absolute value
-
-forthword_ ABS, 0x8003 "abs"
-    dup_
-    call LESSZERO
-    ; <if>
-    zerosense_
-    breq ABS_exit
-      rjmp NEGATE
-    ; <then>  
-ABS_exit:
-    ret
 
 ; ( n1 n2 -- n1|n2 )
 ; Compare
@@ -472,7 +270,7 @@ forthword_ L_SHARP, 0x8002, "<#"
 forthword_ SHARP, 0x8001, "#"
     rcall BASE
     call FETCH          ; ( u1 base )
-    rcall USLASHMOD       ; ( rem u2 )
+    call USLASHMOD       ; ( rem u2 )
     call SWAP           ; ( u2 rem )
     doliteral_ 9                 ; ( u2 rem 9 )
     call OVER           ; ( u2 rem 9 rem )
@@ -532,7 +330,7 @@ SIGN_POS:
 ; singed PNO with single cell numbers
 forthword_ DOT, 0x8001, "."
     dup_             ; ( n n )
-    rcall ABS        ; ( n n' )
+    call ABS        ; ( n n' )
     call ZERO        ; ( n n' 0 ) not right aligned
     rcall DOTR
     rjmp SPACE
@@ -636,67 +434,12 @@ forthword_ DOSLITERAL, 0x800a, "(sliteral)"
   call TO_R     ; ( -- )
   ret
 
-; ( addr len -- )
-; Compiler
-; compiles a string from RAM to Flash
-forthword_ SCOMMA, 0x8002, "s,"
-    dup_
-    ; fall thru into DOSCOMMA
-    rjmp DOSCOMMA
-
-
-; ( len -- len/2 rem)
-; Arithmetics
-; convert byte length to word length plus remainder
-forthword_ BTOW, 0x8004, "btow"
-    dup_        ; ( -- len len)
-    twoslash_   ; ( -- len len/2
-    call TUCK   ; ( -- len/2 len len/2
-    twostar_    ; ( -- len/2 len len'
-    call MINUS  ; ( -- len/2 rem
-    ret
-
-
-; ( addr len len' -- )
-; Compiler
-; compiles a string from RAM to Flash
-;forthword_ DOSCOMMA, 0x8004, "(s,)"
-DOSCOMMA:
-    rcall COMMA        ; ( addr len )
-    rcall BTOW         ; ( addr len/2 rem )
-    call TO_R          ; ( addr len/2 ) (R: rem )
-    niptoa_            ; ( len/2 ) A: addr
-
-    ; begin
-PFA_SCOMMA1:
-    ; ?while
-    dupzerosense_      ; ( len )
-    breq PFA_SCOMMA2
-    call AFETCH        ; ( len c1c2 )
-    aplus_
-    rcall COMMA        ; ( len )
-    oneminus_          ; ( len-1 )
-    ; repeat
-    rjmp PFA_SCOMMA1
-
-PFA_SCOMMA2:
-    drop_              ; (  )
-    call R_FROM        ; ( rem ) (R: )
-    ; if
-    zerosense_         ; ( )
-    breq PFA_SCOMMA3
-      call ACFETCH     ; ( c1 )
-      rcall COMMA      ; ( )
-
-    ; then
-PFA_SCOMMA3:
-    ret
 
 ; ( addr n --  )
 ; Tools
 ; reads string from flash and prints it
 forthword_ ITYPE, 0x8005, "itype"
-    rcall BTOW       ; ( --addr len/2 rem )
+    call BTOW       ; ( --addr len/2 rem )
     call TO_B        ; ( addr len/2 ) B: rem
     call SWAP        ; ( len/2 addr )
     twostar_         ; ( len/2 addr*2 )
@@ -1056,7 +799,7 @@ PFA_NUMBER1:
     call R_FROM            ; ( n flagsign' ) (R: base )
     zerosense_
     breq PFA_NUMBER4
-    rcall NEGATE
+    call NEGATE
 PFA_NUMBER4:
     call TRUE              ; ( n true ) (R: base )
 PFA_NUMBER5:
@@ -1167,7 +910,7 @@ PFA_TO_NUMBER2:
         call ROT             ; ( adr len u)
         rcall BASE
         call FETCH           ; ( adr len u base)
-        rcall STAR           ; ( adr len u*base)
+        call STAR           ; ( adr len u*base)
         call B_              ; ( adr len u' digit)
         call PLUS            ; ( adr len u')
         call RROT            ; ( u' adr len )
@@ -1755,9 +1498,9 @@ forthword_ TO, 0x0002, "to"
     call FETCH
     zerosense_
     breq PFA_TO1        ; not in compile state, so jump to runtime operation
-    rcall DOCOMPILE
+    call DOCOMPILE
     addr_ DOTO
-    rjmp COMMA
+    jmp COMMA
 
 ; ( n -- ) (R: IP -- IP+2)
 ; Tools
@@ -1952,117 +1695,6 @@ PFA_ICOMPARE_DONE:
     doliteral_ -1
     ret
 
-; ( u1 u2 -- u)
-; Arithmetics
-; multiply 2 unsigned cells to a cell
-forthword_ STAR, 0x8001, "*"
-    rcall MSTAR
-    drop_
-    ret
-
-; ( u1 u2 -- u)
-; Arithmetics
-; multiply 2 unsigned cells to a cell
-forthword_ MSTAR, 0x8002, "m*"
-    movw temp0, tosl
-    poptos
-    movw temp2, tosl
-    ; high cell ah*bh
-    muls temp3, temp1
-    movw temp4, r0
-    ; low cell  al*bl
-    mul  temp2, temp0
-    movw tosl, r0
-    ; signed ah*bl
-    mulsu temp3, temp0
-    sbc   temp5, zerol
-    add   tosh,  r0
-    adc   temp4, r1
-    adc   temp5, zerol
-
-    ; signed al*bh
-    mulsu temp1, temp2
-    sbc   temp5, zerol
-    add   tosh,  r0
-    adc   temp4, r1
-    adc   temp5, zerol
-
-    pushtos
-    movw tosl, temp4
-    ret
-
-; ( ud u2 -- rem quot)
-; Arithmetics
-; unsigned division ud / u2 with remainder
-forthword_ UMSLASHMOD, 0x8006, "um/mod"
-    movw temp4, tosl
-
-    ld temp2, Y+
-    ld temp3, Y+
-
-    ld temp0, Y+
-    ld temp1, Y+
-
-;; unsigned 32/16 -> 16r16 divide
-
-PFA_UMSLASHMODmod:
-
-  ; set loop counter
-    ldi XL, 0x10
-
-PFA_UMSLASHMODmod_loop:
-    ; shift left, saving high bit
-    clr XH
-    lsl temp0
-    rol temp1
-    rol temp2
-    rol temp3
-    rol XH
-
-  ; try subtracting divisor
-    cp temp2, temp4
-    cpc temp3, temp5
-    cpc XH,zerol
-
-    brcs PFA_UMSLASHMODmod_loop_control
-
-PFA_UMSLASHMODmod_subtract:
-    ; dividend is large enough
-    ; do the subtraction for real
-    ; and set lowest bit
-    inc temp0
-    sub temp2, temp4
-    sbc temp3, temp5
-
-PFA_UMSLASHMODmod_loop_control:
-    dec  XL
-    brne PFA_UMSLASHMODmod_loop
-
-PFA_UMSLASHMODmod_done:
-    ; put remainder on stack
-    st -Y,temp3
-    st -Y,temp2
-
-    ; put quotient on stack
-    movw tosl, temp0
-    ret
-
-; ( n1 n2 n3 -- rem quot)
-; Arithmetics
-; signed multiply n1 * n2 and division  with n3 with double precision intermediate and remainder
-forthword_ STARSLASHMOD, 0x8005, "*/mod"
-    call TO_R
-    rcall MSTAR
-    call R_FROM
-    rjmp UMSLASHMOD
-
-; (n1 n2 n3 -- n4)
-; Arithmetics
-; signed multiply and division with double precision intermediate
-forthword_ STARSLASH, 0x8002, "*/"
-    rcall STARSLASHMOD
-    nip_
-    ret
 
 ; (addr-from addr-to n -- )
 ; Memory
@@ -2106,20 +1738,6 @@ ITOI_B:
 
 ITOI_END:
     jmp TWODROP
-
-; ( start count -- )
-; compiler
-; copy code to current dictionary entry
-forthword_ INLINE, 0x8006, "inline"
-    ; set disable tail call optimize flag:
-    sbr fflags, 1<<DIS_CALL_OPT_FB
-
-    ; dp swap dup dp+ itoi
-    call DP
-    call SWAP
-    dup_
-    rcall DPPLUS
-    rjmp ITOI
 
 
 ; ( -- addr )

@@ -19,6 +19,5 @@ forthword_ USART, 0x8006, "+usart"
   doliteral_ BAUDRATE_LOW
   call CSTORE
 
-  rcall XT_USART_INIT_RX
-  rjmp XT_USART_INIT_TX
-
+  call XT_USART_INIT_RX
+  jmp XT_USART_INIT_TX
