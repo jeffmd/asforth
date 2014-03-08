@@ -75,7 +75,7 @@ forthword_ DROP, 0x8204, "drop"
 ; ( n n -- ) 
 ; Stack
 ; drop TOS twice
-forthword_ TWODROP, 0x8005, "2drop"
+forthword_ TWODROP, 0x8305, "2drop"
     adiw YL, 2
     drop_
     ret
