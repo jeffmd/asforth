@@ -129,7 +129,7 @@ forthword_ ROT, 0x8003, "rot"
 ; Stack
 ; reverse rotate the three top level cells
 ; equivalent to rotate twice but faster
-forthword_ RROT, 0x8004, "rrot"
+forthword_ RROT, 0x8004, "-rot"
     ld temp0, Y+
     ld temp1, Y+
     ld temp2, Y+

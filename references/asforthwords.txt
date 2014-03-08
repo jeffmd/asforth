@@ -113,7 +113,7 @@ nip ( n1 n2 -- n2) drop next on stack, one before top of stack
 tuck ( n1 n2 -- n2 n1 n2) tuck TOS before NOS, same as SWAP OVER
 flip ( n1 n2 n3 -- n3 n2 n1) exchange TOS and stack cell before NOS, same as SWAP ROT
 rot ( n1 n2 n3 -- n2 n3 n1) rotate the three top level cells
-rrot ( n1 n2 n3 -- n3 n1 n2) reverse rotate the three top level cells equivalent to rotate twice but faster
+-rot ( n1 n2 n3 -- n3 n1 n2) reverse rotate the three top level cells equivalent to rotate twice but faster
 sp@ (  -- addr ) current data stack pointer
 sp! ( addr -- i*x) set data stack pointer to addr
 sp0 ( -- addr) start address of the data stack
