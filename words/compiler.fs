@@ -1,12 +1,40 @@
-: immediate
+( mask -- wid flags)
+\ clear flags in wid
+: widf 
     wid
     @e
     dup
     @i
-    $7FFF and
+    rot and
     swap
     !i
+;
+
+( -- )
+\ make most current word immediate
+: immediate
+    $7FFF widf
 ; immediate
+
+( -- )
+\ make most current word compile only
+: :c
+    $F7FF widf
+; immediate
+
+( -- )
+\ make most current word inlinned
+: inlinned
+    $FEFF widf
+; immediate
+
+( -- )
+\ make most current word immediate and compile only
+: :ic
+    $77FF
+    widf
+; immediate
+
 
 : \
     source
@@ -27,7 +55,7 @@
 \ force compile any word including immediate words
 : [compile]
   'f cxt
-; immediate
+; :ic
 
 ( -- ) ( C: "<space>name" -- )
 \ Compiler
@@ -36,7 +64,7 @@
 : [']
     '
     [compile] lit
-; immediate
+; :ic
 
 
 ( -- ) ( C: "<space>name" -- )
@@ -48,13 +76,13 @@
     swap
     [compile] lit
     [compile] lit
-; immediate
+; :ic
 
 
 : compile
   ['f] (compile) cxt
   ' ,
-; immediate
+; :ic
 
 ( -- ) ( C: x "<spaces>name" -- )
 \ compiler
@@ -138,7 +166,7 @@
     \ compile pop return to tos which is used as 'THIS' pointer
     compile (does>)
     compile r>
-; immediate
+; :ic
 
 ( -- xt )
 \ Compiler
@@ -209,7 +237,7 @@
 : if
    ?brc
    >mark 
-; immediate
+; :ic
 
 ( f -- f ) ( C: -- orig )
 \ Compiler
@@ -217,7 +245,7 @@
 : ?if
     ??brc
     >mark 
-; immediate
+; :ic
 
 ( C: orig1 -- orig2 ) 
 \ Compiler
@@ -228,7 +256,7 @@
     >mark         \ mark forward rjmp at end of true code
     swap          \ swap new mark with previouse mark
     >resolve      \ rjmp from previous mark to false code starting here
-; immediate
+; :ic
 
 ( -- ) ( C: orig -- ) 
 \ Compiler
@@ -236,7 +264,7 @@
 \ part of: if...[else]...then
 : then
     >resolve
-; immediate
+; :ic
 
 
 ( -- ) ( C: -- dest ) 
@@ -245,7 +273,7 @@
 \ part of: begin...while...repeat, begin...until, begin...again 
 : begin
     <mark
-; immediate
+; :ic
 
 
 ( -- ) ( C: dest -- ) 
@@ -255,7 +283,7 @@
 
 : again
     <resolve
-; immediate
+; :ic
 
 ( f -- ) ( C: dest -- orig dest ) 
 \ Compiler
@@ -264,7 +292,7 @@
 : while
     [compile] if
     swap
-; immediate
+; :ic
 
 ( f -- f) ( C: dest -- orig dest ) 
 \ Compiler
@@ -273,7 +301,7 @@
 : ?while
     [compile] ?if
     swap
-; immediate
+; :ic
 
 ( --  ) ( C: orig dest -- )
 \ Compiler
@@ -281,7 +309,7 @@
 : repeat
   [compile] again
   >resolve
-; immediate
+; :ic
 
 
 ( f -- ) ( C: dest -- ) 
@@ -292,7 +320,7 @@
 : until
     ?brc
     <resolve
-; immediate
+; :ic
 
 ( f -- ) ( C: dest -- ) 
 \ Compiler
@@ -302,7 +330,7 @@
 : ?until
     ??brc
     <resolve
-; immediate
+; :ic
 
 ( -- ) 
 \ Compiler
@@ -311,7 +339,7 @@
 : recurse
     latest  \ ;****FIXME******
     @ $0400 cxt
-; immediate
+; :ic
 
 ( n cchar -- ) 
 \ Compiler
@@ -421,4 +449,4 @@
 ( -- )
 \ Compiler
 \ finish defining an Interrupt Service Routine
-: ;isr compile (i;) [compile] ; ; immediate
+: ;isr compile (i;) [compile] ; ; :ic

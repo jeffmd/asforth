@@ -3,7 +3,7 @@
 ; ( -- addr )
 ; System Variable
 ; system state
-forthword_ STATE, 0x8005, "state"
+forthword_ STATE, 0, 5, "state"
     doliteral_ ram_state
     ret
 
@@ -15,7 +15,7 @@ ram_state: .space 2
 ; Numeric IO
 ; location of the cell containing the number conversion radix
 
-forthword_ BASE, 0x8004, "base"
+forthword_ BASE, 0, 4, "base"
     call DOUSER
     addr_ USER_BASE
 
@@ -23,7 +23,7 @@ forthword_ BASE, 0x8004, "base"
 ; ( -- a-addr )
 ; System Variable
 ; pointer to current read position in input buffer
-forthword_ G_IN, 0x8003, ">in"
+forthword_ G_IN, 0, 3, ">in"
     call DOUSER
     .word USER_G_IN
 
@@ -31,7 +31,7 @@ forthword_ G_IN, 0x8003, ">in"
 ; ( -- addr )
 ; System Variable
 ; variable holding the number of characters in TIB
-forthword_ SHARPTIB, 0x8004, "#tib"
+forthword_ SHARPTIB, 0, 4, "#tib"
     doliteral_ ram_sharptib
     ret
 
@@ -43,7 +43,7 @@ ram_sharptib: .space 2
 ; System Variable
 ; Address of the temporary scratch buffer.
 
-forthword_ PAD, 0x8003, "pad"
+forthword_ PAD, 0, 3, "pad"
     rcall HERE
     doliteral_ 100
     jmp PLUS
@@ -51,7 +51,7 @@ forthword_ PAD, 0x8003, "pad"
 ; ( c -- )
 ; Character IO
 ; fetch the emit vector and EXEC it. should emit a character from TOS
-forthword_ EMIT, 0x8004, "emit"
+forthword_ EMIT, 0, 4, "emit"
     call DODEFER
     .word USER_EMIT
     addr_ UDEFERFETCH
@@ -60,7 +60,7 @@ forthword_ EMIT, 0x8004, "emit"
 ; ( -- f )
 ; Character IO
 ; fetch emit? vector and EXEC it. should return the ready-to-send condition
-forthword_ EMITQ, 0x8005, "emit?"
+forthword_ EMITQ, 0, 5, "emit?"
     call DODEFER
     .word USER_EMITQ
     addr_ UDEFERFETCH
@@ -69,7 +69,7 @@ forthword_ EMITQ, 0x8005, "emit?"
 ; ( -- c )
 ; Character IO
 ; fetch key vector and EXEC it, should leave a single character on TOS
-forthword_ KEY, 0x8003, "key"
+forthword_ KEY, 0, 3, "key"
     call DODEFER
     .word USER_KEY
     addr_ UDEFERFETCH
@@ -78,7 +78,7 @@ forthword_ KEY, 0x8003, "key"
 ; ( -- f)
 ; Character IO
 ; fetch key? vector and EXEC it. should turn on key sender, if it is disabled/stopped
-forthword_ KEYQ, 0x8004, "key?"
+forthword_ KEYQ, 0, 4, "key?"
     call DODEFER
     .word USER_KEYQ
     addr_ UDEFERFETCH
@@ -87,7 +87,7 @@ forthword_ KEYQ, 0x8004, "key?"
 ; ( -- f-addr )
 ; System Value
 ; address of the next free dictionary cell
-forthword_ DP, 0x8002, "dp"
+forthword_ DP, 0, 2, "dp"
     call DOVALUE
     .word EE_DP
     addr_ FETCHE
@@ -96,7 +96,7 @@ forthword_ DP, 0x8002, "dp"
 ; ( -- e-addr )
 ; System Value
 ; address of the next free address in eeprom
-forthword_ EDP, 0x8003, "edp"
+forthword_ EDP, 0, 3, "edp"
     call DOVALUE
     .word EE_EDP
     addr_ FETCHE
@@ -105,7 +105,7 @@ forthword_ EDP, 0x8003, "edp"
 ; ( -- addr )
 ; System Value
 ; address of the next free data space (RAM) cell
-forthword_ HERE, 0x8004, "here"
+forthword_ HERE, 0, 4, "here"
     call DOVALUE
     .word EE_HERE
     addr_ FETCHE
@@ -115,7 +115,7 @@ forthword_ HERE, 0x8004, "here"
 ; System
 ; allocate or release memory in RAM
 
-forthword_ ALLOT, 0x8005, "allot"
+forthword_ ALLOT, 0, 5, "allot"
     rcall HERE
     call PLUS
     rcall DOTO
@@ -127,7 +127,7 @@ forthword_ ALLOT, 0x8005, "allot"
 ; Tools
 ; Determines if a relative distance is within a relative jmp/call range
 ; flag is true if relative distance is between -2048 and 2047
-forthword_ QRDIST, 0x8006, "?rdist"
+forthword_ QRDIST, 0, 6, "?rdist"
     cpi tosh, 0x08
     brsh QDIST_HTEST
 QDIST_INRANGE:
@@ -142,28 +142,28 @@ QDIST_HTEST:
 ; Numeric IO
 ; set base for number conversion to 2
 
-forthword_ BIN, 0x8003, "bin"
+forthword_ BIN, 0, 3, "bin"
     call TWO
     rjmp BASESTORE
 
 ; ( -- )
 ; Numeric IO
 ; set base for numeric conversion to 10
-forthword_ DECIMAL, 0x8007, "decimal"
+forthword_ DECIMAL, 0, 7, "decimal"
     call TEN
     rjmp BASESTORE
 
 ; ( -- )
 ; Numeric IO
 ; set base for number conversion to 16
-forthword_ HEX, 0x8003, "hex"
+forthword_ HEX, 0, 3, "hex"
     doliteral_ 16
     rjmp BASESTORE
     
 ; ( n -- )
 ; Numeric IO
 ; save base
-forthword_ BASESTORE, 0x8005, "base!"
+forthword_ BASESTORE, 0, 5, "base!"
     rcall BASE
     jmp STORE
 
@@ -171,7 +171,7 @@ forthword_ BASESTORE, 0x8005, "base!"
 ; Character IO
 ; put ascii code of the blank/space character to the stack
 
-forthword_ BL, 0x8002, "bl"
+forthword_ BL, 0, 2, "bl"
     doliteral_ 32
     ret
 
@@ -179,7 +179,7 @@ forthword_ BL, 0x8002, "bl"
 ; System Value
 ; Deferred action during startup/reset
 
-forthword_ TURNKEY, 0x8007, "turnkey"
+forthword_ TURNKEY, 0, 7, "turnkey"
     call DODEFER
     .word EE_TURNKEY
     addr_ FETCHE
@@ -189,10 +189,11 @@ forthword_ TURNKEY, 0x8007, "turnkey"
 ; ( n1 n2 -- n1|n2 )
 ; Compare
 ; compare two values leave the smaller one
-forthword_ MIN, 0x8003, "min"
+forthword_ MIN, 0, 3, "min"
     call TWOOVER
     call GREATER
     ; <if>
+MIN_TEST:
     zerosense_
     breq MIN_exit
       call SWAP
@@ -204,22 +205,15 @@ MIN_exit:
 ; ( n1 n2 -- n1|n2 )
 ; Compare
 ; compare two values, leave the bigger one
-forthword_ MAX, 0x8003, "max"
+forthword_ MAX, 0, 3, "max"
     call TWOOVER
     call LESS
-    ; <if>
-    zerosense_
-    breq MAX_exit
-      call SWAP
-      
-MAX_exit:
-    drop_
-    ret
+    rjmp MIN_TEST
 
 ; ( n min max -- f)
 ; Compare
 ; check if n is within min..max
-forthword_ WITHIN, 0x8006, "within"
+forthword_ WITHIN, 0, 6, "within"
     call OVER
     call MINUS
     call TO_A
@@ -235,7 +229,7 @@ forthword_ WITHIN, 0x8006, "within"
 ; ( -- addr )
 ; Numeric IO
 ; pointer to current write position in the Pictured Numeric Output buffer
-forthword_ HLD, 0x8003, "hld"
+forthword_ HLD, 0, 3, "hld"
     doliteral_ ram_hld
     ret
 
@@ -247,7 +241,7 @@ ram_hld: .space 2
 ; Numeric IO
 ; prepend character to pictured numeric output buffer
 
-forthword_ HOLD, 0x8004, "hold"
+forthword_ HOLD, 0, 4, "hold"
     rcall HLD    ; ( c ram_hld )
     call TO_A    ; ( c ) A: ram_hld)
     call AFETCH  ; ( c hpos )
@@ -259,7 +253,7 @@ forthword_ HOLD, 0x8004, "hold"
 ; ( -- )
 ; Numeric IO
 ; initialize the pictured numeric output conversion process
-forthword_ L_SHARP, 0x8002, "<#"
+forthword_ L_SHARP, 0, 2, "<#"
     rcall PAD
     rcall HLD
     jmp STORE
@@ -267,7 +261,7 @@ forthword_ L_SHARP, 0x8002, "<#"
 ; ( u1 -- u2 )
 ; Numeric IO
 ; pictured numeric output: convert one digit
-forthword_ SHARP, 0x8001, "#"
+forthword_ SHARP, 0, 1, "#"
     rcall BASE
     call FETCH          ; ( u1 base )
     call USLASHMOD       ; ( rem u2 )
@@ -290,7 +284,7 @@ PFA_SHARP1:
 ; ( u -- 0 )
 ; Numeric IO
 ; pictured numeric output: convert all digits until 0 (zero) is reached
-forthword_ SHARP_S, 0x8002, "#s"
+forthword_ SHARP_S, 0, 2, "#s"
     ; <begin>
     rcall SHARP          ; ( u )
     ; <until>
@@ -301,7 +295,7 @@ forthword_ SHARP_S, 0x8002, "#s"
 ; ( u1 -- addr count )
 ; Numeric IO
 ; Pictured Numeric Output: convert PNO buffer into an string
-forthword_ SHARP_G, 0x8002, "#>"
+forthword_ SHARP_G, 0, 2, "#>"
     drop_
     rcall HLD
     call FETCH
@@ -313,7 +307,7 @@ forthword_ SHARP_G, 0x8002, "#>"
 ; ( n -- )
 ; Numeric IO
 ; place a - in HLD if n is negative
-forthword_ SIGN, 0x8004, "sign"
+forthword_ SIGN, 0, 4, "sign"
     call LESSZERO
     ; <if>
     zerosense_
@@ -328,7 +322,7 @@ SIGN_POS:
 ; ( n -- )
 ; Numeric IO
 ; singed PNO with single cell numbers
-forthword_ DOT, 0x8001, "."
+forthword_ DOT, 0, 1, "."
     dup_             ; ( n n )
     call ABS        ; ( n n' )
     call ZERO        ; ( n n' 0 ) not right aligned
@@ -339,7 +333,7 @@ forthword_ DOT, 0x8001, "."
 ; ( wantsign n w -- )
 ; Numeric IO
 ; singed PNO with cell numbers, right aligned in width w
-forthword_ DOTR, 0x8002, ".r"
+forthword_ DOTR, 0, 2, ".r"
     call TO_R        ; ( wantsign n ) (R: w)
     rcall L_SHARP
     rcall SHARP_S     ; ( wantsign 0 )
@@ -357,7 +351,7 @@ forthword_ DOTR, 0x8002, ".r"
 ; ( c -- (number|) flag )
 ; Numeric IO
 ; tries to convert a character to a number, set flag accordingly
-forthword_ DIGITQ, 0x8006, "digit?"
+forthword_ DIGITQ, 0, 6, "digit?"
     doliteral_ 0x30
     call MINUS
     dup_
@@ -391,7 +385,7 @@ PFA_DIGITQ2:
 ; ( u1 u2 -- flag )
 ; Compare
 ; compare two unsigned numbers, returns true flag if u1 is less then or equal to u2
-forthword_ ULESSEQUAL, 0x8003, "u<="
+forthword_ ULESSEQUAL, 0, 3, "u<="
     call UGREATER
     not_
     ret
@@ -399,7 +393,7 @@ forthword_ ULESSEQUAL, 0x8003, "u<="
 ; ( u1 u2 -- flag )
 ; Compare
 ; compare two unsigned numbers, returns true flag if u1 is greater then or equal to u2
-forthword_ UGREATEREQUAL, 0x8003, "u>="
+forthword_ UGREATEREQUAL, 0, 3, "u>="
     call ULESS
     not_
     ret
@@ -412,7 +406,7 @@ forthword_ UGREATEREQUAL, 0x8003, "u>="
 ; return cell is string length
 ; string then occupies the following cells: c2c1 c4c3 ...
 
-forthword_ DOSLITERAL, 0x800a, "(sliteral)"
+forthword_ DOSLITERAL, 0, 10, "(sliteral)"
 
   ; get return address to get string length, calculate string address start,
   ; and calculate return address
@@ -438,7 +432,7 @@ forthword_ DOSLITERAL, 0x800a, "(sliteral)"
 ; ( addr n --  )
 ; Tools
 ; reads string from flash and prints it
-forthword_ ITYPE, 0x8005, "itype"
+forthword_ ITYPE, 0, 5, "itype"
     call BTOW       ; ( --addr len/2 rem )
     call TO_B        ; ( addr len/2 ) B: rem
     call SWAP        ; ( len/2 addr )
@@ -473,7 +467,7 @@ PFA_ITYPE3:
 ; ( addr -- addr+1 n )
 ; Tools
 ; get string address and length information out of a counted string in flash
-forthword_ ICOUNT, 0x8002, "$l"
+forthword_ ICOUNT, 0, 2, "$l"
     dup_
     oneplus_
     call SWAP
@@ -482,7 +476,7 @@ forthword_ ICOUNT, 0x8002, "$l"
 ; ( -- )
 ; Character IO
 ; cause subsequent output appear at the beginning of the next line
-forthword_ CR, 0x8002, "cr"
+forthword_ CR, 0, 2, "cr"
     doliteral_ 13
     rcall EMIT
     call TEN
@@ -491,7 +485,7 @@ forthword_ CR, 0x8002, "cr"
 ; ( -- )
 ; Character IO
 ; emits a space (bl)
-forthword_ SPACE, 0x8005, "space"
+forthword_ SPACE, 0, 5, "space"
     rcall BL
     rjmp EMIT
 
@@ -499,7 +493,7 @@ forthword_ SPACE, 0x8005, "space"
 ; Character IO
 ; emits n space(s) (bl)
 ; only accepts positive values
-forthword_ SPACES, 0x8006, "spaces"
+forthword_ SPACES, 0, 6, "spaces"
     ; make sure a positive number
     dup_
     call GREATERZERO
@@ -516,7 +510,7 @@ PFA_SPACES2:
 ; ( addr n -- )
 ; Character IO
 ; print a RAM based string
-forthword_ TYPE, 0x8004, "type"
+forthword_ TYPE, 0, 4, "type"
     niptoa_         ; ( n ) A: addr
 PFA_TYPE1:
     dupzerosense_
@@ -533,7 +527,7 @@ PFA_TYPE2:
 ; ( "<spaces>name" -- XT XTflags)
 ; Dictionary
 ; search dictionary for name, returns XT and its flags or throw an exception -13
-forthword_ TICKF, 0x8002, "'f"
+forthword_ TICKF, 0, 2, "'f"
     rcall PARSENAME
     rcall FINDNAME
     dupzerosense_
@@ -546,7 +540,7 @@ TICKFEXIT:
 ; ( "<spaces>name" -- XT )
 ; Dictionary
 ; search dictionary for name, returns XT or throw an exception -13
-forthword_ TICK, 0x8001, "'"
+forthword_ TICK, 0, 1, "'"
     rcall TICKF
     drop_
     ret
@@ -555,7 +549,7 @@ forthword_ TICK, 0x8001, "'"
 ; ( -- a-addr )
 ; Exceptions
 ; USER variable used by catch/throw
-forthword_ HANDLER, 0x8006, "handle"
+forthword_ HANDLER, 0, 6, "handle"
     call DOUSER
     .word USER_HANDLER
 
@@ -563,7 +557,7 @@ forthword_ HANDLER, 0x8006, "handle"
 ; Exceptions
 ; setup handler to catch exceptions and then EXEC XT.
 
-forthword_ CATCH, 0x8005, "catch"
+forthword_ CATCH, 0, 5, "catch"
     ; sp@ >r
     call SP_FETCH       ; ( xt SP )
     call TO_R           ; ( xt ) (R: ret -- callerret SP )
@@ -588,7 +582,7 @@ forthword_ CATCH, 0x8005, "catch"
 ; Exceptions
 ; throw an exception
 ; assumes jmp to get here
-forthword_ THROW, 0x8005, "throw"
+forthword_ THROW, 0, 5, "throw"
     dupzerosense_
     brne PFA_THROW1
 	drop_
@@ -610,7 +604,7 @@ PFA_THROW1:
 ; String
 ; skips leading occurances in string at addr1/n1 leaving addr2/n2 pointing to the 1st non-c character
 
-forthword_ CSKIP, 0x8005, "cskip"
+forthword_ CSKIP, 0, 5, "cskip"
     call TO_B           ; ( -- addr1 n1 ) B: c
 PFA_CSKIP1:
     dupzerosense_       ; ( -- addr' n')
@@ -629,12 +623,12 @@ PFA_CSKIP2:
     ret
 ; ( -- )
 ; send Ctrl-Q (XON) to resume transmission
-;forthword_ XON, 0x8003, "XON"
+;forthword_ XON, 0, 3, "XON"
 ;    doliteral_ 17
 ;    rjmp EMIT
 
 ; send Ctrl-S (XOFF) to pause transmission
-;forthword_ XOFF, 0x8004, "XOFF"
+;forthword_ XOFF, 0, 4, "XOFF"
 ;    doliteral_ 19
 ;    rjmp EMIT
 
@@ -644,7 +638,7 @@ PFA_CSKIP2:
 ; flag will be true if input buffer needs to be processed ie interpreted
 ; flag will be false if more input needed
 
-forthword_ ACCEPT, 0x8006, "accept"
+forthword_ ACCEPT, 0, 6, "accept"
     ; <begin>
     rcall KEY        ; ( k )
     dupzerosense_    ; ( k )
@@ -750,7 +744,7 @@ ACCEPT_END:
 ; ( -- f )
 ; System
 ; refills the input buffer
-forthword_ REFILL, 0x8006, "refill"
+forthword_ REFILL, 0, 6, "refill"
     call DODEFER
     .word USER_REFILL
     addr_ UDEFERFETCH
@@ -759,7 +753,7 @@ forthword_ REFILL, 0x8006, "refill"
 ; ( "<spaces>name" -- c )
 ; Tools
 ; copy the first character of the next word onto the stack
-forthword_ CHAR, 0x8004, "char"
+forthword_ CHAR, 0, 4, "char"
     rcall PARSENAME
     drop_
     jmp CFETCH
@@ -767,7 +761,7 @@ forthword_ CHAR, 0x8004, "char"
 ; (addr len -- [n] f)
 ; Numeric IO
 ; convert a string at addr to a number
-forthword_ NUMBER, 0x8006, "number"
+forthword_ NUMBER, 0, 6, "number"
     rcall BASE
     call FETCH
     call TO_R               ; ( addr len ) (R: base)
@@ -809,7 +803,7 @@ PFA_NUMBER5:
 ; ( addr len -- addr' len' )
 ; Numeric IO
 ; skip a numeric prefix character
-;forthword_ PRAEFIX, 0x8007, "praefix"
+;forthword_ PRAEFIX, 0, 7, "praefix"
 PRAEFIX:        ; ( adr1 len1 -- adr2 len2 )
     call OVER
     call CFETCH
@@ -829,7 +823,7 @@ PFA_PRAEFIX0:
 ; (c -- ) Numeric IO
 ; R( -- )
 ; set the BASE value depending on the character
-;forthword_ SETBASE, 0x8007, "setbase"
+;forthword_ SETBASE, 0, 7, "setbase"
 SETBASE:        ; ( c -- )
     dup_
     doliteral_ '$
@@ -867,7 +861,7 @@ PFA_SETBASE2:        ; ( error)
 ; (addr len -- addr len flag) Numeric IO
 ; R( -- )
 ; check for + - sign
-;forthword_ SETBASE, 0x800A, "numbersign"
+;forthword_ SETBASE, 0, A, "numbersign"
 NUMBERSIGN:        ; ( addr len -- )
     call OVER      ; ( addr len addr )
     call CFETCH    ; ( addr len char )
@@ -895,7 +889,7 @@ PFA_NUMBERSIGN_PLUS:
 ; ( u1 c-addr1 len1 -- u2 c-addr2 len2 )
 ; Numeric IO
 ; convert a string to a number  c-addr2/u2 is the unconverted string
-forthword_ TO_NUMBER, 0x8007, ">number"
+forthword_ TO_NUMBER, 0, 7, ">number"
     dupzerosense_
     breq PFA_TO_NUMBER1
         call OVER            ; ( u adr len adr)
@@ -924,7 +918,7 @@ PFA_TO_NUMBER1:
 ; ( char "ccc<char>" -- c-addr u )
 ; String
 ; in input buffer parse ccc delimited string by the delimiter char.
-forthword_ PARSE, 0x8005, "parse"
+forthword_ PARSE, 0, 5, "parse"
     call TO_R        ; ( -- ) (R: c )
     rcall SRCIN      ; ( -- addr len)
     call R_FROM      ; ( -- addr' len' c)
@@ -940,7 +934,7 @@ forthword_ PARSE, 0x8005, "parse"
 ; String
 ; Scan string at addr1/n1 for the first occurance of c, leaving addr1/n2, char at n2 is first non-c character
 
-forthword_ CSCAN, 0x8005, "cscan"
+forthword_ CSCAN, 0, 5, "cscan"
     niptob_           ; ( -- addr1 c ) B: n1
     call OVER         ; ( -- addr1 c addr1 )
     call TO_A         ; ( -- addr1 c ) A: addr1
@@ -971,7 +965,7 @@ PFA_CSCAN3:
 ; ( -- addr n )
 ; System
 ; address and current length of the input buffer
-forthword_ SOURCE, 0x8006, "source"
+forthword_ SOURCE, 0, 6, "source"
     call DODEFER
     .word USER_SOURCE
     addr_ UDEFERFETCH
@@ -980,7 +974,7 @@ forthword_ SOURCE, 0x8006, "source"
 ; ( addr1 u1 n -- addr2 u2 )
 ; String
 ; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
-forthword_ SLASHSTRING, 0x8002, "/$"
+forthword_ SLASHSTRING, 0, 2, "/$"
     call OVER    ; ( -- addr1 u1 n u1)
     rcall MIN     ; ( -- addr1 u1 n|u1)
     call ROT     ; ( -- u1 n addr1 )
@@ -992,7 +986,7 @@ forthword_ SLASHSTRING, 0x8002, "/$"
 ; ( -- srcaddr len  )
 ; String
 ; Adjust the source addr using >in.
-forthword_ SRCIN, 0x8005, "srcin"
+forthword_ SRCIN, 0, 5, "srcin"
     rcall SOURCE         ; ( srcaddr len )
     rcall G_IN           ; ( srcaddr len ginaddr )
     call FETCH           ; ( srcaddr len gin)
@@ -1002,14 +996,14 @@ forthword_ SRCIN, 0x8005, "srcin"
 ; ( "<name>" -- c-addr u )
 ; String
 ; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
-forthword_ PARSENAME, 0x800A, "parse-name"
+forthword_ PARSENAME, 0, 10, "parse-name"
     rcall BL
     ; fall thru into SKIPSCANCHAR
 
 ; ( c -- addr2 len2 )
 ; String
 ; skips char and scan what's left in source for char
-;forthword_ SKIPSCANCHAR, 0x800A, "skipscanchar"
+;forthword_ SKIPSCANCHAR, 0, 10, "skipscanchar"
 SKIPSCANCHAR:
     call TO_R            ; (  ) (R: -- c )
     rcall SRCIN         ; ( srcaddr len )
@@ -1030,14 +1024,14 @@ SKIPSCANCHAR:
 ; ( addr len --  0 | xt -1 | xt 1 )
 ; Tools
 ; search wordlists for the name from string addr/len
-forthword_ FINDNAME, 0x8009, "find-name"
+forthword_ FINDNAME, 0, 9, "find-name"
     call GET_CURRENT   ; ( addr len EE_FORTHWORDLIST )
     rjmp SEARCH_WORDLIST ; ( -- [xt] flag )
 
 ; ( -- )
 ; System
 ; check if a ready prompt is required
-forthword_ QP_RD, 0x8005, "?p_rd"
+forthword_ QP_RD, 0, 5, "?p_rd"
     rcall STATE
     call FETCH
     ; output ready prompt if in interpret mode
@@ -1054,7 +1048,7 @@ QP_RD_exit:
 ; ( -- )
 ; System
 ; main loop - iterate through scheduled tasks 
-forthword_ DOTASKS, 0x8007, "dotasks"
+forthword_ DOTASKS, 0, 7, "dotasks"
     ; <begin>
       rcall DOREFILL
       rcall PAUSE
@@ -1064,7 +1058,7 @@ forthword_ DOTASKS, 0x8007, "dotasks"
 ; ( -- )
 ; System
 ; reset stacks and start over again
-forthword_ QUIT, 0x8004, "quit"
+forthword_ QUIT, 0, 4, "quit"
     ; reset data stack
     call SP0
     call SP_STORE
@@ -1079,7 +1073,7 @@ forthword_ QUIT, 0x8004, "quit"
 ; ( -- )
 ; System
 ; wait for the input buffer to be refilled then interpret
-forthword_ DOREFILL, 0x8008, "dorefill"
+forthword_ DOREFILL, 0, 8, "dorefill"
   ; if just starting new input line then check prompt and reset input position
   call G_IN               ; ( >inaddr )
   call FETCH              ; ( >in )
@@ -1110,7 +1104,7 @@ DOREFILL_end:
 ; ( -- )
 ; System
 ; interpret what is in the input buffer
-forthword_ DOINTERPRET, 0x800B, "dointerpret"
+forthword_ DOINTERPRET, 0, 11, "dointerpret"
       ; input buffer has something so try to interpret it
       ; setup exception handling in case of error
   doliteral_ pm(INTERPRET)
@@ -1143,7 +1137,7 @@ DOINTERPRET_ok:
 ; ( -- )
 ; System
 ; send the READY prompt to the command line
-forthword_ PROMPTRDY, 0x8004, "p_rd"
+forthword_ PROMPTRDY, 0, 4, "p_rd"
     rcall CR
     rcall DOSLITERAL
     ascii_ 2, "> "
@@ -1152,7 +1146,7 @@ forthword_ PROMPTRDY, 0x8004, "p_rd"
 ; ( -- )
 ; System
 ; send the READY prompt to the command line
-forthword_ PROMPTCOMPILE, 0x8004, "p_cp"
+forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
     rcall CR
     rcall DOSLITERAL
     ascii_ 2, ": "
@@ -1161,7 +1155,7 @@ forthword_ PROMPTCOMPILE, 0x8004, "p_cp"
 ; ( -- )
 ; System
 ; send the OK prompt to the command line
-forthword_ PROMPTOK, 0x8004, "p_ok"
+forthword_ PROMPTOK, 0, 4, "p_ok"
     rcall DOSLITERAL
     ascii_ 3, " ok"
     rjmp ITYPE
@@ -1169,7 +1163,7 @@ forthword_ PROMPTOK, 0x8004, "p_ok"
 ; ( n -- )
 ; System
 ; process the error prompt
-forthword_ PROMPTERROR, 0x8004, "p_er"
+forthword_ PROMPTERROR, 0, 4, "p_er"
 	rcall DOSLITERAL
 	ascii_ 4, " ?? "
     rcall ITYPE
@@ -1191,7 +1185,7 @@ forthword_ PROMPTERROR, 0x8004, "p_er"
 ; ( -- )
 ; Multitasking
 ; Fetch pause vector and EXEC it. may make a context/task switch
-forthword_ PAUSE, 0x8005, "pause"
+forthword_ PAUSE, 0, 5, "pause"
     call DODEFER
     .word ram_pause
     addr_ FETCH
@@ -1205,7 +1199,7 @@ ram_pause: .space 2
 ; System
 ; start up amforth.
 
-forthword_ COLD, 0x8004, "cold"
+forthword_ COLD, 0, 4, "cold"
     in_ r10, MCUSR
     clr r11
     clr zerol
@@ -1238,7 +1232,7 @@ ram_user1: .space SYSUSERSIZE + APPUSERSIZE
 ; ( nx* -- ) (R: ny* -- )
 ; System
 ; initialize asforth further. EXECs turnkey operation and go to quit
-forthword_ WARM, 0x8004, "warm"
+forthword_ WARM, 0, 4, "warm"
     rcall INITUSER
     doliteral_ pm(NOOP)
     doliteral_ pm(PAUSE)
@@ -1251,7 +1245,7 @@ forthword_ WARM, 0x8004, "warm"
 ; ( -- addr)
 ; Stack
 ; start address of the data stack
-forthword_ SP0, 0x8003, "sp0"
+forthword_ SP0, 0, 3, "sp0"
     call DOVALUE
     .word USER_SP0
     addr_ FETCHU
@@ -1260,21 +1254,21 @@ forthword_ SP0, 0x8003, "sp0"
 ; ( -- addr)
 ; Stack
 ; address of user variable to store top-of-stack for inactive tasks
-forthword_ SP, 0x8002, "sp"
+forthword_ SP, 0, 2, "sp"
     call DOUSER
     .word USER_SP
 
 ; ( -- addr)
 ; Stack
 ; start address of return stack
-forthword_ RP0, 0x8003, "rp0"
+forthword_ RP0, 0, 3, "rp0"
     rcall DORP0
     jmp FETCH
 
 ; ( -- addr)
 ; Stack
 ; user variable of the address of the initial return stack
-;forthword_ DORP0, 0x8005, "(rp0)"
+;forthword_ DORP0, 0, 5, "(rp0)"
 DORP0:
     call DOUSER
     .word USER_RP
@@ -1282,7 +1276,7 @@ DORP0:
 ; ( -- n )
 ; Stack
 ; number of single-cell values contained in the data stack before n was placed on the stack.
-forthword_ DEPTH, 0x8005, "depth"
+forthword_ DEPTH, 0, 5, "depth"
     call SP0
     call SP_FETCH
     call MINUS
@@ -1293,7 +1287,7 @@ forthword_ DEPTH, 0x8005, "depth"
 ; ( -- ) (R: i*x - j*x )
 ; System
 ; interpret input word by word.
-forthword_ INTERPRET, 0x8009, "interpret"
+forthword_ INTERPRET, 0, 9, "interpret"
     ; begin
     rcall PARSENAME     ; ( -- addr len )
 
@@ -1313,7 +1307,7 @@ INTERPRET_END:
 ; ( addr len -- )
 ; System
 ; recognize and execute name of word in ram using recognizer list.
-forthword_ RECX, 0x8004, "recx"
+forthword_ RECX, 0, 4, "recx"
     call ZERO            ; ( addr len n )
     call TO_R            ; ( addr len ) (R: n )
 
@@ -1360,7 +1354,7 @@ RECX_DONE:
 ; Interpreter
 ; get a recognizer from the recognizer list
 ; recxt is zero if at end of list
-forthword_ RECFETCH, 0x8004, "rec@"
+forthword_ RECFETCH, 0, 4, "rec@"
     dup_                            ; ( n n )
     doliteral_ EE_RECOGNIZERLISTLEN ; ( n n ee-reclen )
     call FETCHE                     ; ( n n len )
@@ -1385,7 +1379,7 @@ PFA_RECFETCH_ZERO:
 ; ( addr len -- n f )
 ; Interpreter
 ; recognizer for integer numbers
-forthword_ REC_NUM, 0x8007, "rec-num"
+forthword_ REC_NUM, 0, 7, "rec-num"
     ; try converting to a number
     rcall NUMBER             ; ( [n] f )
     zerosense_
@@ -1406,7 +1400,7 @@ PFA_REC_NONUMBER:
 ; Interpreter
 ; recognize a word in the dictionary
 ; will 
-forthword_ REC_WORD, 0x8008, "rec-word"
+forthword_ REC_WORD, 0, 8, "rec-word"
 
     rcall FINDNAME
     dupzerosense_
@@ -1414,9 +1408,24 @@ forthword_ REC_WORD, 0x8008, "rec-word"
     ret
 
 REC_WORD_FOUND:
+    ; check if compile only word
+    sbrc tosh, COMPILE_ONLY_FB 
+        rjmp CHECK_IMMEDIATE
+        
+CHECK_COMPILE_ONLY:
+    rcall STATE
+    call FETCH
+    zerosense_
+    brne CHECK_IMMEDIATE
+        ; word can only be used in compile state
+        doliteral_ -14
+        rjmp THROW
+    
+
+CHECK_IMMEDIATE:
 	; either compile or EXEC the XT
     ; check if word is immediate: bit 7 is clear if immediate
-	sbrs tosh, 7 ; skip next instruction if bit 7 is set: not immediate word
+	sbrs tosh, IMMEDIATE_EN_FB ; skip next instruction if bit 7 is set: not immediate word
 	    ; flag is 0: always EXEC
 	    rjmp REC_WORD_EXECUTE
 
@@ -1439,7 +1448,7 @@ REC_WORD_OK:
 ; ( addr len --  )
 ; Interpreter
 ; recognizer for NOT FOUND
-forthword_ REC_UNK, 0x8007, "rec-unk"
+forthword_ REC_UNK, 0, 7, "rec-unk"
     rcall TYPE
     doliteral_ -13
     rjmp THROW
@@ -1448,7 +1457,7 @@ forthword_ REC_UNK, 0x8007, "rec-unk"
 ; ( --  )
 ; Tools
 ; check stack underflow, throw exception -4
-forthword_ QSTACK, 0x8006, "?stack"
+forthword_ QSTACK, 0, 6, "?stack"
 ; : ?stack ( -- )
 ;    depth 0< if -&4 throw then
 ; ;
@@ -1464,7 +1473,7 @@ PFA_QSTACKERROR:
 ; ( -- )
 ; Tools
 ; print the version string
-forthword_ VER, 0x8003, "ver"
+forthword_ VER, 0, 3, "ver"
     call ENV_FORTHNAME
     rcall ITYPE
     call SPACE
@@ -1492,7 +1501,7 @@ forthword_ VER, 0x8003, "ver"
 ; ( n <name> -- )
 ; Tools
 ; store the TOS to the named value (eeprom cell)
-forthword_ TO, 0x0002, "to"
+forthword_ TO, IMMEDIATE_EN, 2, "to"
     rcall TICK          ; ( n xt ) get address of next word from input stream
     rcall STATE
     call FETCH
@@ -1506,7 +1515,7 @@ forthword_ TO, 0x0002, "to"
 ; Tools
 ; runtime portion of to
 ; must be called
-forthword_ DOTO, 0x8004 | DIS_CALL_OPT, "(to)"
+forthword_ DOTO, DIS_CALL_OPT, 4, "(to)"
     call R_FETCHPLUS    ; ( n -- n raddr ) (R: raddr -- raddr+1 )
     ; next cell contains address of deferred word
     call FETCHI         ; ( n defxt )
@@ -1516,7 +1525,7 @@ PFA_TO1:
 ; ( addr -- xt2 )
 ; System
 ; does the real defer@ for user based defers
-;forthword_ UDEFERFETCH, 0x8007, "Udefer@"
+;forthword_ UDEFERFETCH, 0, 7, "Udefer@"
 UDEFERFETCH:
     call UP_FETCH
     call PLUS
@@ -1525,7 +1534,7 @@ UDEFERFETCH:
 ; ( xt1 xt2 -- )
 ; System
 ; does the real defer! for user based defers
-;forthword_ UDEFERSTORE, 0x8007, "Udefer!"
+;forthword_ UDEFERSTORE, 0, 7, "Udefer!"
 UDEFERSTORE:
     oneplus_
     call FETCHI
@@ -1536,7 +1545,7 @@ UDEFERSTORE:
 ; ( xt1 xt2 -- )
 ; System
 ; stores xt1 as the xt to be EXECd when xt2 is called
-forthword_ DEFERSTORE, 0x8006, "defer!"
+forthword_ DEFERSTORE, 0, 6, "defer!"
     ; skip past call to get to data
     twoplus_                 ; ( xt1 xt2+2 )
     dup_                     ; ( xt1 xt2+2 xt2+2 )
@@ -1553,7 +1562,7 @@ forthword_ DEFERSTORE, 0x8006, "defer!"
 ; ( xt1 -- xt2 )
 ; System
 ; returns the XT associated with the given XT
-forthword_ DEFERFETCH, 0x8006, "defer@"
+forthword_ DEFERFETCH, 0, 6, "defer@"
     ; skip passed call to get to data field
     twoplus_                 ; ( xt1+2 )
     dup_                     ; ( xt1+2 xt1+2 )
@@ -1565,7 +1574,7 @@ forthword_ DEFERFETCH, 0x8006, "defer@"
 ; ( i*x -- j*x )
 ; System
 ; runtime of defer
-forthword_ DODEFER, 0x8007, "(defer)"
+forthword_ DODEFER, 0, 7, "(defer)"
     ; top of return stack has return address of caller
     ; return address is data for defer so pop it onto data stack
     ; will not be returning to the caller
@@ -1577,7 +1586,7 @@ forthword_ DODEFER, 0x8007, "(defer)"
 ; ( c-addr len wid -- [ 0 ] | [ xt xtflags] )
 ; Search Order
 ; searches the word list wid for the word at c-addr/len
-forthword_ SEARCH_WORDLIST, 0x800f, "search-wordlist"
+forthword_ SEARCH_WORDLIST, 0, 15, "search-wordlist"
     call FETCHE                ; ( c-addr len nfa )
 PFA_SEARCH_WORDLIST0:
     dupzerosense_              ; ( c-addr len nfa )
@@ -1605,12 +1614,7 @@ PFA_SEARCH_WORDLIST1:
       call TO_R
       call NFA2LFA
       oneplus_  ; lfa2xt
-      ;call ONE
       call R_FROM ; check flags
-      ;call LESSZERO ; change here for multiple flags in header
-      ;zerosense_
-      ;breq PFA_SEARCH_WORDLISTIMMEDIATE
-      ;rcall NEGATE
 
 PFA_SEARCH_WORDLISTIMMEDIATE:
       ret
@@ -1625,7 +1629,7 @@ PFA_SEARCH_WORDLISTNEXT:
 ; ( r-addr r-len f-addr f-len --  f)
 ; Memory
 ; compares string in RAM with string in flash
-forthword_ ICOMPARE, 0x8008, "icompare"
+forthword_ ICOMPARE, 0, 8, "icompare"
     call TO_B               ; ( r-addr r-len f-addr)  B: f-len
     call OVER               ; ( r-addr r-len f-addr r-len)
     call B_                 ; ( r-addr r-len f-addr r-len f-len )
@@ -1700,7 +1704,7 @@ PFA_ICOMPARE_DONE:
 ; Memory
 ; copy data in RAM, from lower to higher addresses
 
-forthword_ CMOVE, 0x8005, "cmove"
+forthword_ CMOVE, 0, 5, "cmove"
     ld ZL, Y+
     ld ZH, Y+ ; addr-to
     ld XL, Y+
@@ -1720,7 +1724,7 @@ PFA_CMOVE1:
 ; (start dest count -- )
 ; Memory
 ; copy flash memory.  Assumes no overlap.
-forthword_ ITOI, 0x8004, "itoi"
+forthword_ ITOI, 0, 4, "itoi"
     niptoa_         ; ( start count ) A: dest
 ITOI_B:
     dupzerosense_   ; ( start count )
@@ -1743,7 +1747,7 @@ ITOI_END:
 ; ( -- addr )
 ; System Variable
 ; terminal input buffer address
-forthword_ TIB, 0x8003, "tib"
+forthword_ TIB, 0, 3, "tib"
     doliteral_ ram_tib
     ret
 
@@ -1754,7 +1758,7 @@ ram_tib: .space TIBSIZE
 ; ( -- f )
 ; System
 ; refills the input buffer - flag is true if buffer has something
-forthword_ REFILLTIB, 0x800a, "refill-tib"
+forthword_ REFILLTIB, 0, 10, "refill-tib"
 REFILLTIB_begin:
     rcall ACCEPT               ; ( f )
     dupzerosense_              ; ( f )
@@ -1769,7 +1773,7 @@ REFILLTIB_exit:
 ; ( -- addr n )
 ; System
 ; address and current length of the input buffer
-forthword_ SOURCETIB, 0x800A, "source-tib"
+forthword_ SOURCETIB, 0, 10, "source-tib"
     rcall TIB
     call SHARPTIB
     jmp FETCH
@@ -1777,14 +1781,14 @@ forthword_ SOURCETIB, 0x800A, "source-tib"
 ; ( -- v)
 ; System Value
 ; address of the default user area content in eeprom
-forthword_ EEUSER, 0x8007, "ee-user"
+forthword_ EEUSER, 0, 7, "ee-user"
   doliteral_ EE_INITUSER
   ret
 
 ; ( e-addr r-addr len -- )
 ; Memory
 ; copy len cells from eeprom to ram
-forthword_ EE2RAM, 0x8006, "ee>ram"
+forthword_ EE2RAM, 0, 6, "ee>ram"
     niptoa_              ; ( e-addr len ) A: r-addr
     niptob_              ; ( len ) B: e-addr
 PFA_EE2RAM_1:
@@ -1809,7 +1813,7 @@ PFA_EE2RAM_2:
 ; ( -- )
 ; Tools
 ; setup the default user area from eeprom
-forthword_ INITUSER, 0x8009, "init-user"
+forthword_ INITUSER, 0, 9, "init-user"
     rcall EEUSER
     call UP_FETCH
     doliteral_ SYSUSERSIZE

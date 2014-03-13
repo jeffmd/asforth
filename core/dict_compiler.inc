@@ -2,7 +2,7 @@
 ; ( -- addr ) 
 ; System Variable
 ; system LATEST. Get flash program address of latest word being compiled. 
-forthword_ LATEST, 0x8006, "latest"
+forthword_ LATEST, 0, 6, "latest"
     doliteral_ ram_LATEST
     ret
 
@@ -15,7 +15,7 @@ ram_LATEST: .space 2
 ; Compiler
 ; create a named entry in the dictionary, XT is DO_COLON
 
-forthword_ COLON, 0x8001, ":"
+forthword_ COLON, 0, 1, ":"
     call DOCREATE
     doliteral_ COLON_SMUDGE
     rcall STORE
@@ -30,7 +30,7 @@ COLON_SMUDGE: .space 2
 
 ; ( -- )
 ; tail call optimize: change last rcall/call into rjmp/jmp
-;forthword_ TAILOPT, 0x8007, "tailopt"
+;forthword_ TAILOPT, 0, 7, "tailopt"
 TAILOPT:
     ; bit 0 and 1 of fflags indicate type of call and number of words to go back in DP
     ; if bit 0 set then its a rcall that has to turned into a rjmp
@@ -69,7 +69,7 @@ TAILOPT_CALL:
 ; ( -- )
 ; Compiler
 ; finish colon defintion, compiles (exit) and returns to interpret state 
-forthword_ SEMICOLON, 0x0001, ";"
+forthword_ SEMICOLON, IMMEDIATE_EN, 1, ";"
     ; check fflags to see if tail call optimization can be done
     sbrs fflags, DIS_CALL_OPT_FB
     rcall TAILOPT
@@ -94,7 +94,7 @@ SEMICOLON_end:
 ; ( --  ) 
 ; Compiler
 ; enter compiler mode
-forthword_ RBRACKET, 0x8001, "]"
+forthword_ RBRACKET, 0, 1, "]"
     ; clear rcall/call flags
     cbr fflags, (1<<LAST_RCALL_FB)|(1<<LAST_CALL_FB)
     ; set disable tail optimize flag
@@ -106,7 +106,7 @@ forthword_ RBRACKET, 0x8001, "]"
 ; ( --  ) 
 ; Compiler
 ; enter interpreter mode
-forthword_ LBRACKET, 0x0001, "["
+forthword_ LBRACKET, IMMEDIATE_EN, 1, "["
     rcall ZERO
     call STATE
     rjmp STORE
@@ -116,14 +116,14 @@ forthword_ LBRACKET, 0x0001, "["
 ; Tools
 ; skip leading space delimites, place the first character of the word on the stack
 
-forthword_ BRACKETCHAR, 0x0006, "[char]"
+forthword_ BRACKETCHAR, IMMEDIATE_EN, 6, "[char]"
     call CHAR
     jmp LIT
 
 ; ( addr len len' -- )
 ; Compiler
 ; compiles a string from RAM to Flash
-forthword_ DOSCOMMA, 0x8004, "(s,)"
+forthword_ DOSCOMMA, 0, 4, "(s,)"
     rcall COMMA        ; ( addr len )
     rcall BTOW         ; ( addr len/2 rem )
     rcall TO_R         ; ( addr len/2 ) (R: rem )
@@ -157,7 +157,7 @@ PFA_SCOMMA3:
 ; ( addr len -- )
 ; Compiler
 ; compiles a string from RAM to Flash
-forthword_ SCOMMA, 0x8002, "s,"
+forthword_ SCOMMA, 0, 2, "s,"
     dup_
     ; fall thru into DOSCOMMA
     rjmp DOSCOMMA
@@ -165,7 +165,7 @@ forthword_ SCOMMA, 0x8002, "s,"
 ; ( n -- )
 ; Dictionary
 ; compile 16 bit into flash at (dictionary pointer) DP
-forthword_ COMMA, 0x8001, ","
+forthword_ COMMA, 0, 1, ","
     call DP
     rcall STOREI
     rjmp DPPLUSONE
@@ -173,14 +173,14 @@ forthword_ COMMA, 0x8001, ","
 ; ( -- )
 ; Dictionary
 ; increment 16 bit (dictionary pointer) DP by one
-forthword_ DPPLUSONE, 0x8004, "dp+1"
+forthword_ DPPLUSONE, 0, 4, "dp+1"
     rcall ONE
     rjmp DPPLUS
 
 ; ( offset -- )
 ; Dictionary
 ; add offset to 16 bit (dictionary pointer) DP
-forthword_ DPPLUS, 0x8003, "dp+"
+forthword_ DPPLUS, 0, 3, "dp+"
     call DP
     rcall PLUS
     call DOTO
@@ -190,7 +190,7 @@ forthword_ DPPLUS, 0x8003, "dp+"
 ; ( --  ) (C: "<spaces>name" -- voc-link )
 ; Compiler
 ; parse the input and create an vocabulary entry without XT and data field (PF)
-forthword_ DOCREATE, 0x8008, "(create)"
+forthword_ DOCREATE, 0, 8, "(create)"
     call PARSENAME
     rcall GET_CURRENT
     ; fall thru into HEADER
@@ -199,7 +199,7 @@ forthword_ DOCREATE, 0x8008, "(create)"
 ; ( addr len wid -- voc-link )
 ; Compiler
 ; creates the vocabulary header without XT and data field (PF) in the wordlist wid
-forthword_ HEADER, 0x8006, "header"
+forthword_ HEADER, 0, 6, "header"
     call DP              ; ( addr len wid DP )
     rcall TO_R           ; ( addr len wid ) (R: DP )
     rcall TO_R           ; ( addr len ) (R: DP wid )
@@ -207,7 +207,7 @@ forthword_ HEADER, 0x8006, "header"
     dupzerosense_
     breq HEADER_error
       dup_                ; ( addr len len )
-      sbr tosh, 0x80      ; ( addr len len' )
+      ldi tosh, 0xFF      ; ( addr len len' )
       rcall DOSCOMMA      ; ( )
       ; make voc link
       rcall R_FROM        ; ( wid ) (R: DP )
@@ -228,19 +228,54 @@ HEADER_error:
 ; read the following cell from the dictionary and append it to the current dictionary position.
 ; must use call/rcall
 
-forthword_ DOCOMPILE, 0x8009 | DIS_CALL_OPT, "(compile)"
+forthword_ DOCOMPILE, DIS_CALL_OPT, 9, "(compile)"
     rcall R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
     rcall FETCHI         ; ( xt1 )
     ; don't allow inlining
     rcall ZERO           ; ( xt1 0 )
     jmp COMPILEXT
     
-; ( start count -- )
+    
+; ( start match -- start count )
+; match is the word value to search for in the flash
+; start is the start address of the search in flash
+; the search goes up in flash address space
+; count is number of words to get to match value in flash
+; or get word index of match
+forthword_ FINDI, 0, 5, "findi"
+    ; fetch from flash and check if equal to match word
+    copytob_         ; ( start match ) B: match
+    poptos           ; ( start )
+    copytoa_         ; ( start ) A: start
+    ; begin
+FINDI_BEGIN:
+      rcall AFETCHI  ; ( start val )
+      aplus_
+      pushtos
+      movw tosl, bl  ; ( start val match )
+      rcall EQUAL    ; ( start flag )
+    ; until
+    zerosense_       ; ( start )
+    brne FINDI_BEGIN
+
+    pushtos
+    movw tosl, al    ; ( start end )
+    rcall OVER       ; ( start end start )
+    rjmp MINUS       ; ( start count )
+      
+
+
+
+; ( start -- )
 ; compiler
 ; copy code to current dictionary entry
-forthword_ INLINE, 0x8006, "inline"
+forthword_ INLINE, 0, 6, "inline"
     ; set disable tail call optimize flag:
     sbr fflags, 1<<DIS_CALL_OPT_FB
+    ; find the ret word, want count to ret
+    ; count will be number of words to inline
+    doliteral_ 0x9508
+    rcall FINDI
 
     ; dp swap dup dp+ itoi
     call DP
@@ -255,7 +290,7 @@ forthword_ INLINE, 0x8006, "inline"
 ; Exceptions
 ; check flag. If true display the parsed text and throw exception -2 
 
-;forthword_ ABORTSTRING, 0x0006, "abort\""
+;forthword_ ABORTSTRING, DIS_CALL_OPT, 6, "abort\""
 ;    ; postpone if
 ;    call DOCOMPILE
 ;    addr_ 0 ; ******* FIXME
@@ -281,7 +316,7 @@ forthword_ INLINE, 0x8006, "inline"
 ; Exceptions
 ; send an exception -1
 
-forthword_ ABORT, 0x8005, "abort"
+forthword_ ABORT, 0, 5, "abort"
     doliteral_ -1
     jmp THROW
 
@@ -290,7 +325,7 @@ forthword_ ABORT, 0x8005, "abort"
 ; ( -- faddr len ) 
 ; Environment
 ; flash address of the amforth name string
-forthword_ ENV_FORTHNAME, 0x8005, "fname"
+forthword_ ENV_FORTHNAME, 0, 5, "fname"
     call DOSLITERAL
     ascii_ 7, "asforth" ; a simplified forth based on amforth
     ret
@@ -298,35 +333,35 @@ forthword_ ENV_FORTHNAME, 0x8005, "fname"
 ; ( -- n ) 
 ; Environment
 ; version number of amforth
-forthword_ ENV_FORTHVERSION, 0x8007, "version"
+forthword_ ENV_FORTHVERSION, 0, 7, "version"
     doliteral_ 11
     ret
 
 ; ( -- faddr len ) 
 ; Environment
 ; flash address of the CPU identification string
-forthword_ ENV_CPU, 0x8003, "cpu"
+forthword_ ENV_CPU, 0, 3, "cpu"
     doliteral_ pm(mcu_name)
     jmp ICOUNT
 
 ; ( -- faddr len ) 
 ; Environment
 ; flash address of some CPU specific parameters
-forthword_ ENV_MCUINFO, 0x8008, "mcu-info"
+forthword_ ENV_MCUINFO, 0, 8, "mcu-info"
     doliteral_ pm(mcu_info)
     ret
 
 ; ( -- usersize ) 
 ; Environment
 ; size of the USER area in bytes
-forthword_ ENVUSERSIZE, 0x8005, "/user"
+forthword_ ENVUSERSIZE, 0, 5, "/user"
     doliteral_ (SYSUSERSIZE+APPUSERSIZE)
     ret
 
 ; ( ee-addr -- itemn .. item0 n) 
 ; Tools
 ; Get an array from EEPROM and put on the stack
-forthword_ FETCH_EE_ARRAY, 0x8004, "@e[]"
+forthword_ FETCH_EE_ARRAY, 0, 4, "@e[]"
     dup_               ; ( ee-addr ee-addr )
     rcall FETCHE       ; ( ee-addr len )
     rcall _A           ; ( ee-addr len ) A: len
@@ -350,7 +385,7 @@ PFA_FETCH_EE_ARRAY2:
 ; ( recn .. rec0 n ee-addr -- ) 
 ; Tools
 ; Write a list to EEPROM
-forthword_ STORE_EE_ARRAY, 0x8004, "!e[]"
+forthword_ STORE_EE_ARRAY, 0, 4, "!e[]"
     rcall TWOOVER   ; ( recn .. rec0 n ee-addr n ee-addr )
     rcall STOREE ; ( recn .. rec0 n e-addr )
     rcall SWAP   ; ( recn .. rec0 e-addr n )
@@ -373,7 +408,7 @@ PFA_STORE_EE_ARRAY2:
 ; String
 ; compares two strings in RAM
 
-forthword_ COMPARE, 0x8007, "compare"
+forthword_ COMPARE, 0, 7, "compare"
     movw temp0, tosl
     poptos
     movw XL, tosl
@@ -409,7 +444,7 @@ PFA_COMPARE_DONE:
 ; ( nfa -- lfa )
 ; System
 ; get the link field address from the name field address
-forthword_ NFA2LFA, 0x8007, "nfa>lfa"
+forthword_ NFA2LFA, 0, 7, "nfa>lfa"
     call ICOUNT 
     zerohigh_
     rcall WALIGN
@@ -418,6 +453,6 @@ forthword_ NFA2LFA, 0x8007, "nfa>lfa"
 ; ( -- wid) 
 ; Dictionary
 ; get the wid of the current compilation word list
-forthword_ GET_CURRENT, 0x8003, "wid"
+forthword_ GET_CURRENT, 0, 3, "wid"
     doliteral_ EE_FORTHWORDLIST
     ret

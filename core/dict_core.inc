@@ -3,21 +3,21 @@
 ; ( -- ) (R: nest-sys -- )
 ; Compiler
 ; exit the word
-;forthword_ EXIT, 0x8004, "exit"
+;forthword_ EXIT, 0, 4, "exit"
 ;    r_drop_
 ;    ret
 
 ; ( xt -- ) 
 ; System
 ; execute XT
-forthword_ EXEC, 0x8004, "exec"
+forthword_ EXEC, 0, 4, "exec"
     movw ZL, tosl
     poptos
     ijmp
 
 ; (  -- )
 ; doesn't do anything - no operation
-forthword_ NOOP, 0x8004, "noop"
+forthword_ NOOP, 0, 4, "noop"
     ret
 
 
@@ -25,14 +25,14 @@ forthword_ NOOP, 0x8004, "noop"
 ; ( n -- n n ) 
 ; Stack
 ; duplicate TOS
-forthword_ DUP, 0x8203, "dup"
+forthword_ DUP, 0, 3, "dup"
     pushtos
     ret
 
 ; ( n1 -- [ n1 n1 ] | 0) 
 ; Stack
 ; duplicate TOS if non-zero
-forthword_ QDUP, 0x8004, "?dup"
+forthword_ QDUP, 0, 4, "?dup"
     sbiw tosl, 0
     breq PFA_QDUP1
     pushtos
@@ -42,7 +42,7 @@ PFA_QDUP1:
 ; ( n1 n2 -- n2 n1) 
 ; Stack
 ; swaps the two top level stack cells
-forthword_ SWAP, 0x8004, "swap"
+forthword_ SWAP, 0, 4, "swap"
     movw temp0, tosl
     poptos
     st -Y, temp1
@@ -52,7 +52,7 @@ forthword_ SWAP, 0x8004, "swap"
 ; ( x1 x2 -- x1 x2 x1 ) 
 ; Stack
 ; Place a copy of x1 on top of the stack
-forthword_ OVER, 0x8004, "over"
+forthword_ OVER, 0, 4, "over"
     pushtos
     ldd tosl, Y+2
     ldd tosh, Y+3
@@ -61,21 +61,21 @@ forthword_ OVER, 0x8004, "over"
 ; ( x1 x2 -- x1 x2 x1 x2) 
 ; Stack
 ; Place a copy of x1 and x2 on top of the stack
-forthword_ TWOOVER, 0x8005, "2over"
+forthword_ TWOOVER, 0, 5, "2over"
     rcall OVER
     rjmp OVER
 
 ; ( n -- ) 
 ; Stack
 ; drop TOS
-forthword_ DROP, 0x8204, "drop"
+forthword_ DROP, 0, 4, "drop"
     drop_
     ret
 
 ; ( n n -- ) 
 ; Stack
 ; drop TOS twice
-forthword_ TWODROP, 0x8305, "2drop"
+forthword_ TWODROP, 0, 5, "2drop"
     adiw YL, 2
     drop_
     ret
@@ -84,14 +84,14 @@ forthword_ TWODROP, 0x8305, "2drop"
 ; Stack
 ; drop NOS, one before TOS.
 ; same as SWAP DROP
-forthword_ NIP, 0x8103, "nip"
+forthword_ NIP, 0, 3, "nip"
     nip_
     ret
 
 ; ( n1 n2 -- n2 n1 n2) 
 ; Stack
 ; tuck TOS before NOS, same as SWAP OVER
-forthword_ TUCK, 0x8004, "tuck"
+forthword_ TUCK, 0, 4, "tuck"
     ld temp0, y+
     ld temp1, y+
     st -y, tosh 
@@ -103,7 +103,7 @@ forthword_ TUCK, 0x8004, "tuck"
 ; ( n1 n2 n3 -- n3 n2 n1) 
 ; Stack
 ; exchange TOS and stack cell before NOS, same as SWAP ROT
-forthword_ FLIP, 0x8004, "flip"
+forthword_ FLIP, 0, 4, "flip"
     ldd temp0, y+2
     ldd temp1, y+3
     std y+3, tosh 
@@ -114,7 +114,7 @@ forthword_ FLIP, 0x8004, "flip"
 ; ( n1 n2 n3 -- n2 n3 n1) 
 ; Stack
 ; rotate the three top level cells
-forthword_ ROT, 0x8003, "rot"
+forthword_ ROT, 0, 3, "rot"
     movw temp0, tosl
     ld temp2, Y+
     ld temp3, Y+ 
@@ -129,7 +129,7 @@ forthword_ ROT, 0x8003, "rot"
 ; Stack
 ; reverse rotate the three top level cells
 ; equivalent to rotate twice but faster
-forthword_ RROT, 0x8004, "-rot"
+forthword_ RROT, 0, 4, "-rot"
     ld temp0, Y+
     ld temp1, Y+
     ld temp2, Y+
@@ -146,7 +146,7 @@ forthword_ RROT, 0x8004, "-rot"
 ; Stack
 ; move TOR to TOS
 ; call only
-forthword_ R_FROM, 0x8002 | DIS_CALL_OPT, "r>"
+forthword_ R_FROM, DIS_CALL_OPT, 2, "r>"
     pop ZH
     pop ZL
     pushtos
@@ -157,7 +157,7 @@ forthword_ R_FROM, 0x8002 | DIS_CALL_OPT, "r>"
 ; ( -- ) (R: n -- )
 ; Stack
 ; Drop TOR
-forthword_ R_DROP, 0x8206, "r>drop"
+forthword_ R_DROP, 0, 6, "r>drop"
     r_drop_
     ret
 
@@ -166,7 +166,7 @@ forthword_ R_DROP, 0x8206, "r>drop"
 ; pop return onto data stack and exit caller
 ; must be called, do not use jmp
 ; used if data in program mem and need an address to it
-forthword_ POPRET, 0x8006 | DIS_CALL_OPT, "popret"
+forthword_ POPRET, DIS_CALL_OPT, 6 , "popret"
     pushtos
     pop tosh
     pop tosl
@@ -176,7 +176,7 @@ forthword_ POPRET, 0x8006 | DIS_CALL_OPT, "popret"
 ; ( n -- n ) (R: -- n )
 ; Stack
 ; copy TOS to TOR
-forthword_ DUP_R, 0x8205, "dup>r"
+forthword_ DUP_R, 0, 5, "dup>r"
     dup_r_
     ret
 
@@ -184,7 +184,7 @@ forthword_ DUP_R, 0x8205, "dup>r"
 ; Stack
 ; move TOS to TOR
 ; call only
-forthword_ TO_R, 0x8002 | DIS_CALL_OPT, ">r"
+forthword_ TO_R, DIS_CALL_OPT, 2 , ">r"
     pop ZH
     pop ZL
     dup_r_
@@ -194,7 +194,7 @@ forthword_ TO_R, 0x8002 | DIS_CALL_OPT, ">r"
 ; ( -- n) (R: n -- n )
 ; Stack
 ; use TOR as address to fetch content from ram
-forthword_ R_FETCH, 0x8002, "r@"
+forthword_ R_FETCH, 0, 2, "r@"
     in ZL, SPL
     in ZH, SPH
     pushtos
@@ -206,7 +206,7 @@ forthword_ R_FETCH, 0x8002, "r@"
 ; Stack
 ; fetch content of TOR and then increment TOR by 1
 ; call only
-forthword_ R_FETCHPLUS, 0x8004 | DIS_CALL_OPT, "r>r+"
+forthword_ R_FETCHPLUS, DIS_CALL_OPT, 4, "r>r+"
     pop ZH
     pop ZL
     pushtos
@@ -223,13 +223,13 @@ forthword_ R_FETCHPLUS, 0x8004 | DIS_CALL_OPT, "r>r+"
 ; ( n1 n2 -- flag) 
 ; Compare
 ; true if n1 is not equal to n2
-forthword_ NOTEQUAL, 0x8002, "<>"
+forthword_ NOTEQUAL, 0, 2, "<>"
     rjmp XOR
 
 ; ( n -- flag ) 
 ; Compare
 ; compare with 0 (zero)
-forthword_ EQUALZERO, 0x8002, "0="
+forthword_ EQUALZERO, 0, 2, "0="
     or tosh, tosl
     rjmp PFA_EQUALDONE
 
@@ -237,7 +237,7 @@ forthword_ EQUALZERO, 0x8002, "0="
 ; Compare
 ; compares two values for equality
 
-forthword_ EQUAL, 0x8001, "="
+forthword_ EQUAL, 0, 1, "="
     ld temp2, Y+
     ld temp3, Y+
     cp tosl, temp2
@@ -249,7 +249,7 @@ PFA_EQUALDONE:
 ; ( n1 n2 -- flag) 
 ; Compare
 ; true if n1 is less than n2
-forthword_ LESS, 0x8001, "<"
+forthword_ LESS, 0, 1, "<"
     ld temp2, Y+
     ld temp3, Y+
     cp temp2, tosl
@@ -261,7 +261,7 @@ PFA_LESSDONE:
 ; ( n1 n2 -- flag ) 
 ; Compare
 ; flag is true if n1 is greater than n2
-forthword_ GREATER, 0x8001, ">"
+forthword_ GREATER, 0, 1, ">"
     ld temp2, Y+
     ld temp3, Y+
     cp temp2, tosl
@@ -274,7 +274,7 @@ PFA_GREATERDONE:
 ; ( n1 -- flag) 
 ; Compare
 ; compare with zero
-forthword_ LESSZERO, 0x8002, "0<"
+forthword_ LESSZERO, 0, 2, "0<"
     cp tosl, zerol
     cpc tosh, zerol
     rjmp PFA_LESSDONE
@@ -282,7 +282,7 @@ forthword_ LESSZERO, 0x8002, "0<"
 ; ( u1 u2 -- flag ) 
 ; Compare
 ; true if u1 > u2 (unsigned)
-forthword_ UGREATER, 0x8002, "u>"
+forthword_ UGREATER, 0, 2, "u>"
     ld temp2, Y+
     ld temp3, Y+
     cp temp2, tosl
@@ -294,7 +294,7 @@ forthword_ UGREATER, 0x8002, "u>"
 ; ( n1 -- flag ) 
 ; Compare
 ; true if n1 is greater than 0
-forthword_ GREATERZERO, 0x8002, "0>"
+forthword_ GREATERZERO, 0, 2, "0>"
     cp tosl, zerol
     cpc tosh, zerol
     rjmp PFA_GREATERDONE
@@ -302,14 +302,14 @@ forthword_ GREATERZERO, 0x8002, "0>"
 ; ( -- 0 ) 
 ; Arithmetics
 ; set TOS to 0
-;forthword_ ZEROSET, 0x8102, "0:"
+;forthword_ ZEROSET, 0, 2, "0:"
 ;    zerotos_
 ;    ret
 
 ; ( -- 0 ) 
 ; Arithmetics
 ; place a value 0 on TOS
-forthword_ ZERO, 0x8001, "0"
+forthword_ ZERO, 0, 1, "0"
     pushtos
 PFA_ZERO1:
     zerotos_
@@ -318,7 +318,7 @@ PFA_ZERO1:
 ; ( -- 1 ) 
 ; Arithmetics
 ; place a value 1 on TOS
-forthword_ ONE, 0x8001, "1"
+forthword_ ONE, 0, 1, "1"
     pushtos
 PFA_ONE1:
     ldi tosh, 0
@@ -328,7 +328,7 @@ PFA_ONE1:
 ; ( -- 2 ) 
 ; Arithmetics
 ; place a value 2 on TOS
-forthword_ TWO, 0x8001, "2"
+forthword_ TWO, 0, 1, "2"
     pushtos
 PFA_TWO1:
     ldi tosh, 0
@@ -338,7 +338,7 @@ PFA_TWO1:
 ; ( -- 10 ) 
 ; Arithmetics
 ; place a value 10 on TOS
-forthword_ TEN, 0x8002, "10"
+forthword_ TEN, 0, 2, "10"
     pushtos
 PFA_TEN1:
     ldi tosh, 0
@@ -348,7 +348,7 @@ PFA_TEN1:
 ; ( -- -1 ) 
 ; Arithmetics
 ; leaves the value -1 (true) on TOS
-forthword_ TRUE, 0x8004, "true"
+forthword_ TRUE, 0, 4, "true"
     pushtos
 PFA_TRUE1:
     ser tosl
@@ -358,21 +358,21 @@ PFA_TRUE1:
 ; ( n -- ) 
 ; Compare
 ; test TOS if zero
-forthword_ ZEROSENSE, 0x8302, "0?"
+forthword_ ZEROSENSE, 0, 2, "0?"
     zerosense_
     ret
 
 ; ( n -- n) 
 ; Compare
 ; test TOS if zero, does not consume TOS
-forthword_ QZEROSENSE, 0x8103, "?0?"
+forthword_ QZEROSENSE, 0, 3, "?0?"
     dupzerosense_
     ret
 
 ; ( u1 u2 -- flag) 
 ; Compare
 ; true if u1 < u2 (unsigned)
-forthword_ ULESS, 0x8002, "u<"
+forthword_ ULESS, 0, 2, "u<"
     ld temp2, Y+
     ld temp3, Y+
     cp tosl, temp2
@@ -385,7 +385,7 @@ forthword_ ULESS, 0x8002, "u<"
 ; ( n1|u1 n2|u2 -- n3|u3 ) 
 ; Arithmetics
 ; subtract n2 from n1
-forthword_ MINUS, 0x8001, "-"
+forthword_ MINUS, 0, 1, "-"
     ld temp0, Y+
     ld temp1, Y+
     sub temp0, tosl
@@ -396,7 +396,7 @@ forthword_ MINUS, 0x8001, "-"
 ; ( n1 n2 -- n3) 
 ; Arithmetics
 ; add n1 and n2
-forthword_ PLUS, 0x8001, "+"
+forthword_ PLUS, 0, 1, "+"
     ld temp0, Y+
     ld temp1, Y+
     add tosl, temp0
@@ -407,28 +407,28 @@ forthword_ PLUS, 0x8001, "+"
 ; ( n1 -- n2) 
 ; Arithmetics
 ; 1-complement of TOS
-forthword_ NOT, 0x8203, "not"
+forthword_ NOT, 0, 3, "not"
     not_
     ret
 
 ; ( ddddkkkk -- kkkkdddd )
 ; Arithmetics
 ; swap nibbles in lower half of TOS
-forthword_ SWAPNIB, 0x8105, "swnib"
+forthword_ SWAPNIB, 0, 5, "swnib"
     swapnib_
     ret
 
 ; ( n1 -- n2 ) 
 ; Arithmetics
 ; arithmetic shift right
-forthword_ TWOSLASH, 0x8202, "2/"
+forthword_ TWOSLASH, 0, 2, "2/"
     twoslash_
     ret
 
 ; ( n1 -- n2 ) 
 ; Arithmetics
 ; arithmetic shift left, filling with zero
-forthword_ TWOSTAR, 0x8202, "2*"
+forthword_ TWOSTAR, 0, 2, "2*"
     twostar_
     ret
 
@@ -436,7 +436,7 @@ forthword_ TWOSTAR, 0x8202, "2*"
 ; Logic
 ; bitwise and
 
-forthword_ AND, 0x8003, "and"
+forthword_ AND, 0, 3, "and"
     ld temp0, Y+
     ld temp1, Y+
     and tosl, temp0
@@ -446,7 +446,7 @@ forthword_ AND, 0x8003, "and"
 ; ( n1 n2 -- n3 ) 
 ; Logic
 ; logical or
-forthword_ OR, 0x8002, "or"
+forthword_ OR, 0, 2, "or"
     ld temp0, Y+
     ld temp1, Y+
     or tosl, temp0
@@ -456,7 +456,7 @@ forthword_ OR, 0x8002, "or"
 ; ( n1 n2 -- n3) 
 ; Logic
 ; exclusive or
-forthword_ XOR, 0x8003, "xor"
+forthword_ XOR, 0, 3, "xor"
     ld temp0, Y+
     ld temp1, Y+
     eor tosl, temp0
@@ -468,7 +468,7 @@ forthword_ XOR, 0x8003, "xor"
 ; Arithmetics
 ; optimized increment
 
-forthword_ ONEPLUS, 0x8102, "1+"
+forthword_ ONEPLUS, 0, 2, "1+"
     oneplus_
     ret
 
@@ -476,21 +476,21 @@ forthword_ ONEPLUS, 0x8102, "1+"
 ; Arithmetics
 ; optimized decrement
 
-forthword_ ONEMINUS, 0x8102, "1-"
+forthword_ ONEMINUS, 0, 2, "1-"
     oneminus_
     ret
 
 ; ( n1|u1 -- n2|u2 ) 
 ; Arithmetics
 ; optimized two increment
-forthword_ TWOPLUS, 0x8102, "2+"
+forthword_ TWOPLUS, 0, 2, "2+"
     twoplus_
     ret
 
 ; (S: n1 -- n2 )
 ; Arithmetics
 ; optimized decrement
-forthword_ TWOMINUS, 0x8102, "2-"
+forthword_ TWOMINUS, 0, 2, "2-"
     twominus_
     ret
 
@@ -499,7 +499,7 @@ forthword_ TWOMINUS, 0x8102, "2-"
 ; convert byte length to word align length
 ; round number up to even value then right shift
 
-forthword_ WALIGN, 0x8002, "w_"
+forthword_ WALIGN, 0, 2, "w_"
     oneplus_
 	andi tosl, 0xfe
     twoslash_
@@ -509,7 +509,7 @@ forthword_ WALIGN, 0x8002, "w_"
 ; ( n1 n2 -- n3) 
 ; Arithmetics
 ; logically shift n1 left n2 times
-forthword_ LSHIFT, 0x8002, "<<"
+forthword_ LSHIFT, 0, 2, "<<"
     movw ZL, tosl
     poptos
 PFA_LSHIFT1:
@@ -524,7 +524,7 @@ PFA_LSHIFT2:
 ; ( n1 n2 -- n3 ) 
 ; Arithmetics
 ; shift n1 n2-times logically right
-forthword_ RSHIFT, 0x8002, ">>"
+forthword_ RSHIFT, 0, 2, ">>"
     movw ZL, tosl
     poptos
 PFA_RSHIFT1:
@@ -543,7 +543,7 @@ PFA_RSHIFT2:
 ; Stack
 ; current return stack pointer address
 ; must be called, don't use jmp to optimize
-forthword_ RP_FETCH, 0x8003 | DIS_CALL_OPT, "rp@"
+forthword_ RP_FETCH, DIS_CALL_OPT, 3, "rp@"
     pushtos
     in tosl, SPL
     in tosh, SPH
@@ -555,7 +555,7 @@ forthword_ RP_FETCH, 0x8003 | DIS_CALL_OPT, "rp@"
 ; Stack
 ; set return stack pointer
 ; must be called
-forthword_ RP_STORE, 0x8003 | DIS_CALL_OPT, "rp!"
+forthword_ RP_STORE, DIS_CALL_OPT, 3, "rp!"
     in temp2, SREG
     cli
     ; keep the return address
@@ -570,7 +570,7 @@ forthword_ RP_STORE, 0x8003 | DIS_CALL_OPT, "rp!"
 ; (  -- addr ) 
 ; Stack
 ; current data stack pointer
-forthword_ SP_FETCH, 0x8003, "sp@"
+forthword_ SP_FETCH, 0, 3, "sp@"
     pushtos
     movw tosl, YL
     ret
@@ -578,7 +578,7 @@ forthword_ SP_FETCH, 0x8003, "sp@"
 ; ( addr -- i*x) 
 ; Stack
 ; set data stack pointer to addr
-forthword_ SP_STORE, 0x8003, "sp!"
+forthword_ SP_STORE, 0, 3, "sp!"
     movw YL, tosl
     poptos
     ret
@@ -589,7 +589,7 @@ forthword_ SP_STORE, 0x8003, "sp!"
 ; Memory
 ; copy data in RAM from higher to lower addresses.
 
-forthword_ CMOVE_G, 0x8002, "c>"
+forthword_ CMOVE_G, 0, 2, "c>"
     ld ZL, Y+
     ld ZH, Y+ ; addr-to
     ld XL, Y+
@@ -614,7 +614,7 @@ PFA_CMOVE_G1:
 ; Arithmetics
 ; exchange the bytes of the TOS
 
-forthword_ BYTESWAP, 0x8002, "><"
+forthword_ BYTESWAP, 0, 2, "><"
     mov temp0, tosh
     mov tosh, tosl
     mov tosl, temp0
@@ -624,21 +624,21 @@ forthword_ BYTESWAP, 0x8002, "><"
 ; Arithmetics
 ; clear the high byte of the TOS
 
-forthword_ ZEROHIGH, 0x8102, "0~"
+forthword_ ZEROHIGH, 0, 2, "0~"
     zerohigh_
     ret
 
 ; ( n1 -- n2 ) 
 ; Arithmetics
 ; clear the low byte of the TOS
-forthword_ ZEROLOW, 0x8102, "~0"
+forthword_ ZEROLOW, 0, 2, "~0"
     zerolow_
     ret
 
 ; ( -- addr ) 
 ; System Variable
 ; get user area pointer
-forthword_ UP_FETCH, 0x8003, "up@"
+forthword_ UP_FETCH, 0, 3, "up@"
     pushtos
     movw tosl, upl
     ret
@@ -646,7 +646,7 @@ forthword_ UP_FETCH, 0x8003, "up@"
 ; ( addr -- ) 
 ; System Variable
 ; set user area pointer
-forthword_ UP_STORE, 0x8003, "up!"
+forthword_ UP_STORE, 0, 3, "up!"
     movw upl, tosl
     poptos
     ret
@@ -655,7 +655,7 @@ forthword_ UP_STORE, 0x8003, "up!"
 ; ( -- n1 )
 ; System
 ; runtime of literal
-;forthword_ DOLITERAL, 0x8009, "(literal)"
+;forthword_ DOLITERAL, 0, 9, "(literal)"
 ;DOLITERAL:
 ;    pushtos
 ;    pop ZH
@@ -668,7 +668,7 @@ forthword_ UP_STORE, 0x8003, "up!"
 ; ( -- addr )
 ; System
 ; puts content of parameter field (1 cell) to TOS
-;forthword_ DOVARIABLE, 0x800a, "(variable)"
+;forthword_ DOVARIABLE, 0, 10, "(variable)"
 ;DOVARIABLE:
 ;    pushtos
 ;    pop     ZH    ; pop return address - will not be returning here
@@ -678,7 +678,7 @@ forthword_ UP_STORE, 0x8003, "up!"
 ; ( -- addr )
 ; System
 ; place data field address on TOS
-;forthword_ DOCONSTANT, 0x800a, "(constant)"
+;forthword_ DOCONSTANT, 0, 10, "(constant)"
 ;    pop ZH
 ;    pop ZL    
 ;    pushtos
@@ -691,7 +691,7 @@ forthword_ UP_STORE, 0x8003, "up!"
 ; System
 ; runtime part of user
 ; get the address of the user var which is located at the return address of the caller
-;forthword_ DOUSER, 0x8006, "(user)"
+;forthword_ DOUSER, 0, 6, "(user)"
 DOUSER:
     pushtos
     pop ZH
@@ -706,7 +706,7 @@ DOUSER:
 ; System
 ; runtime of value
 ; must use call
-forthword_ DOVALUE, 0x8007 | DIS_CALL_OPT, "(value)"
+forthword_ DOVALUE, DIS_CALL_OPT, 7, "(value)"
 ; must be called, don't use jmp
     ; Top of return stack has return address of caller
     ; return address is actually the address of the value
@@ -717,7 +717,7 @@ forthword_ DOVALUE, 0x8007 | DIS_CALL_OPT, "(value)"
 ; ( addr -- n )
 ; System
 ; execute the defer fetch
-forthword_ DEFX, 0x8004, "defx"
+forthword_ DEFX, 0, 4, "defx"
     dup_                ; ( addr addr )
     ; get address of defer
     rcall FETCHI        ; ( addr valaddr )
@@ -732,7 +732,7 @@ forthword_ DEFX, 0x8004, "defx"
 ; ( n e-addr -- ) 
 ; Memory
 ; write n (2bytes) to eeprom address
-forthword_ STOREE, 0x8002, "!e"
+forthword_ STOREE, 0, 2, "!e"
     movw ZL, tosl
     poptos
     in_ temp2, SREG
@@ -766,7 +766,7 @@ PFA_STOREE2: ; estore_wait_low_spm:
 ; ( e-addr - n) 
 ; Memory
 ; read 1 cell from eeprom
-forthword_ FETCHE, 0x8002, "@e"
+forthword_ FETCHE, 0, 2, "@e"
     in_ temp2, SREG
     cli
     movw ZL, tosl
@@ -795,7 +795,7 @@ FETCHE_READ:
 ; ( n f-addr -- ) 
 ; Memory
 ; writes n to flash memory using assembly code (code to be placed in boot loader section)
-forthword_ STOREI, 0x8002, "!i"
+forthword_ STOREI, 0, 2, "!i"
   ; store status register
   in temp1,SREG
   push temp1
@@ -917,7 +917,7 @@ dospm_wait_spm:
 ; ( f-addr -- n1 ) 
 ; Memory
 ; read 1 cell from flash
-forthword_ FETCHI, 0x8002, "@i"
+forthword_ FETCHI, 0, 2, "@i"
     movw ZL, tosl
 
 ZDFETCHI:
@@ -934,7 +934,7 @@ ZFETCHI:
 ; ( a-addr u c -- ) 
 ; Memory
 ; fill u bytes memory beginning at a-addr with character c
-forthword_ FILL, 0x8004, "fill"
+forthword_ FILL, 0, 4, "fill"
     rcall RROT      ; ( c a-addr u )
     niptoa_         ; ( c u ) A: a-addr
 PFA_FILL1:
@@ -951,7 +951,7 @@ PFA_FILL2:
 ; ( u -- ) 
 ; Numeric IO
 ; unsigned PNO with single cell numbers
-forthword_ UDOT, 0x8002, "u."
+forthword_ UDOT, 0, 2, "u."
     rcall ZERO   ; ( n 0 ) want unsigned
     rcall TUCK   ; ( 0 n 0 )
     call DOTR
@@ -961,7 +961,7 @@ forthword_ UDOT, 0x8002, "u."
 ; ( -- ) 
 ; Tools
 ; stack dump
-forthword_ DOTS, 0x8002, ".s"
+forthword_ DOTS, 0, 2, ".s"
     rcall SP_FETCH        ; ( limit ) setup limit
     twominus_
     call SP0              ; ( limit counter )
@@ -989,7 +989,7 @@ PFA_DOTS2:
 ; ( -- ) System
 ; R( -- )
 ; application specific turnkey action
-forthword_ APPLTURNKEY, 0x8004, "atky"
+forthword_ APPLTURNKEY, 0, 4, "atky"
     call USART
     call INTON
     jmp VER
@@ -997,7 +997,7 @@ forthword_ APPLTURNKEY, 0x8004, "atky"
 ; ( a-addr -- n ) 
 ; Memory
 ; read 1 cell from RAM address
-forthword_ FETCH, 0x8001, "@"
+forthword_ FETCH, 0, 1, "@"
     movw ZL, tosl
 
 ZFETCH:
@@ -1009,7 +1009,7 @@ ZFETCH:
 ; ( n addr -- ) 
 ; Memory
 ; write n to RAM memory at addr, low byte first
-forthword_ STORE, 0x8001, "!"
+forthword_ STORE, 0, 1, "!"
     movw ZL, tosl
     poptos
 
@@ -1022,7 +1022,7 @@ ZSTORE:
 ; ( c a-addr -- ) 
 ; Memory
 ; store a single byte to RAM address
-forthword_ CSTORE, 0x8002, "c!"
+forthword_ CSTORE, 0, 2, "c!"
     movw ZL, tosl
     poptos
 
@@ -1034,7 +1034,7 @@ ZCSTORE:
 ; ( a-addr - c1 ) 
 ; Memory
 ; fetch a single byte from memory mapped locations
-forthword_ CFETCH, 0x8002, "c@"
+forthword_ CFETCH, 0, 2, "c@"
     movw ZL, tosl
 
 ZCFETCH:
@@ -1045,7 +1045,7 @@ ZCFETCH:
 ; ( a-addr -- n ) 
 ; Memory
 ; read 1 cell from user RAM address
-forthword_ FETCHU, 0x8002, "@u"
+forthword_ FETCHU, 0, 2, "@u"
     rcall UP_FETCH
     rcall PLUS
     rjmp FETCH
@@ -1053,7 +1053,7 @@ forthword_ FETCHU, 0x8002, "@u"
 ; ( n addr -- ) 
 ; Memory
 ; write n to RAM memory at addr, low byte first
-forthword_ STOREU, 0x8002, "!u"
+forthword_ STOREU, 0, 2, "!u"
     rcall UP_FETCH
     rcall PLUS
     rjmp STORE
@@ -1062,7 +1062,7 @@ forthword_ STOREU, 0x8002, "!u"
 ; ( -- n2 ) 
 ; Extended VM
 ; Read memory pointed to by register A (Extended VM)
-forthword_ AFETCH, 0x8002, "a@"
+forthword_ AFETCH, 0, 2, "a@"
     movw ZL, al
     pushtos
     rjmp ZFETCH
@@ -1070,7 +1070,7 @@ forthword_ AFETCH, 0x8002, "a@"
 ; ( -- n2 ) 
 ; Extended VM
 ; Read program memory pointed to by register A (Extended VM)
-forthword_ AFETCHI, 0x8003, "a@i"
+forthword_ AFETCHI, 0, 3, "a@i"
     movw ZL, al
     pushtos
     rjmp ZFETCHI
@@ -1079,7 +1079,7 @@ forthword_ AFETCHI, 0x8003, "a@i"
 ; ( n1 -- n2 )
 ; Extended VM
 ; Read memory pointed to by register A plus offset (Extended VM)
-;forthword_ NAFETCH, 0x8003, "na@"
+;forthword_ NAFETCH, 0, 3, "na@"
 ;    movw ZL, al
 ;    add ZL, tosl
 ;    adc ZH, tosh
@@ -1089,7 +1089,7 @@ forthword_ AFETCHI, 0x8003, "a@i"
 ; ( -- n ) 
 ; Extended VM
 ; Read a byte from ram pointed to by register A (Extended VM)
-forthword_ ACFETCH, 0x8003, "ac@"
+forthword_ ACFETCH, 0, 3, "ac@"
     movw ZL, al
     pushtos
     rjmp ZCFETCH
@@ -1098,7 +1098,7 @@ forthword_ ACFETCH, 0x8003, "ac@"
 ; ( n -- )
 ; Extended VM
 ; Move TOS to A register (Extended VM)
-forthword_ TO_A, 0x8302, ">a"
+forthword_ TO_A, 0, 2, ">a"
     copytoa_
     poptos
     ret
@@ -1106,7 +1106,7 @@ forthword_ TO_A, 0x8302, ">a"
 ; ( n -- )
 ; Extended VM
 ; Move TOS to B register (Extended VM)
-forthword_ TO_B, 0x8302, ">b"
+forthword_ TO_B, 0, 2, ">b"
     copytob_
     poptos
     ret
@@ -1114,35 +1114,35 @@ forthword_ TO_B, 0x8302, ">b"
 ; ( n -- )
 ; Extended VM
 ; copy TOS to A register (Extended VM)
-forthword_ _A, 0x8102, ":a"
+forthword_ _A, 0, 2, ":a"
     copytoa_
     ret
 
 ; ( n -- )
 ; Extended VM
 ; copy TOS to B register (Extended VM)
-forthword_ _B, 0x8102, ":b"
+forthword_ _B, 0, 2, ":b"
     copytob_
     ret
 
 ; ( n1 n2 -- n2 ) A: n1
 ; Extended VM
 ; Remove next on stack and write to A register (Extended VM)
-forthword_ NIPTOA, 0x8205, "nip>a"
+forthword_ NIPTOA, 0, 5, "nip>a"
     niptoa_
     ret
 
 ; ( n1 n2 -- n2 ) B: n1
 ; Extended VM
 ; Remove next on stack and write to B register (Extended VM)
-forthword_ NIPTOB, 0x8205, "nip>b"
+forthword_ NIPTOB, 0, 5, "nip>b"
     niptob_
     ret
 
 ; ( n1 -- n2 ) 
 ; Extended VM
 ; read the A register (Extended VM)
-forthword_ A_, 0x8301, "a"
+forthword_ A_, 0, 1, "a"
     pushtos
     movw tosl, al
     ret
@@ -1150,7 +1150,7 @@ forthword_ A_, 0x8301, "a"
 ; ( n1 -- n2 ) 
 ; Extended VM
 ; read the B register (Extended VM)
-forthword_ B_, 0x8301, "b"
+forthword_ B_, 0, 1, "b"
     pushtos
     movw tosl, bl
     ret
@@ -1159,7 +1159,7 @@ forthword_ B_, 0x8301, "b"
 ; ( n a-addr -- ) 
 ; Memory
 ; add n to content of RAM address a-addr
-forthword_ PLUSSTORE, 0x8002, "+!"
+forthword_ PLUSSTORE, 0, 2, "+!"
     movw ZL, tosl
     poptos
     ld temp2, Z
@@ -1171,7 +1171,7 @@ forthword_ PLUSSTORE, 0x8002, "+!"
 ; ( a-addr -- ) 
 ; Memory
 ; add 1 to content of RAM address a-addr
-forthword_ ONEPLUSSTORE, 0x8003, "1+!"
+forthword_ ONEPLUSSTORE, 0, 3, "1+!"
     movw ZL, tosl
     ld tosl, Z
     ldd tosh, Z+1
@@ -1181,14 +1181,14 @@ forthword_ ONEPLUSSTORE, 0x8003, "1+!"
 ; ( n -- )
 ; Extended VM
 ; Write memory pointed to by register A (Extended VM)
-forthword_ ASTORE, 0x8002, "a!"
+forthword_ ASTORE, 0, 2, "a!"
     movw ZL, al
     rjmp ZSTORE
 
 ; ( n -- )
 ; Extended VM
 ; Write char memory pointed to by register A (Extended VM)
-forthword_ ACSTORE, 0x8003, "ac!"
+forthword_ ACSTORE, 0, 3, "ac!"
     movw ZL, al
     rjmp ZCSTORE
 
@@ -1196,7 +1196,7 @@ forthword_ ACSTORE, 0x8003, "ac!"
 ; ( n offs -- )
 ; Extended VM
 ; Write TOS to memory pointed to by register A plus offset (Extended VM)
-forthword_ NASTORE, 0x8003, "na!"
+forthword_ NASTORE, 0, 3, "na!"
     movw ZL, al
     add ZL, tosl
     adc ZH, tosh
@@ -1206,14 +1206,14 @@ forthword_ NASTORE, 0x8003, "na!"
 ; ( -- )
 ; Extended VM
 ; update register A with post increment from last memory operation (Extended VM)
-forthword_ APLUS, 0x8102, "a+"
+forthword_ APLUS, 0, 2, "a+"
     aplus_
     ret
    
 ; ( u1 u2 -- u)
 ; Arithmetics
 ; multiply 2 unsigned cells to a cell
-forthword_ STAR, 0x8001, "*"
+forthword_ STAR, 0, 1, "*"
     rcall MSTAR
     drop_
     ret
@@ -1221,7 +1221,7 @@ forthword_ STAR, 0x8001, "*"
 ; ( u1 u2 -- u)
 ; Arithmetics
 ; multiply 2 unsigned cells to a cell
-forthword_ MSTAR, 0x8002, "m*"
+forthword_ MSTAR, 0, 2, "m*"
     movw temp0, tosl
     poptos
     movw temp2, tosl
@@ -1252,7 +1252,7 @@ forthword_ MSTAR, 0x8002, "m*"
 ; ( ud u2 -- rem quot)
 ; Arithmetics
 ; unsigned division ud / u2 with remainder
-forthword_ UMSLASHMOD, 0x8006, "um/mod"
+forthword_ UMSLASHMOD, 0, 6, "um/mod"
     movw temp4, tosl
 
     ld temp2, Y+
@@ -1308,7 +1308,7 @@ PFA_UMSLASHMODmod_done:
 ; ( n1 n2 n3 -- rem quot)
 ; Arithmetics
 ; signed multiply n1 * n2 and division  with n3 with double precision intermediate and remainder
-forthword_ STARSLASHMOD, 0x8005, "*/mod"
+forthword_ STARSLASHMOD, 0, 5, "*/mod"
     rcall TO_R
     rcall MSTAR
     rcall R_FROM
@@ -1317,7 +1317,7 @@ forthword_ STARSLASHMOD, 0x8005, "*/mod"
 ; (n1 n2 n3 -- n4)
 ; Arithmetics
 ; signed multiply and division with double precision intermediate
-forthword_ STARSLASH, 0x8002, "*/"
+forthword_ STARSLASH, 0, 2, "*/"
     rcall STARSLASHMOD
     nip_
     ret
@@ -1326,7 +1326,7 @@ forthword_ STARSLASH, 0x8002, "*/"
 ; ( n1 -- n2 )
 ; Logic
 ; 2-complement
-forthword_ NEGATE, 0x8006, "negate"
+forthword_ NEGATE, 0, 6, "negate"
     not_
     oneplus_
     ret
@@ -1334,7 +1334,7 @@ forthword_ NEGATE, 0x8006, "negate"
 ; ( n1 n2 -- n3)
 ; Arithmetics
 ; divide n1 by n2. giving the quotient
-forthword_ SLASH, 0x8001, "/"
+forthword_ SLASH, 0, 1, "/"
     rcall SLASHMOD
     nip_
     ret
@@ -1370,7 +1370,7 @@ DIV16_16_3:
 ; ( n1 n2 -- rem quot)
 ; Arithmetics
 ; unsigned division n1/n2 with remainder and quotient
-forthword_ USLASHMOD, 0x8005, "u/mod"
+forthword_ USLASHMOD, 0, 5, "u/mod"
     movw temp2, tosl
 
     ld temp0, Y+
@@ -1383,7 +1383,7 @@ forthword_ USLASHMOD, 0x8005, "u/mod"
 ; ( n1 n2 -- rem quot)
 ; Arithmetics
 ; signed division n1/n2 with remainder and quotient
-forthword_ SLASHMOD, 0x8004, "/mod"
+forthword_ SLASHMOD, 0, 4, "/mod"
     movw temp2, tosl
 
     ld temp0, Y+
@@ -1427,7 +1427,7 @@ SLASHMOD_end:
 ; ( n1 n2 -- n3)
 ; Arithmetics
 ; divide n1 by n2 giving the remainder n3
-forthword_ MOD, 0x8003, "mod"
+forthword_ MOD, 0, 3, "mod"
     rcall SLASHMOD
     drop_
     ret
@@ -1436,7 +1436,7 @@ forthword_ MOD, 0x8003, "mod"
 ; Arithmetics
 ; get the absolute value
 
-forthword_ ABS, 0x8003 "abs"
+forthword_ ABS, 0, 3 "abs"
     dup_
     rcall LESSZERO
     ; <if>
@@ -1451,7 +1451,7 @@ ABS_exit:
 ; ISR
 ; define the start of an Interrupt Service Routine
 ; must be called
-forthword_ ISTART, 0x8004 | DIS_CALL_OPT, "(i:)"
+forthword_ ISTART, DIS_CALL_OPT, 4, "(i:)"
     ; save important registers
     movw isrZL, ZL
     movw isrXL, XL
@@ -1469,7 +1469,7 @@ forthword_ ISTART, 0x8004 | DIS_CALL_OPT, "(i:)"
 ; ( -- )
 ; ISR
 ; define the end of an Interupt Service Routine
-forthword_ IEND, 0x8004, "(i;)"
+forthword_ IEND, 0, 4, "(i;)"
     movw ZL, isrZL
     movw XL, isrXL
     movw temp0, isrt0
@@ -1482,7 +1482,7 @@ forthword_ IEND, 0x8004, "(i;)"
 ; ( len -- len/2 rem)
 ; Arithmetics
 ; convert byte length to word length plus remainder
-forthword_ BTOW, 0x8004, "btow"
+forthword_ BTOW, 0, 4, "btow"
     dup_        ; ( -- len len)
     twoslash_   ; ( -- len len/2
     rcall TUCK  ; ( -- len/2 len len/2

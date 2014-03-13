@@ -45,6 +45,29 @@
   temp6 = 20
   temp7 = 21
 
+; header flags
+.set HFLAGS, 0xFF00
+; low byte is word count : 0 - 255
+; high byte is flags for word
+; enable inlining of word
+; bit 0 : enable inlinning
+.set INLINE_OPT_FB, 0
+.set INLINE_OPT, 0x01
+; bit 2 : dissable tail call optimization
+; disable tail call optimization : & with word count flag ie: HFLAGS & DIS_CALL_OPT | 04
+.set DIS_CALL_OPT, 0x04
+
+; bit 3 : disable interpret execution ie compile only
+.set COMPILE_ONLY_FB, 3
+; set immediate word as compile time only execution
+; disable interpret execution : & with word count flag ie: 0xFF04 & COMPILE_ONLY
+.set COMPILE_ONLY, 0x08
+
+; bit 7 : immediate execution when in compile state
+; enable immediate execution : & with word count flag ie: 0xFF04 & IMMEDIATE_EN
+.set IMMEDIATE_EN_FB, 7
+.set IMMEDIATE_EN, 0x80
+
 ; forth flags
 ; bit 0 : rcall was last instruction
 .set LAST_RCALL_FB, 0
@@ -53,8 +76,6 @@
 ; if bit 0 and 1 are cleared then last instruction was an inline or tail call optimization was disabled by word
 ; bit 2 : disable tail call optimization
 .set DIS_CALL_OPT_FB, 2
-; disable tail call optimization : | with word count flag ie: 0x8004 | DIS_CALL_OPT
-.set DIS_CALL_OPT, 0x0400
 
 ; forth flags register
   fflags = 22
@@ -248,9 +269,9 @@
   .align 1
 .endm
 
-.macro forthword_ lbl, sz, str 
+.macro forthword_ lbl, flags, sz, str 
 VE_\lbl:
-  ascii_ \sz, "\str"
+  ascii_ ((HFLAGS & ~(\flags<<8)) | \sz), "\str"
   addr_ VE_HEAD
   .set VE_HEAD, VE_\lbl
 \lbl:
