@@ -468,7 +468,7 @@ forthword_ XOR, 0, 3, "xor"
 ; Arithmetics
 ; optimized increment
 
-forthword_ ONEPLUS, 0, 2, "1+"
+forthword_ ONEPLUS, INLINE_OPT, 2, "1+"
     oneplus_
     ret
 

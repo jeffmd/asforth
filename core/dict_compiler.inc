@@ -260,7 +260,8 @@ FINDI_BEGIN:
 
     pushtos
     movw tosl, al    ; ( start end )
-    rcall OVER       ; ( start end start )
+    oneminus_        ; ( start end-1 )
+    rcall OVER       ; ( start end-1 start )
     rjmp MINUS       ; ( start count )
       
 
