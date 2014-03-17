@@ -2,14 +2,14 @@
 ; ( --  )  
 ; Interrupt
 ; turns on all interrupts
-forthword_ INTON, 0, 4, "int+"
+forthword_ INTON, INLINE_OPT, 4, "int+"
     sei
     ret
 
 ; ( -- ) 
 ; Interrupt
 ; turns off all interrupts
-forthword_ INTOFF, 0, 4, "int-"
+forthword_ INTOFF, INLINE_OPT, 4, "int-"
     cli
     ret
 
@@ -17,6 +17,6 @@ forthword_ INTOFF, 0, 4, "int-"
 ; ( --  )  
 ; Interrupt
 ; re-enables interrupts in an ISR
-forthword_ ISREND, 0, 4, "reti"
+forthword_ ISREND, INLINE_OPT, 4, "reti"
 isr:
     reti

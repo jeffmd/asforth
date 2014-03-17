@@ -1,5 +1,3 @@
-( mask -- wid flags)
-\ clear flags in wid
 : widf 
     wid
     @e
@@ -10,11 +8,26 @@
     !i
 ;
 
-( -- )
-\ make most current word immediate
 : immediate
     $7FFF widf
 ; immediate
+
+: \
+    source
+    nip
+    >in
+    !
+; immediate
+
+\ ( "ccc<paren>" -- )
+\ Compiler
+\ skip everything up to the closing bracket on the same line
+: (
+    $29
+    parse
+    2drop
+; immediate
+
 
 ( -- )
 \ make most current word compile only
@@ -33,23 +46,6 @@
 : :ic
     $77FF
     widf
-; immediate
-
-
-: \
-    source
-    nip
-    >in
-    !
-; immediate
-
-\ ( "ccc<paren>" -- )
-\ Compiler
-\ skip everything up to the closing bracket on the same line
-: (
-    $29
-    parse
-    2drop
 ; immediate
 
 \ force compile any word including immediate words

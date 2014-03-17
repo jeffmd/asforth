@@ -244,9 +244,10 @@ forthword_ DOCOMPILE, DIS_CALL_OPT, 9, "(compile)"
 ; or get word index of match
 forthword_ FINDI, 0, 5, "findi"
     ; fetch from flash and check if equal to match word
-    copytob_         ; ( start match ) B: match
-    poptos           ; ( start )
-    copytoa_         ; ( start ) A: start
+    rcall TO_B       ; ( start ) B: match
+    dup_             ; ( start start )
+    twostar_         ; ( start start*2 )
+    rcall TO_A       ; ( start ) A: start*2
     ; begin
 FINDI_BEGIN:
       rcall AFETCHI  ; ( start val )
@@ -256,15 +257,13 @@ FINDI_BEGIN:
       rcall EQUAL    ; ( start flag )
     ; until
     zerosense_       ; ( start )
-    brne FINDI_BEGIN
+    breq FINDI_BEGIN
 
-    pushtos
-    movw tosl, al    ; ( start end )
-    oneminus_        ; ( start end-1 )
-    rcall OVER       ; ( start end-1 start )
+    rcall A_         ; ( start end )
+    twoslash_        ; ( start end/2 )
+    oneminus_        ; ( start end/2-1 )
+    rcall OVER       ; ( start end/2-1 start )
     rjmp MINUS       ; ( start count )
-      
-
 
 
 ; ( start -- )
@@ -275,14 +274,14 @@ forthword_ INLINE, 0, 6, "inline"
     sbr fflags, 1<<DIS_CALL_OPT_FB
     ; find the ret word, want count to ret
     ; count will be number of words to inline
-    doliteral_ 0x9508
-    rcall FINDI
+    doliteral_ 0x9508        ; ( start 0x9508 )
+    rcall FINDI              ; ( start count )
 
     ; dp swap dup dp+ itoi
-    call DP
-    rcall SWAP
-    dup_
-    rcall DPPLUS
+    call DP                  ; ( start count dp )
+    rcall SWAP               ; ( start dp count )
+    dup_                     ; ( start dp count count )
+    rcall DPPLUS             ; ( start dp count )
     jmp ITOI
 
 

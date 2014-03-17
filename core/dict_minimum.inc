@@ -1721,28 +1721,6 @@ PFA_CMOVE1:
     poptos
     ret
 
-; (start dest count -- )
-; Memory
-; copy flash memory.  Assumes no overlap.
-forthword_ ITOI, 0, 4, "itoi"
-    niptoa_         ; ( start count ) A: dest
-ITOI_B:
-    dupzerosense_   ; ( start count )
-    breq ITOI_END
-    call TO_B       ; ( start ) B: count
-    dup_            ; ( start start )
-    call FETCHI     ; ( start val )
-    call A_         ; ( start val dest )
-    call STOREI     ; ( start )
-    aplus_
-    oneplus_        ; ( start+1 )
-    call B_         ; ( start+1 count )
-    oneminus_       ; ( start+1 count-1 )
-    rjmp ITOI_B
-
-ITOI_END:
-    jmp TWODROP
-
 
 ; ( -- addr )
 ; System Variable
