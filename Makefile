@@ -137,7 +137,7 @@ atmega328p.o : atmega328p.S $(INCS)
 	@echo "Setting fuses to ATMEL $*" 
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -U efuse:w:$(EFUSE):m -U hfuse:w:$(HFUSE):m -U lfuse:w:$(LFUSE):m
 
-# Set the fuse bits
+# read the fuse bits
 %.rfuse :
 	@echo "Setting fuses to ATMEL $*" 
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -U efuse:r:-:h -U hfuse:r:-:h -U lfuse:r:-:h
