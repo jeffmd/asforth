@@ -528,8 +528,8 @@ PFA_TYPE2:
 ; Dictionary
 ; search dictionary for name, returns XT and its flags or throw an exception -13
 forthword_ TICKF, 0, 2, "'f"
-    rcall PARSENAME
-    rcall FINDNAME
+    rcall PNAME
+    rcall FINDNXT
     dupzerosense_
     brne TICKFEXIT
     doliteral_ -13
@@ -544,6 +544,14 @@ forthword_ TICK, 0, 1, "'"
     rcall TICKF
     drop_
     ret
+    
+; ( C:"<spaces>name" -- 0 | nfa )
+; Dictionary
+; search dictionary for name, returns nfa if found or 0 if not found
+forthword_ FIND, 0, 4, "find"
+    rcall PNAME
+    call GET_CURRENT
+    rjmp FINDNFA
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( -- a-addr )
@@ -596,8 +604,7 @@ PFA_THROW1:
     rcall HANDLER      ; ( n hxt haddr )
     call STORE         ; ( n )
     call R_FROM        ; ( n SP ) (R: callerret )
-    call SP_STORE      ; ( n )
-    ret
+    jmp SP_STORE      ; ( n )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( addr1 n1 c -- addr2 n2 )
@@ -754,7 +761,7 @@ forthword_ REFILL, 0, 6, "refill"
 ; Tools
 ; copy the first character of the next word onto the stack
 forthword_ CHAR, 0, 4, "char"
-    rcall PARSENAME
+    rcall PNAME
     drop_
     jmp CFETCH
 
@@ -852,10 +859,10 @@ PFA_SETBASE1:
     rjmp DECIMAL
 
 PFA_SETBASE2:        ; ( error)
-    doliteral_ '#
-    call EQUAL
-    zerosense_
-    ret
+    ;doliteral_ '#
+    ;call EQUAL
+    ;zerosense_
+    ;ret
     rjmp DECIMAL
 
 ; (addr len -- addr len flag) Numeric IO
@@ -996,7 +1003,7 @@ forthword_ SRCIN, 0, 5, "srcin"
 ; ( "<name>" -- c-addr u )
 ; String
 ; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
-forthword_ PARSENAME, 0, 10, "parse-name"
+forthword_ PNAME, 0, 5, "pname"
     rcall BL
     ; fall thru into SKIPSCANCHAR
 
@@ -1021,12 +1028,14 @@ SKIPSCANCHAR:
     rcall G_IN           ; ( addr2 n3 gpos ginaddr )
     jmp STORE            ; ( addr2 n3 )
 
-; ( addr len --  0 | xt -1 | xt 1 )
+; ( addr len --  0 | [xt xtflags] )
 ; Tools
 ; search wordlists for the name from string addr/len
-forthword_ FINDNAME, 0, 9, "find-name"
+forthword_ FINDNXT, 0, 7, "findnxt"
     call GET_CURRENT   ; ( addr len EE_FORTHWORDLIST )
-    rjmp SEARCH_WORDLIST ; ( -- [xt] flag )
+    rcall FINDNFA      ; ( nfa )
+    jmp NFATOXTF      ; ( [xt] flag )
+    
 
 ; ( -- )
 ; System
@@ -1289,7 +1298,7 @@ forthword_ DEPTH, 0, 5, "depth"
 ; interpret input word by word.
 forthword_ INTERPRET, 0, 9, "interpret"
     ; begin
-    rcall PARSENAME     ; ( -- addr len )
+    rcall PNAME     ; ( -- addr len )
 
     ; ?while
     dupzerosense_       ; ( -- addr len )
@@ -1402,7 +1411,7 @@ PFA_REC_NONUMBER:
 ; will 
 forthword_ REC_WORD, 0, 8, "rec-word"
 
-    rcall FINDNAME
+    rcall FINDNXT
     dupzerosense_
     brne REC_WORD_FOUND
     ret
@@ -1508,7 +1517,7 @@ forthword_ TO, IMMEDIATE_EN, 2, "to"
     zerosense_
     breq PFA_TO1        ; not in compile state, so jump to runtime operation
     call DOCOMPILE
-    addr_ DOTO
+    addr_ VE_DOTO
     jmp COMMA
 
 ; ( n -- ) (R: IP -- IP+2)
@@ -1583,48 +1592,45 @@ forthword_ DODEFER, 0, 7, "(defer)"
     ; EXEC the defer
     jmp EXEC
 
-; ( c-addr len wid -- [ 0 ] | [ xt xtflags] )
-; Search Order
-; searches the word list wid for the word at c-addr/len
-forthword_ SEARCH_WORDLIST, 0, 15, "search-wordlist"
+; ( c-addr len wid -- [ 0 ] | [ nfa ] )
+; find a word in the dictionary
+; 0 if word not found in dictionary
+; nfa if word is found
+forthword_ FINDNFA, 0, 7, "findnfa"
     call FETCHE                ; ( c-addr len nfa )
-PFA_SEARCH_WORDLIST0:
+    ; <begin>
+FINDNFA_BEGIN:
+    ; <while>
     dupzerosense_              ; ( c-addr len nfa )
-    brne PFA_SEARCH_WORDLIST1
+    brne FINDNFA_CHECK
       ; terminating, 0 found
-      call TWODROP             ; ( c-addr )
-      zerotos_                 ; ( 0 )
+      nip_                     ; ( c-addr 0 )
+      nip_                     ; ( 0 )
       ret
 
-PFA_SEARCH_WORDLIST1:
-    ; <begin>
+FINDNFA_CHECK:
     call TO_R                  ; ( c-addr len ) (R: nfa )
     call TWOOVER               ; ( c-addr len c-addr len )
     call R_FETCH               ; ( c-addr len c-addr len nfa )
     rcall ICOUNT               ; ( c-addr len c-addr len f-addr len )
     zerohigh_                  ; ( c-addr len c-addr len f-addr 0:len )
     rcall ICOMPARE             ; ( c-addr len flag )
+    ; <if>
     zerosense_
-    breq PFA_SEARCH_WORDLISTNEXT
+    breq FINDNFA_NEXT
       ; we found the string
-      call TWODROP
-      call R_FROM ; ( -- iaddr )
-      dup_
-      call FETCHI
-      call TO_R
-      call NFA2LFA
-      oneplus_  ; lfa2xt
-      call R_FROM ; check flags
-
-PFA_SEARCH_WORDLISTIMMEDIATE:
+      call TWODROP             ; ( )
+      call R_FROM              ; ( nfa )
       ret
-
-PFA_SEARCH_WORDLISTNEXT:
+    ; <then>
+FINDNFA_NEXT:
       ; next try
       call R_FROM
       call NFA2LFA
       call FETCHI
-      rjmp PFA_SEARCH_WORDLIST0
+      ; <repeat>
+      rjmp FINDNFA_BEGIN
+
 
 ; ( r-addr r-len f-addr f-len --  f)
 ; Memory

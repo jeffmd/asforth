@@ -191,7 +191,7 @@ forthword_ DPPLUS, 0, 3, "dp+"
 ; Compiler
 ; parse the input and create an vocabulary entry without XT and data field (PF)
 forthword_ DOCREATE, 0, 8, "(create)"
-    call PARSENAME
+    call PNAME
     rcall GET_CURRENT
     ; fall thru into HEADER
     rjmp HEADER
@@ -230,9 +230,8 @@ HEADER_error:
 
 forthword_ DOCOMPILE, DIS_CALL_OPT, 9, "(compile)"
     rcall R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
-    rcall FETCHI         ; ( xt1 )
-    ; don't allow inlining
-    rcall ZERO           ; ( xt1 0 )
+    rcall FETCHI         ; ( nfa )
+    rcall NFATOXTF       ; ( xt xtflags )
     jmp COMPILEXT
     
     
@@ -449,6 +448,24 @@ forthword_ NFA2LFA, 0, 7, "nfa>lfa"
     zerohigh_
     rcall WALIGN
     rjmp PLUS
+    
+; ( nfa -- [ 0 ] | [ xt xtflags] )
+; convert name field address to xt and xtflags
+forthword_ NFATOXTF, 0, 7, "nfa>xtf"
+    dupzerosense_              ; ( n )
+    breq NFATOXTF_EXIT
+
+    dup_                        ; ( nfa nfa )
+    rcall FETCHI                ; ( nfa xtflags )
+    rcall TO_R                  ; ( nfa ) (R: xtflags)
+    rcall NFA2LFA               ; ( lfa )
+    oneplus_   ; lfa>xt         ; ( xt )
+    rcall R_FROM                ; ( xt xtflags )
+
+NFATOXTF_EXIT:
+    ret
+
+    
 
 ; ( -- wid) 
 ; Dictionary

@@ -77,7 +77,7 @@
 
 : compile
   ['f] (compile) cxt
-  ' ,
+  find ,
 ; :ic
 
 ( -- ) ( C: x "<spaces>name" -- )
@@ -118,22 +118,19 @@
     compile popret
 ;
 
-( n <name> -- )
+( n -- )  ( C: x "<spaces>name" -- )
 \ Compiler
 \ create a dictionary entry for a value and allocate 1 cell in EEPROM.
 : val
-    (create)
-    wid
-    !e
-
+    rword
     compile (value)
-    edp
-    dup
-    ,
-    dup
-    2+
-    to edp
-    !e
+    edp                ( n edp )
+    dup                ( n edp edp )
+    ,                  ( n edp )
+    dup                ( n edp edp )
+    2+                 ( n edp edp+2)
+    to edp             ( n edp )
+    !e                 ( )
     ['] @e ,
     ['] !e ,
 ;

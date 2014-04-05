@@ -86,3 +86,33 @@
 \ tools
 \ read register/ram byte contents and print in hex form
 : r? c@ .$ ;
+
+\ setup fence which is the lowest address that we can forget words
+find r? val fence
+
+( c: name -- )
+: forget
+  find            ( nfa )
+  ?dup
+  if
+    \ nfa must be greater than fence
+    dup           ( nfa nfa)
+    fence         ( nfa nfa fence )
+    >             ( nfa nfa>fence )
+    if
+      \ nfa is valid
+      \ set dp to nfa
+      dup           ( nfa nfa )
+      to dp         ( nfa )
+      \ set wid to lfa
+      nfa>lfa       ( lfa )
+      @i            ( nfa )
+      wid           ( nfa wid )
+      !e
+    else
+      drop  
+    then
+  then
+;
+
+find forget to fence
