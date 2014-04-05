@@ -98,7 +98,8 @@ find r? val fence
     \ nfa must be greater than fence
     dup           ( nfa nfa)
     fence         ( nfa nfa fence )
-    >             ( nfa nfa>fence )
+    $3800
+    within             ( nfa nfa>fence )
     if
       \ nfa is valid
       \ set dp to nfa

@@ -545,13 +545,6 @@ forthword_ TICK, 0, 1, "'"
     drop_
     ret
     
-; ( C:"<spaces>name" -- 0 | nfa )
-; Dictionary
-; search dictionary for name, returns nfa if found or 0 if not found
-forthword_ FIND, 0, 4, "find"
-    rcall PNAME
-    call GET_CURRENT
-    rjmp FINDNFA
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( -- a-addr )

@@ -24,6 +24,9 @@ until ( f -- ) (C: dest -- ) finish begin with conditional branch, leaves the lo
 ?until ( f -- f ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime. does not consume flag
 again ( -- ) (C: dest -- ) compile a jump back to dest
 does>
+find
+findnfa
+findnxt
 :
 ;
 :noname
@@ -51,7 +54,7 @@ dp+1
 dp+
 [']
 '
-value
+val
 to
 inline
 lit
@@ -335,7 +338,6 @@ find-name ( addr len --  0 | xt -1 | xt 1 ) search wordlists for the name from s
 ?stack
 ver
 unused
-search-wordlist
 dbg-
 dbg+
 init-user
@@ -345,6 +347,8 @@ rbs
 rbc
 rb?
 r?
+fence
+forget
 
 ***** Core words done in assembly
 exec
