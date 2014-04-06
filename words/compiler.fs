@@ -220,7 +220,7 @@
 \ compile zerosense and conditional branch forward
 : ?brc
     
-    ['f] 0? cxt      \ inline zerosense 
+    compile 0?       \ inline zerosense
     [compile] brnz1,
 ;
 
