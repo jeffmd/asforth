@@ -433,7 +433,7 @@ forthword_ DOSLITERAL, 0, 10, "(sliteral)"
 ; Tools
 ; reads string from flash and prints it
 forthword_ ITYPE, 0, 5, "itype"
-    call BTOW       ; ( --addr len/2 rem )
+    call BTOW        ; ( addr len/2 rem )
     call TO_B        ; ( addr len/2 ) B: rem
     call SWAP        ; ( len/2 addr )
     twostar_         ; ( len/2 addr*2 )

@@ -17,7 +17,8 @@ forthword_ EXEC, 0, 4, "exec"
 
 ; (  -- )
 ; doesn't do anything - no operation
-forthword_ NOOP, 0, 4, "noop"
+forthword_ NOOP, INLINE_OPT, 4, "noop"
+    nop
     ret
 
 
