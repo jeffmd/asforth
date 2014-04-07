@@ -21,23 +21,29 @@
 ( channel -- )
 \ set adc mux to channel 
 \ channel between 0 and 7 for external connections
+\ channel 0 to 5 for atmega328 28pin dip
 \ channel 8 - on chip temperature sensor
 \ channel 14 - 1.1v band gap
 \ channel 15 - 0V ground
 : amux
+  $0F and
   $7C \ admux is $7C
-  c!
+  >a
+  ac@
+  $F0 and or
+  ac!
 ;
 
 ( -- )
 \ initialize the ADC to default values
 : adcinit
 \ disable digital inputs on first 5 analog inputs
-\ set analog conversion to free running mode
-\ set prescaler to 64 to give 250K sample cycle
+%00111111 $7E rbs
 \ set voltage ref to AVcc
-
-
+%01000000 $7C rbs
+\ set analog conversion to free running mode
+\ set prescaler to 128 to give 125K sample cycle
+%11100111 $7A rbs
 ;
 
 ( -- temperature )
