@@ -1322,16 +1322,19 @@ RECX_BEGIN:
     dupzerosense_        ; ( addr len recxt )
     breq RECX_DONE
 
-    call TO_R            ; ( addr len ) (R: n+1 recxt )
+    call TO_A            ; ( addr len ) A: recxt
     call TWOOVER         ; ( addr len addr len  )
-    call R_FROM          ; ( addr len addr len recxt ) (R: n )
-    call RROT            ; ( addr len recxt addr len )
-    call TO_R            ; ( addr len recxt addr ) (R: n len )
-    call TO_R            ; ( addr len recxt ) (R: n len addr )
-    call EXEC            ; ( flag )
-    call R_FROM          ; ( flag addr ) (R: n len )
-    call R_FROM          ; ( flag addr len ) (R: n )
-    call ROT             ; ( addr len flag )
+    ; put addr and len on return stack so that
+    ; stack can be manipulated by interpreted word
+    call TO_R            ; ( addr len addr ) (R: n len )
+    call TO_R            ; ( addr len ) (R: n len addr )
+    call A_              ; ( addr len recxt ) A:
+    call EXEC            ; ( [...] flag )
+    ; restore data stack to known state
+    call TO_A            ; ( ) A: flag
+    call R_FROM          ; ( addr ) (R: n len )
+    call R_FROM          ; ( addr len ) (R: n )
+    call A_              ; ( addr len flag ) A:  
 
     ; <if>
     zerosense_           ; ( addr len )
