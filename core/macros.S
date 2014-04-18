@@ -152,6 +152,10 @@
     adiw YL, 2
 .endm
 
+.macro dnip_
+    adiw YL, 4
+.endm
+
 .macro not_
     com tosl
     com tosh
