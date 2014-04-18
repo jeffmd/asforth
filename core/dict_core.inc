@@ -77,7 +77,7 @@ forthword_ DROP, INLINE_OPT, 4, "drop"
 ; Stack
 ; drop TOS twice
 forthword_ TWODROP, 0, 5, "2drop"
-    adiw YL, 2
+    nip_
     drop_
     ret
 
