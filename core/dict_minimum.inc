@@ -782,9 +782,9 @@ forthword_ NUMBER, 0, 6, "number"
 
     ; error in string to number conversion
 PFA_NUMBER2:
-	call TWODROP              ; ( n addr' -- )  (R: base flagsign' )
-	r_drop_                   ; ( ) (R: base )
-	call ZERO                 ; ( 0 ) (R: base )
+	nip_                      ; ( addr' )  (R: base flagsign' )
+	r_drop_                   ; ( addr' ) (R: base )
+	zerotos_                  ; ( 0 ) (R: base )
     rjmp PFA_NUMBER5
 
 PFA_NUMBER1:
@@ -959,7 +959,7 @@ PFA_CSCAN2:
     rjmp PFA_CSCAN1   ; ( -- addr1 c n2+1 )
 
 PFA_CSCAN3:
-    call TWODROP      ; ( -- addr1)
+    call DDROP      ; ( -- addr1)
     jmp B_            ; ( -- addr1 n1)
 
 ; ( -- addr n )
@@ -1304,7 +1304,7 @@ forthword_ INTERPRET, 0, 9, "interpret"
     rjmp INTERPRET
 
 INTERPRET_END:
-    jmp TWODROP
+    jmp DDROP
 
 ; ( addr len -- )
 ; System
@@ -1340,7 +1340,7 @@ RECX_BEGIN:
     zerosense_           ; ( addr len )
     breq RECX_NEXT
 
-    call TWODROP         ; ( ) (R: n)
+    call DDROP         ; ( ) (R: n)
     r_drop_              ; ( ) (R: )
     ret
 
@@ -1350,7 +1350,7 @@ RECX_NEXT:
     rjmp RECX_BEGIN
 
 RECX_DONE:
-    call TWODROP
+    dnip_
     drop_
     r_drop_
     ret
@@ -1600,8 +1600,7 @@ FINDNFA_BEGIN:
     dupzerosense_              ; ( c-addr len nfa )
     brne FINDNFA_CHECK
       ; terminating, 0 found
-      nip_                     ; ( c-addr 0 )
-      nip_                     ; ( 0 )
+      dnip_                     ; ( 0 )
       ret
 
 FINDNFA_CHECK:
@@ -1615,7 +1614,7 @@ FINDNFA_CHECK:
     zerosense_
     breq FINDNFA_NEXT
       ; we found the string
-      call TWODROP             ; ( )
+      call DDROP               ; ( )
       call R_FROM              ; ( nfa )
       ret
     ; <then>
@@ -1642,7 +1641,7 @@ forthword_ ICOMPARE, 0, 8, "icompare"
     breq PFA_ICOMPARE_SAMELEN
 
     ; strings are not the same length
-    call TWODROP            ; ( r-addr )
+    dnip_
     zerotos_                ; ( 0 )
     ret
 

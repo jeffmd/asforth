@@ -76,7 +76,7 @@ forthword_ DROP, INLINE_OPT, 4, "drop"
 ; ( n n -- ) 
 ; Stack
 ; drop TOS twice
-forthword_ TWODROP, 0, 5, "2drop"
+forthword_ DDROP, 0, 5, "ddrop"
     nip_
     drop_
     ret
@@ -87,6 +87,13 @@ forthword_ TWODROP, 0, 5, "2drop"
 ; same as SWAP DROP
 forthword_ NIP, INLINE_OPT, 3, "nip"
     nip_
+    ret
+
+; ( n1 n2 n3 -- n3) 
+; Stack
+; drop NOS twice, two cells before TOS.
+forthword_ DNIP, INLINE_OPT, 4, "dnip"
+    dnip_
     ret
 
 ; ( n1 n2 -- n2 n1 n2) 
@@ -949,7 +956,7 @@ PFA_FILL1:
     oneminus_       ; ( c u-1 )
     rjmp PFA_FILL1
 PFA_FILL2:
-    rjmp TWODROP
+    rjmp DDROP
 
 ; ( u -- ) 
 ; Numeric IO
@@ -983,7 +990,7 @@ PFA_DOTS1:
     rjmp PFA_DOTS1
     
 PFA_DOTS2:
-    rjmp TWODROP
+    rjmp DDROP
 
 
 
@@ -1513,4 +1520,4 @@ ITOI_B:
     rjmp ITOI_B
 
 ITOI_END:
-    rjmp TWODROP
+    rjmp DDROP

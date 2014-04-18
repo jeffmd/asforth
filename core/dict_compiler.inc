@@ -378,7 +378,7 @@ PFA_FETCH_EE_ARRAY1:
     twominus_          ; ( item_i ee-addr2-2 blen-2)
     rjmp PFA_FETCH_EE_ARRAY1
 PFA_FETCH_EE_ARRAY2:
-    call TWODROP       ; ( ... item_i )
+    call DDROP       ; ( ... item_i )
     rjmp A_            ; ( ... item_i len )
 
 ; ( recn .. rec0 n ee-addr -- ) 

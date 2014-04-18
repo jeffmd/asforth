@@ -25,7 +25,7 @@
 : (
     $29
     parse
-    2drop
+    ddrop
 ; immediate
 
 
