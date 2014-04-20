@@ -111,7 +111,7 @@
 &26  con OVF1 \ Timer/Counter1 Overflow
 &28  con CM0A \ TimerCounter0 Compare Match A
 &30  con CM0B \ TimerCounter0 Compare Match B
-&32  con OVF0 \ Timer/Couner0 Overflow
+&32  con OVF0 \ Timer/Counter0 Overflow
 &34  con SPI  \ SPI Serial Transfer Complete
 &36  con URXC \ USART Rx Complete
 &38  con UDRE \ USART, Data Register Empty
