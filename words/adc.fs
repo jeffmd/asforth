@@ -11,7 +11,7 @@
 ( -- val )
 \ do adc conversion, puts 10 bit value on top of stack
 : adc
-\ start conversion
+\ start conversion, auto conversion is on
 \ wait for conversion finished flag to be set
 \ read adcl and adch by doing 16 bit read from adcl
   $78 @
