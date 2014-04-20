@@ -660,40 +660,6 @@ forthword_ UP_STORE, INLINE_OPT, 3, "up!"
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ( -- n1 )
-; System
-; runtime of literal
-;forthword_ DOLITERAL, 0, 9, "(literal)"
-;DOLITERAL:
-;    pushtos
-;    pop ZH
-;    pop ZL
-;    readflashcell tosl,tosh
-;    ror ZH
-;    ror ZL
-;    ijmp    ; (z)
-
-; ( -- addr )
-; System
-; puts content of parameter field (1 cell) to TOS
-;forthword_ DOVARIABLE, 0, 10, "(variable)"
-;DOVARIABLE:
-;    pushtos
-;    pop     ZH    ; pop return address - will not be returning here
-;    pop     ZL
-;    rjmp ZDFETCHI
-
-; ( -- addr )
-; System
-; place data field address on TOS
-;forthword_ DOCONSTANT, 0, 10, "(constant)"
-;    pop ZH
-;    pop ZL    
-;    pushtos
-;    movw tosl, ZL
-;    oneplus_
-;    adiw ZL, 1
-;    ijmp
     
 ; ( -- addr )
 ; System
@@ -873,7 +839,7 @@ pageload:
   ldi XL,lo8(PAGESIZE)
   ldi XH,hi8(PAGESIZE)
 pageload_loop:
-  ; we need the current flash value anyways
+  ; we need the current flash value anyway
   movw ZL, YL
   lsl ZL
   rol ZH
