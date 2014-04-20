@@ -2,7 +2,6 @@
 ;;;;
 ;;;; GPL V2 (only)
 
-.include "drivers/generic-isr.S"
 ; lower part of the dictionary
 ; this dictionary area contains optional/application words
 ; they may be moved to the core dictionary if needed
