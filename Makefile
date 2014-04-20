@@ -100,7 +100,7 @@ override LDFLAGS  = $(LDSECTION) -v -Map=map.txt -mavr5
 ASM = avr-as $(ASFLAGS) $(AS_INCLUDE)
 LINK = avr-ld $(LDFLAGS)
 	
-INCS = $(CORE)/*.inc $(CORE)/*.S $(CORE)/drivers/*.S
+INCS = $(CORE)/*.inc $(CORE)/*.S $(CORE)/drivers/*.S $(CORE)/devices/atmega328p/*.S
 
 # Assemble the target
 atmega328p.o : atmega328p.S $(INCS)
