@@ -433,7 +433,7 @@
     then
 ; immediate
 
-( n -- )
+( n c<name> -- )
 \ Compiler
 \ add an Interrupt Service Routine to the ISR vector table
 \ n is the address of the table entry
