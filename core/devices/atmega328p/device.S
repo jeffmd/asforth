@@ -34,55 +34,55 @@
 int_vectors:
  	 jmp COLD ; reset Handler
 .org 0x04
-	 jmp isr ; External Interrupt Request 0
+	 jmp ISREND ; External Interrupt Request 0
 .org 0x08
-	 rcall isr ; External Interrupt Request 1
+	 jmp ISREND ; External Interrupt Request 1
 .org 0x0c
-	 jmp isr ; Pin Change Interrupt Request 0
+	 jmp ISREND ; Pin Change Interrupt Request 0
 .org 0x10
-	 jmp isr ; Pin Change Interrupt Request 1
+	 jmp ISREND ; Pin Change Interrupt Request 1
 .org 0x14
-	 jmp isr ; Pin Change Interrupt Request 2
+	 jmp ISREND ; Pin Change Interrupt Request 2
 .org 0x18
-	 jmp isr ; Watchdog Time-out Interrupt
+	 jmp ISREND ; Watchdog Time-out Interrupt
 .org 0x1c
-	 jmp isr ; Timer/Counter2 Compare Match A
+	 jmp ISREND ; Timer/Counter2 Compare Match A
 .org 0x20
-	 jmp isr ; Timer/Counter2 Compare Match B
+	 jmp ISREND ; Timer/Counter2 Compare Match B
 .org 0x24
-	 jmp isr ; Timer/Counter2 Overflow
+	 jmp ISREND ; Timer/Counter2 Overflow
 .org 0x28
-	 jmp isr ; Timer/Counter1 Capture Event
+	 jmp ISREND ; Timer/Counter1 Capture Event
 .org 0x2c
-	 jmp isr ; Timer/Counter1 Compare Match A
+	 jmp ISREND ; Timer/Counter1 Compare Match A
 .org 0x30
-	 jmp isr ; Timer/Counter1 Compare Match B
+	 jmp ISREND ; Timer/Counter1 Compare Match B
 .org 0x34
-	 jmp isr ; Timer/Counter1 Overflow
+	 jmp ISREND ; Timer/Counter1 Overflow
 .org 0x38
-	 jmp isr ; TimerCounter0 Compare Match A
+	 jmp ISREND ; TimerCounter0 Compare Match A
 .org 0x3c
-	 jmp isr ; TimerCounter0 Compare Match B
+	 jmp ISREND ; TimerCounter0 Compare Match B
 .org 0x40
-	 jmp isr ; Timer/Couner0 Overflow
+	 jmp ISREND ; Timer/Couner0 Overflow
 .org 0x44
-	 jmp isr ; SPI Serial Transfer Complete
+	 jmp ISREND ; SPI Serial Transfer Complete
 .org 0x48
-	 jmp isr ; USART Rx Complete
+	 jmp ISREND ; USART Rx Complete
 .org 0x4c
-	 jmp isr ; USART, Data Register Empty
+	 jmp ISREND ; USART, Data Register Empty
 .org 0x50
-	 jmp isr ; USART Tx Complete
+	 jmp ISREND ; USART Tx Complete
 .org 0x54
-	 jmp isr ; ADC Conversion Complete
+	 jmp ISREND ; ADC Conversion Complete
 .org 0x58
-	 jmp isr ; EEPROM Ready
+	 jmp ISREND ; EEPROM Ready
 .org 0x5c
-	 jmp isr ; Analog Comparator
+	 jmp ISREND ; Analog Comparator
 .org 0x60
-	 jmp isr ; Two-wire Serial Interface
+	 jmp ISREND ; Two-wire Serial Interface
 .org 0x64
-	 jmp isr ; Store Program Memory Read
+	 jmp ISREND ; Store Program Memory Read
 .equ INTVECTORS,  26
 
 ; compatability layer (maybe empty)

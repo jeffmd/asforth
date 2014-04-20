@@ -18,5 +18,5 @@ forthword_ INTOFF, INLINE_OPT, 4, "int-"
 ; Interrupt
 ; re-enables interrupts in an ISR
 forthword_ ISREND, INLINE_OPT, 4, "reti"
-isr:
     reti
+    ret ; needed for inline marker
