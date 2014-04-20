@@ -937,8 +937,8 @@ forthword_ PARSE, 0, 5, "parse"
 forthword_ CSCAN, 0, 5, "cscan"
     niptob_           ; ( -- addr1 c ) B: n1
     call OVER         ; ( -- addr1 c addr1 )
-    call TO_A         ; ( -- addr1 c ) A: addr1
-    call ZERO         ; ( -- addr1 c n2 )
+    copytoa_          ; ( -- addr1 c addr1 ) A: addr1
+    zerotos_          ; ( -- addr1 c 0 )
 PFA_CSCAN1:
     dup_              ; ( -- addr1 c n2 n2 )
     call B_           ; ( -- addr1 c n2 n2 n1 )
