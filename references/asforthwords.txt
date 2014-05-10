@@ -160,7 +160,7 @@ within
 
 
 arithmetics:
-0:
+0: ( n -- 0 ) replaces TOS with 0
 0
 1
 2
@@ -207,33 +207,35 @@ Memory: (34 words)
 
 cmove
 c>
-c!
-c@
-@
-!
-@u
-!u
-!e
-@e
-!i
-@i
-a@
-a@i
-ac@
-a!
-ac!
-na!
-a+
->a
->b
-:a
-:b
-nip>a
-nip>b
-a
-b
-+!
-1+!
+c!   ( c a-addr -- ) store a single byte to RAM address
+c@   ( a-addr - c1 ) fetch a single byte from RAM address
++c!  ( n a-addr -- ) add n to content of byte RAM address a-addr
+1+c! ( a-addr -- ) add 1 to content of byte RAM address a-addr
+@    ( a-addr -- n ) read 1 cell from RAM address
+!    ( n addr -- ) write n to RAM memory at addr, low byte first
++!   ( n a-addr -- ) add n to content of word RAM address a-addr
+1+!  ( a-addr -- ) add 1 to content of word RAM address a-addr
+@u   ( index -- n ) read 1 cell from user RAM address + index
+!u   ( n index -- ) write n to RAM memory at user RAM addr + index, low byte first
+!e   ( n e-addr -- ) write n (2bytes) to eeprom address
+@e   ( e-addr - n) read 1 cell from eeprom
+!i   ( n f-addr -- ) writes n to flash memory 
+@i   ( f-addr -- n1 ) read 1 cell from flash
+a@   ( -- n ) Read RAM memory pointed to by register A 
+a@i  ( -- n ) Read program memory pointed to by register
+ac@  ( -- n ) Read a byte from ram pointed to by register A
+a!   ( n -- ) Write memory pointed to by register A 
+ac!  ( n -- ) Write char memory pointed to by register A
+na!  ( n offs -- ) Write TOS to memory pointed to by register A plus offset
+a+   ( -- ) update register A with post increment from last memory operation
+>a   ( n -- ) A: n Move TOS to A register
+>b   ( n -- ) B: n Move TOS to B register 
+:a   ( n -- n ) A: n copy TOS to A register
+:b   ( n -- n ) B: n copy TOS to B register
+nip>a ( n1 n2 -- n2 ) A: n1 Remove next on stack and write to A register
+nip>b ( n1 n2 -- n2 ) B: n1 Remove next on stack and write to B register
+a    ( -- n ) put the A register on TOS
+b    ( -- n ) put the B register on TOS
 fill
 itoi
 @e[]
