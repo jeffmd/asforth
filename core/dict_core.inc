@@ -310,9 +310,9 @@ forthword_ GREATERZERO, 0, 2, "0>"
 ; ( -- 0 ) 
 ; Arithmetics
 ; set TOS to 0
-;forthword_ ZEROSET, 0, 2, "0:"
-;    zerotos_
-;    ret
+forthword_ ZEROSET, INLINE_OPT, 2, "0:"
+    zerotos_
+    ret
 
 ; ( -- 0 ) 
 ; Arithmetics
@@ -1018,15 +1018,59 @@ ZCFETCH:
     ld tosl, Z+
     ret
 
-; ( a-addr -- n ) 
+; ( n a-addr -- ) 
 ; Memory
-; read 1 cell from user RAM address
+; add n to content of RAM address a-addr
+forthword_ PLUSSTORE, 0, 2, "+!"
+    movw ZL, tosl
+    poptos
+    ld temp2, Z
+    ldd temp3, Z+1
+    add tosl, temp2
+    adc tosh, temp3
+    rjmp ZSTORE
+    
+; ( a-addr -- ) 
+; Memory
+; add 1 to content of word RAM address a-addr
+forthword_ ONEPLUSSTORE, 0, 3, "1+!"
+    movw ZL, tosl
+    ld tosl, Z
+    ldd tosh, Z+1
+    adiw tosl, 1
+    rjmp ZSTORE
+
+; ( n a-addr -- ) 
+; Memory
+; add n to content of byte RAM address a-addr
+forthword_ PLUSCSTORE, 0, 3, "+c!"
+    movw ZL, tosl
+    poptos
+    ld temp2, Z
+    add tosl, temp2
+    rjmp ZCSTORE
+    
+
+; ( a-addr -- ) 
+; Memory
+; add 1 to content of byte RAM address a-addr
+forthword_ ONEPLUSCSTORE, 0, 4, "1+c!"
+    movw ZL, tosl
+    ld tosl, Z
+    ldi temp2, 1
+    add tosl, temp2
+    rjmp ZCSTORE
+
+
+; ( index -- n ) 
+; Memory
+; read 1 cell from user RAM address + index
 forthword_ FETCHU, 0, 2, "@u"
     rcall UP_FETCH
     rcall PLUS
     rjmp FETCH
 
-; ( n addr -- ) 
+; ( n index -- ) 
 ; Memory
 ; write n to RAM memory at addr, low byte first
 forthword_ STOREU, 0, 2, "!u"
@@ -1071,7 +1115,7 @@ forthword_ ACFETCH, 0, 3, "ac@"
     rjmp ZCFETCH
 
 
-; ( n -- )
+; ( n -- ) A: n
 ; Extended VM
 ; Move TOS to A register (Extended VM)
 forthword_ TO_A, INLINE_OPT, 2, ">a"
@@ -1079,7 +1123,7 @@ forthword_ TO_A, INLINE_OPT, 2, ">a"
     poptos
     ret
 
-; ( n -- )
+; ( n -- ) B: n
 ; Extended VM
 ; Move TOS to B register (Extended VM)
 forthword_ TO_B, INLINE_OPT, 2, ">b"
@@ -1087,14 +1131,14 @@ forthword_ TO_B, INLINE_OPT, 2, ">b"
     poptos
     ret
 
-; ( n -- )
+; ( n -- n ) A: n
 ; Extended VM
 ; copy TOS to A register (Extended VM)
 forthword_ _A, INLINE_OPT, 2, ":a"
     copytoa_
     ret
 
-; ( n -- )
+; ( n -- n ) B: n
 ; Extended VM
 ; copy TOS to B register (Extended VM)
 forthword_ _B, INLINE_OPT, 2, ":b"
@@ -1115,7 +1159,7 @@ forthword_ NIPTOB, INLINE_OPT, 5, "nip>b"
     niptob_
     ret
 
-; ( n1 -- n2 ) 
+; ( -- n ) 
 ; Extended VM
 ; read the A register (Extended VM)
 forthword_ A_, INLINE_OPT, 1, "a"
@@ -1123,7 +1167,7 @@ forthword_ A_, INLINE_OPT, 1, "a"
     movw tosl, al
     ret
 
-; ( n1 -- n2 ) 
+; ( -- n ) 
 ; Extended VM
 ; read the B register (Extended VM)
 forthword_ B_, INLINE_OPT, 1, "b"
@@ -1132,27 +1176,6 @@ forthword_ B_, INLINE_OPT, 1, "b"
     ret
 
 
-; ( n a-addr -- ) 
-; Memory
-; add n to content of RAM address a-addr
-forthword_ PLUSSTORE, 0, 2, "+!"
-    movw ZL, tosl
-    poptos
-    ld temp2, Z
-    ldd temp3, Z+1
-    add tosl, temp2
-    adc tosh, temp3
-    rjmp ZSTORE
-    
-; ( a-addr -- ) 
-; Memory
-; add 1 to content of RAM address a-addr
-forthword_ ONEPLUSSTORE, 0, 3, "1+!"
-    movw ZL, tosl
-    ld tosl, Z
-    ldd tosh, Z+1
-    adiw tosl, 1
-    rjmp ZSTORE
 
 ; ( n -- )
 ; Extended VM
