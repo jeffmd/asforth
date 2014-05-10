@@ -115,6 +115,16 @@
     allot
 ;
 
+( cchar -- ) 
+\ Compiler
+\ create a dictionary entry for a character variable and allocate 1 byte RAM
+: cvar
+    here
+    con
+    1
+    allot
+;
+
 ( -- a-addr ) ( C: "<spaces>name" -- )
 \ Dictionary
 \ create a dictionary header. XT is (constant),
