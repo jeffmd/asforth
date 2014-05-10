@@ -65,9 +65,9 @@ System: (24 words)
 -------
 :core:
 exec ( xt -- ?? ) execute xt - calls address on TOS
-up@
-up!
-defx
+up@  ( -- addr ) get user area pointer
+up!  ( addr -- ) set user area pointer
+defx ( addr -- n ) execute the defer fetch
 nfa>lfa
 state
 >in
