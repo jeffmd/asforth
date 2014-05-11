@@ -35,6 +35,12 @@ cvar tcnt
   tcnt + 1+c!
 ;
 
+( n idx -- )
+\ set tcnt array element using idx as index
+: tcnt!
+  tcnt + c!
+;
+
 \ array of task slots in eeprom : max 31 tasks 62 bytes
 \ array is a binary process tree
 \                        0
@@ -62,14 +68,13 @@ edp 62 + to edp
   2* tasks + @e 
 ;
 
-( idx -- ) ( C:task_name )
+( addr idx -- ) 
 \ store a task in a slot
 \ idx is the slot index range: 0 to 30
-: task
+: task!
   2*
   tasks +
-  '
-  swap !e
+  !e
 ;
 
 ( -- )
@@ -85,12 +90,24 @@ edp 62 + to edp
 var taskms
 
 ( -- )
-\ execute taskex every 125 ms
-\ if count == 125 then taskex reset count
-\ else inc count
-\ ms gets updated every 1 ms
-\ how to set up trigger
-\ taskms = old ms
+\ execute taskex every 25 ms
 : tasker
- ms @ taskms @ - 125 u> if ms @ taskms ! taskex then 
+  ms @ taskms @ - 24 u> if ms @ taskms ! taskex then 
+;
+
+: taskinit
+  \ iterate 0 to 30 and clear tcnt[] and set tasks[] to noop
+  0
+  begin
+    0 tidx c!
+    0 over tcnt!
+    ['] noop over task! 
+    1+ 
+    dup 30 >  
+  until
+  drop
+  \ set taskms to ms
+  T0init
+  ms @ taskms !
+  ['] tasker to pause
 ;
