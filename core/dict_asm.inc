@@ -139,6 +139,10 @@ forthword_ RELDIST, 0, 7, "reldist"
 ; compile rjmp at start address
 ; ( start dest -- )
 forthword_ RJMPC, 0, 5, "rjmpc"
+    ; clear rcall/call flags
+    cbr fflags, (1<<LAST_RCALL_FB)|(1<<LAST_CALL_FB)
+    ; set disable tail optimize flag
+    sbr fflags, 1<<DIS_CALL_OPT_FB
     ; calculate relative distance in words from start to dest
     rcall RELDIST
     ; compile a rjmp at first mark that jumps to the current DP
