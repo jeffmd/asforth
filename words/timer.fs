@@ -19,7 +19,7 @@ var ms
 &32 isr T0ms
 
 \ setup timer 0 for ~1ms timer counter overflow interrupt
-: initT0
+: T0init
   0 ms !
 \ use prescaler of 64
 \ timer 0 will generate an overflow event 976.56 times in a second
