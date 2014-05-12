@@ -11,18 +11,13 @@ ram_LATEST: .space 2
 .popsection
 
 
-; ( -- ) (C: "<spaces>name" -- )
-; Compiler
-; create a named entry in the dictionary, XT is DO_COLON
+; ( -- addr ) 
+; System Variable
+; system SMUDGE. Get flash program address of latest word being compiled. 
+forthword_ SMUDGE, 0, 6, "smudge"
 
-forthword_ COLON, 0, 1, ":"
-    call DOCREATE
     doliteral_ COLON_SMUDGE
-    rcall STORE
-    call DP
-    rcall LATEST
-    rcall STORE
-    rjmp RBRACKET
+    ret
 
 .pushsection .data
 COLON_SMUDGE: .space 2
