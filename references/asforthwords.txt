@@ -45,15 +45,15 @@ dp+     ( offset -- ) add offset to DP (dictionary pointer)
 
 (create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create an vocabulary entry without XT and data field (PF)
 
-header
+header  ( addr len wid -- voc-link ) creates the vocabulary header without XT and data field (PF) in the wordlist wid
 
 latest  ( -- addr ) Immediate: Get flash program address of latest word being compiled.
 
-nfa>lfa
+nfa>lfa ( nfa -- lfa ) get the link field address from the name field address
 
-nfa>xtf
+nfa>xtf ( nfa -- [ 0 ] | [ xt xtflags] ) convert name field address to xt and xtflags. 0 if not found.
 
-wid
+wid     ( -- wid) get the wid of the current compilation word list
 
 Defined in Forth Source:
 
@@ -129,28 +129,49 @@ System: (24 words)
 Defined in assembly core:
 
 exec ( xt -- ?? ) execute xt - calls address on TOS
+
 up@  ( -- addr ) get user area pointer
+
 up!  ( addr -- ) set user area pointer
+
 defx ( addr -- n ) execute the defer fetch
-nfa>lfa
+
 state
+
 >in
+
 #tib
+
 tib
+
 refill-tib
+
 source-tib
+
 pad
+
 dp
+
 edp
+
 here
+
 allot
+
 source
+
 quit ( -- ) main loop of asforth. accept - interpret in an endless loop
+
 pause ( -- ) Fetch pause vector and EXEC it. may make a context/task switch
+
 cold ( -- ) start up amforth.
+
 warm ( nx* -- ) (R: ny* -- ) initialize asforth further. EXECs turnkey operation and go to quit
+
 defer!
+
 defer@
+
 ee-user
 
 Interpreter: (6 words)
