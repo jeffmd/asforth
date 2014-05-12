@@ -23,10 +23,27 @@ forthword_ SMUDGE, 0, 6, "smudge"
 COLON_SMUDGE: .space 2
 .popsection
 
+; ( -- ) (C: "<spaces>name" -- )
+; Compiler
+; create a named entry in the dictionary, XT is DO_COLON
+forthword_ COLON, 0, 1, ":"
+
+    rcall DOCREATE
+    rcall SMUDGE
+    rcall STORE
+    call DP
+    rcall LATEST
+    rcall STORE
+    rjmp RBRACKET
+
 ; ( -- )
 ; tail call optimize: change last rcall/call into rjmp/jmp
-;forthword_ TAILOPT, 0, 7, "tailopt"
-TAILOPT:
+forthword_ TAILOPT, IMMEDIATE_EN, 4, ";opt"
+    ; check fflags to see if tail call optimization can be done
+    sbrc fflags, DIS_CALL_OPT_FB
+    ; don't optimize tail call, just compile a ret.
+    jmp RET_C          ; ( )
+    
     ; bit 0 and 1 of fflags indicate type of call and number of words to go back in DP
     ; if bit 0 set then its a rcall that has to turned into a rjmp
     sbrs fflags, LAST_RCALL_FB
@@ -61,31 +78,34 @@ TAILOPT_CALL:
     twominus_          ; ( 0x940c DP-2 )
     rjmp STOREI        ; (  )
 
+
+
 ; ( -- )
 ; Compiler
-; finish colon defintion, compiles (exit) and returns to interpret state 
-forthword_ SEMICOLON, IMMEDIATE_EN, 1, ";"
-    ; check fflags to see if tail call optimization can be done
-    sbrs fflags, DIS_CALL_OPT_FB
-    rcall TAILOPT
-    sbrc fflags, DIS_CALL_OPT_FB
-    ; don't optimize tail call, just compile a ret.
-    call RET_C          ; ( )
-
-    rcall LBRACKET
+; update wid from smudge if valid 
+forthword_ UWID, IMMEDIATE_EN, 4, "uwid"
     doliteral_ COLON_SMUDGE
     rcall FETCH
     rcall QDUP
     zerosense_
-    breq SEMICOLON_end
+    breq UWID_end
        rcall GET_CURRENT
        rcall STOREE
        rcall ZERO
        doliteral_ COLON_SMUDGE
        rjmp STORE
-SEMICOLON_end:
+UWID_end:
     ret
 
+
+; ( -- )
+; Compiler
+; finish colon defintion, compiles (exit) and returns to interpret state 
+forthword_ SEMICOLON, IMMEDIATE_EN, 1, ";"
+    rcall TAILOPT
+    rcall LBRACKET
+    rjmp UWID
+    
 ; ( --  ) 
 ; Compiler
 ; enter compiler mode

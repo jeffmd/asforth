@@ -1,10 +1,3 @@
-(create) :
-smudge
-!
-dp latest ! ]
-  (create) smudge ! dp latest ! ] ;
-
-
 : widf 
     wid
     @e
