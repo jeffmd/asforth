@@ -1,69 +1,133 @@
-Compiler: (54 words)
+COMPILER: (54 words)
 ---------
 
+Defined in assembly core:
+
 ."
+
 s"
-s,
+
+s,      ( addr len -- ) compiles a string from RAM to Flash
+
 Edefer
+
 Rdefer
+
 is
+
 sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
->mark ( -- start ) places current dictionary position for forward branch resolve
->resolve ( start -- ) resolve forward jump: compiles relative jump to resolve position at the start position which is on TOS 
-<mark ( -- dest ) place destination for backward branch
-<resolve ( dest -- ) resolve backward branch: compiles relative jump to start position at the resolve position
-if ( f -- ) (C: -- orig ) start conditional branch: compiles zerosense, branch on not equal, and relative jump
-?if ( f -- f ) (C: -- orig ) start conditional branch: compiles dupzerosense, branch on not equal, and relative jump
-else (C: orig1 -- orig2 ) resolve the forward reference and place a new unresolved forward reference
-then ( -- ) (C: orig -- ) finish if: resolve forward reference
-begin ( -- ) (C: -- dest ) put the destination address for the backward branch
-while ( f -- ) (C: dest -- orig dest ) at runtime skip to after repeat if non-true: same as if. use repeat at end of while.
-?while ( f -- f ) (C: dest -- orig dest ) at runtime skip to after repeat if non-true: same as if. use repeat at end of while. does not consume flag.
-repeat ( --  ) (C: orig dest -- ) continue execution at dest, resolve orig
-until ( f -- ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime
-?until ( f -- f ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime. does not consume flag
-again ( -- ) (C: dest -- ) compile a jump back to dest
+
 does>
+
 find
+
 findnfa
+
 findnxt
-:
-;
+
+:       ( -- ) (C: "<spaces>name" -- ) create a named entry in the dictionary. Terminated with ;
+
+;       ( -- ) Immediate: finish colon defintion, compiles a RET(exit) and returns to interpret state 
+
 :noname
-[
-]
-var ( cchar -- ) create a dictionary entry for a variable and allocate 1 cell RAM
-con ( x -- ) (C: x "<spaces>name" -- ) create a constant in the dictionary
-	example: 10 con myconstant -> create a word called "myconstant" that will put the value 10 on the top of the stack
-user
-recurse
-immediate ( -- ) makes most recently defined word immediate : it will execute when in compile mode
-[char]
-create
-latest
-wid
-(create)
+
+[       ( --  ) Immediate: enter interpreter mode
+
+]       ( --  ) enter compiler mode
+
+[char]  ( -- c ) (C: "<space>name" -- ) Immediate: skip leading space delimites, place the first character of the word on the stack
+
+,       ( n -- ) compile n into flash at DP (dictionary pointer), advances DP
+
+dp+1    ( -- ) increment DP (dictionary pointer) by one
+
+dp+     ( offset -- ) add offset to DP (dictionary pointer)
+
+(create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create an vocabulary entry without XT and data field (PF)
+
 header
-\
-(
-)
+
+latest  ( -- addr ) Immediate: Get flash program address of latest word being compiled.
+
+nfa>lfa
+
+nfa>xtf
+
+wid
+
+Defined in Forth Source:
+
+>mark    ( -- start ) places current dictionary position for forward branch resolve
+
+>resolve ( start -- ) resolve forward jump: compiles relative jump to resolve position at the start position which is on TOS 
+
+<mark    ( -- dest ) place destination for backward branch
+
+<resolve ( dest -- ) resolve backward branch: compiles relative jump to start position at the resolve position
+
+if       ( f -- ) (C: -- orig ) start conditional branch: compiles zerosense, branch on not equal, and relative jump
+
+?if      ( f -- f ) (C: -- orig ) start conditional branch: compiles dupzerosense, branch on not equal, and relative jump
+
+else     (C: orig1 -- orig2 ) resolve the forward reference and place a new unresolved forward reference
+
+then     ( -- ) (C: orig -- ) finish if: resolve forward reference
+
+begin    ( -- ) (C: -- dest ) put the destination address for the backward branch
+
+while    ( f -- ) (C: dest -- orig dest ) at runtime skip to after repeat if non-true: same as if. use repeat at end of while.
+
+?while   ( f -- f ) (C: dest -- orig dest ) at runtime skip to after repeat if non-true: same as if. use repeat at end of while. does not consume flag.
+
+repeat   ( --  ) (C: orig dest -- ) continue execution at dest, resolve orig
+
+until    ( f -- ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime
+
+?until   ( f -- f ) (C: dest -- ) finish begin with conditional branch, leaves the loop if true flag at runtime. does not consume flag
+
+again    ( -- ) (C: dest -- ) compile a jump back to dest
+
+var      ( cchar -- ) create a dictionary entry for a variable and allocate 1 cell RAM
+
+con      ( x -- ) (C: x "<spaces>name" -- ) create a constant in the dictionary
+	example: 10 con myconstant -> create a word called "myconstant" that will put the value 10 on the top of the stack
+
+user
+
+recurse
+
+immediate ( -- ) makes most recently defined word immediate : it will execute when in compile mode
+
+create
+
+\         ( -- ) start a comment. Text until end of line is ignored
+
+(         ( "ccc<paren>" -- ) skip everything up to the closing bracket on the same line
+
+)         ( -- ) marks end of comment
+
 compile
+
 cxt
-,
-dp+1
-dp+
+
 [']
+
 '
+
 val
+
 to
+
 inline
+
 lit
 
 
 
 System: (24 words)
 -------
-:core:
+Defined in assembly core:
+
 exec ( xt -- ?? ) execute xt - calls address on TOS
 up@  ( -- addr ) get user area pointer
 up!  ( addr -- ) set user area pointer
@@ -103,44 +167,70 @@ rec-unk
 
 Parameter Stack: (17 words)
 ----------------
-:core:
+Defined in assembly core:
 
-dup ( n -- n n ) duplicate top of stack : inline
+dup ( n -- n n ) inline: duplicate top of stack 
+
 ?dup ( n1 -- [ n1 n1 ] | 0) duplicate top of stack if non-zero
+
 swap ( n1 n2 -- n2 n1) swaps the two top level stack cells
+
 over ( x1 x2 -- x1 x2 x1 ) Place a copy of x1 on top of the stack
+
 2over ( x1 x2 -- x1 x2 x1 x2 ) Place a copy of x1 and x2 on top of the stack
+
 drop ( n -- ) drop the top of stack : inline
+
 2drop ( n n -- ) drop top of stack and next on stack
+
 nip ( n1 n2 -- n2) drop next on stack, one before top of stack
+
 tuck ( n1 n2 -- n2 n1 n2) tuck TOS before NOS, same as SWAP OVER
+
 flip ( n1 n2 n3 -- n3 n2 n1) exchange TOS and stack cell before NOS, same as SWAP ROT
+
 rot ( n1 n2 n3 -- n2 n3 n1) rotate the three top level cells
+
 -rot ( n1 n2 n3 -- n3 n1 n2) reverse rotate the three top level cells equivalent to rotate twice but faster
+
 sp@ (  -- addr ) current data stack pointer
+
 sp! ( addr -- i*x) set data stack pointer to addr
+
 sp0 ( -- addr) start address of the data stack
+
 sp ( -- addr) address of user variable to store top-of-stack for inactive tasks
+
 depth ( -- n ) number of single-cell values contained in the data stack before n was placed on the stack.
+
 
 Return Stack: (9 words)
 -------------
-:core:
+Defined in assembly core:
 
-r> ( -- n ) (R: n -- ) move top of return stack to top of parameter stack
+r>     ( -- n ) (R: n -- ) move top of return stack to top of parameter stack
+
 r>drop ( -- ) (R: n -- ) drop top of return stack : inline
-dup>r ( n -- n ) (R: -- n ) copy TOS to TOR
->r ( n -- ) (R: -- n ) move TOS to TOR
-r@ ( -- x) (R: n -- n ) use TOR as address to fetch content from ram
-r>r+ ( -- n) (R: n -- n+1 ) fetch content of TOR and then increment TOR by 1
-rp@ (  -- n) current return stack pointer address
-rp! ( addr  -- ) (R: -- x*y) set return stack pointer
-rp0 ( -- addr) start address of return stack in ram
+
+dup>r  ( n -- n ) (R: -- n ) copy TOS to TOR
+
+>r     ( n -- ) (R: -- n ) move TOS to TOR
+
+r@     ( -- x) (R: n -- n ) use TOR as address to fetch content from ram
+
+r>r+   ( -- n) (R: n -- n+1 ) fetch content of TOR and then increment TOR by 1
+
+rp@    (  -- n) current return stack pointer address
+
+rp!    ( addr  -- ) (R: -- x*y) set return stack pointer
+
+rp0    ( -- addr) start address of return stack in ram
 
 
 Operators: (50 words)
 ----------
-:core:
+Defined in assembly core:
+
 compare:
 
 <>
@@ -351,146 +441,3 @@ rb?
 r?
 fence
 forget
-
-***** Core words done in assembly
-exec
-dup
-?dup
-swap
-over
-2over
-drop
-2drop
-nip
-tuck
-flip
-rot
-rrot
-r>
-r>drop
-popret
-dup>r
->r
-r@
-r>r+
-<>
-0=
-=
-<
->
-0<
-u>
-0>
-0:
-0
-1
-2
-10
-true
-0?
-?0?
-u<
--
-+
-invert
-swnib
-2/
-2*
-and
-or
-xor
-1+
-1-
-2+
-2-
-w_
-<<
->>
-rp@
-rp!
-sp@
-sp!
-c>
-><
-0~
-~0
-up@
-up!
-defx
-!e
-@e
-!i
-@i
-@
-!
-c!
-c@
-@u
-!u
-a@
-a@i
-na@
-ac@
->a
->b
-:a
-:b
-nip>a
-nip>b
-a
-b
-+!
-a!
-ac!
-na!
-a+
-
-
-core words needed for bootstrap:
-quit:
-sp0
-sp!
-rp0
-rp!
-[
-state
-@
-refill
-dup
-<
-prompterror
-promptrdy
-promptok
-
-refill-tib:
-tib
-accept
-#tib
-!
-0
->in
-!
-
-accept:
->r
-xon
-key
-10
-<>
-=
-r>
-r@
-over
-drop
-emit
-space
-1-
-1+
-bl
-over
-c!
-2drop
-swap
--
-cr
-xoff
