@@ -95,7 +95,9 @@ var taskms
   ms @ taskms @ - 24 u> if ms @ taskms ! taskex then 
 ;
 
-: taskinit
+( -- )
+\ clear all tasks
+: tasksclr
   \ iterate 0 to 30 and clear tcnt[] and set tasks[] to noop
   0
   begin
@@ -106,8 +108,20 @@ var taskms
     dup 30 >  
   until
   drop
+;
+
+( -- )
+\ start tasking
+: taskrun
   \ set taskms to ms
   T0init
   ms @ taskms !
   ['] tasker to pause
+;
+
+( -- )
+\ initialize tasker
+: taskinit
+  tasksclr
+  taskrun
 ;
