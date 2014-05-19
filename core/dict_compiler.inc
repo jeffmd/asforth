@@ -93,7 +93,8 @@ forthword_ UWID, IMMEDIATE_EN, 4, "uwid"
        rcall STOREE
        rcall ZERO
        doliteral_ COLON_SMUDGE
-       rjmp STORE
+       rcall STORE
+       jmp DPSTOREE
 UWID_end:
     ret
 

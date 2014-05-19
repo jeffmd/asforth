@@ -84,14 +84,39 @@ forthword_ KEYQ, 0, 4, "key?"
     addr_ UDEFERFETCH
     addr_ UDEFERSTORE
 
+
+.pushsection .data
+ram_dp: .space 2
+.popsection
+
 ; ( -- f-addr )
 ; System Value
 ; address of the next free dictionary cell
 forthword_ DP, 0, 2, "dp"
     call DOVALUE
-    .word EE_DP
-    addr_ FETCHE
-    addr_ STOREE
+    .word ram_dp
+    addr_ FETCH
+    addr_ STORE
+
+; ( -- )
+; Compiler
+; backup DP to eeprom
+forthword_ DPSTOREE, 0, 4, "dp!e"
+  doliteral_ ram_dp
+  call FETCH
+  doliteral_ EE_DP
+  jmp STOREE 
+
+; ( -- )
+; Compiler
+; fetch DP from eeprom and put in ram
+forthword_ DPFETCHE, 0, 4, "dp@e"
+  doliteral_ EE_DP
+  call FETCHE 
+  doliteral_ ram_dp
+  jmp STORE
+
+
 
 ; ( -- e-addr )
 ; System Value
@@ -1239,6 +1264,8 @@ forthword_ WARM, 0, 4, "warm"
     doliteral_ pm(NOOP)
     doliteral_ pm(PAUSE)
     rcall DEFERSTORE
+    ; init DP in ram from eeprom
+    call DPFETCHE
     rcall TURNKEY
     rjmp QUIT
 
@@ -1588,7 +1615,7 @@ forthword_ DODEFER, 0, 7, "(defer)"
     ; EXEC the defer
     jmp EXEC
 
-; ( c-addr len wid -- [ 0 ] | [ nfa ] )
+; ( c-addr len wid -- [ 0 | nfa ] )
 ; find a word in the dictionary
 ; 0 if word not found in dictionary
 ; nfa if word is found
