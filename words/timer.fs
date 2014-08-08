@@ -16,13 +16,31 @@ var ms
   ms 1+!
 ;isr
 
+\ Timer 0 clock select
+( n -- )
+\ n is a value between 0 and 7
+\ 0 - no clock source
+\ 1 - no prescaling - clkio
+\ 2 - clkio/8
+\ 3 - clkio/64
+\ 4 - clkio/256
+\ 5 - clkio/1024
+\ 6 - external clock T0 pin, falling edge
+\ 7 - external clock T0 pin, rising edge
+
+: T0clk
+
+;
+
+\ set T0ms as interrupt routine for timer 0 overflow
 &32 isr T0ms
 
 \ setup timer 0 for ~1ms timer counter overflow interrupt
+( -- )
 : T0init
   0 ms !
 \ use prescaler of 64
-\ timer 0 will generate an overflow event 976.56 times in a second
+\ timer 0 will generate an overflow event 976.5625 times in a second
   %011 $45 c!
 \ setup timer in normal count mode and normal port mode
   %0 $44 c!
