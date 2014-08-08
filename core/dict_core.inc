@@ -995,6 +995,22 @@ ZSTORE:
     poptos
     ret
 
+; ( n addr -- ) 
+; addr is high address
+; Memory
+; write n to RAM memory at addr, high byte first
+forthword_ HSTORE, 0, 2, "h!"
+    movw ZL, tosl
+    poptos
+
+    in_ temp2, SREG
+    cli
+    st Z, tosh
+    st -Z, tosl
+    out_ SREG, temp2
+    poptos
+    ret
+
 ; ( c a-addr -- ) 
 ; Memory
 ; store a single byte to RAM address
