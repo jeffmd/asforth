@@ -1,127 +1,163 @@
 \ LCD keypad shield driver
 \ Module: lcd routines
-\ use the lcd module in 4bit mode
+\ uses the lcd module in 4bit mode
 \  v 0.1
+\ for asforth
 
-\ needs marker.frt and bitnames.frt from lib
 
-marker _lcd_
-
-\ helper routine
-: ms 0 ?do 1ms loop ;
-
-hex
 (
   The circuit:
  * LCD RS pin to digital pin 8 PORTB 0
  * LCD Enable pin to digital pin 9 PORTB 1
+ * LCD BL pin to digital pin 10 PORTB 2
  * LCD D4 pin to digital pin 4 PORTD 4
  * LCD D5 pin to digital pin 5 PORTD 5
  * LCD D6 pin to digital pin 6 PORTD 6
  * LCD D7 pin to digital pin 7 PORTD 7
- * LCD BL pin to digital pin 10 PORTB 2
- * KEY pin to analogl pin 0 PORTC 0
+ * KEY pin to analog pin 0 PORTC 0
 )
 
-1b 20 + con lcd-data \ PORTD
-18 20 + con lcd-ctrl \ PORTB
+\ PORTB $05 ($25)
+\ DDRB  $04 ($24)
+\ PINB  $03 ($23)
 
-lcd-ctrl 1 portpin: lcd-rw
-lcd-ctrl 0 portpin: lcd-en
-lcd-ctrl 2 portpin: lcd-rs
+\ PORTC $08 ($28)
+\ DDRC  $07 ($27)
+\ PINC  $06 ($26)
 
-2 con lcd-pulse-delay
-a con lcd-short-delay
+\ PORTD $0B ($2B)
+\ DDRD  $0A ($2A)
+\ PIND  $09 ($29)
 
-: lcd-pulse-en
-    lcd-en high
-    lcd-pulse-delay ms
-    lcd-en low
-    lcd-pulse-delay ms
+\ $0B ($2B) lcd-data - PORTD
+\ $05 ($25) lcd-ctrl - PORTB
+
+\ commands
+\ LCD_CLEARDISPLAY $01
+\ LCD_RETURNHOME $02
+\ LCD_ENTRYMODESET $04
+\ LCD_DISPLAYCONTROL $08
+\ LCD_CURSORSHIFT $10
+\ LCD_FUNCTIONSET $20
+\ LCD_SETCGRAMADDR $40
+\ LCD_SETDDRAMADDR $80
+
+\ flags for display entry mode
+\ LCD_ENTRYRIGHT $00
+\ LCD_ENTRYLEFT $02
+\ LCD_ENTRYSHIFTINCREMENT $01
+\ LCD_ENTRYSHIFTDECREMENT $00
+
+\ flags for display on/off control
+\ LCD_DISPLAYON $04
+\ LCD_DISPLAYOFF $00
+\ LCD_CURSORON $02
+\ LCD_CURSOROFF $00
+\ LCD_BLINKON $01
+\ LCD_BLINKOFF $00
+
+\ flags for display/cursor shift
+\ LCD_DISPLAYMOVE $08
+\ LCD_CURSORMOVE $00
+\ LCD_MOVERIGHT $04
+\ LCD_MOVELEFT $00
+
+\ flags for function set
+\ LCD_4BITMODE $02
+\ LCD_2LINE $08
+\ LCD_5x10DOTS $04
+\ LCD_5x8DOTS $00
+
+\ track lcd control status
+cvar lcd.ctrl
+\ track lcd mode status
+cvar lcd.mode
+\ current line for next print
+cvar lcd.line
+
+\ setup port pins for I/O
+: lcd.sio
+  \ setup pins 4,5,6,7 on Port D for output
+  %11110000 $2B rbs
+  \ setup pins 0,1,2 on Port B for output
+  %00000111 $25 rbs
 ;
 
-: lcd-data-mode
-    lcd-rs high
+\ pulse enable line of lcd
+: lcd.pen
+    \ lcd-en toggle low high low
+    [ $05 1 cbi, ]
+    1 usec
+    [ $05 1 sbi, ]
+    1 usec \ enable pulse must be >450ns
+    [ $05 1 cbi, ]
+    40 usec \ commands need > 37us to settle
 ;
 
-: lcd-command-mode
-    lcd-rs low
+\ send high 4 bits of byte to lcd
+: lcd.4bs ( c -- )
+    %11110000 and
+    $2B >a ac@ %00001111 and or
+    ac! lcd.pen
 ;
 
-
-: lcd-read-mode
-    0 lcd-data 1- c! \ input
-    lcd-rw high
+\ send a byte to lcd
+: lcd.send ( c -- )
+    dup lcd.4bs
+    swnib lcd.4bs
 ;
 
-: lcd-write-mode
-    ff lcd-data 1- c! \ output
-    lcd-rw low
+\ send a command to lcd
+: lcd.cmd ( c -- )
+    \ lcd-rs low
+    [ $05 0 cbi, ]
+    lcd.send
 ;
 
-: lcd-read-data ( -- c )
-	lcd-read-mode
-	lcd-pulse-en
-	lcd-short-delay ms
-	lcd-data 1- 1- c@ 
+\ send data to lcd
+: lcd.data ( c -- )
+    \ lcd-rs high
+    [ $05 0 sbi, ]
+    lcd.send
 ;
 
-: lcd-wait
-    lcd-read-mode
-    lcd-rw high
-    lcd-rs low
-    lcd-pulse-en
-    begin
-        lcd-data 1- 1- c@
-	80 and
-    until
-;
+: lcd.reset
+  \ lcd-rs low start off in command mode
+  [ $05 0 cbi, ]
 
-: lcd-command ( n -- )
-    lcd-wait
-    lcd-write-mode
-    lcd-command-mode
-    lcd-data c!
-    lcd-pulse-en
-;
+  \ SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
+  \ according to datasheet, we need at least 40ms after power rises above 2.7V
+  \ before sending commands. Arduino can turn on way befer 4.5V so we'll wait 200 ms
+  200 msec 
+  
+  \ put the LCD into 4 bit
+    \ this is according to the hitachi HD44780 datasheet
+    \ figure 24, pg 46
 
-: lcd-emit ( c -- )
-    lcd-write-mode
-    lcd-data-mode
-    lcd-data c!
-    lcd-pulse-en
-;
+    \ we start in 8bit mode, try to set 4 bit mode
+    $30 lcd.4bs 
+    4100 usec \ wait min 4.1ms
 
-: lcd-init
-    lcd-rw pin_output
-    lcd-en pin_output
-    lcd-rs pin_output
-;
-\ from tracker: lcd.frt - added LCD initialization - ID: 2785157
-: lcd-cmd-no-wait ( n -- )
-  lcd-write-mode
-  lcd-command-mode
-  lcd-data c!
-  lcd-pulse-en
-;
+    \ second try
+    $30 lcd.4bs 
+    100 usec
+    
+    \ third go!
+    $30 lcd.4bs
+    40 usec
 
-: lcd-start
-  lcd-init
-  15 ms
-  30 lcd-cmd-no-wait
-  4 ms
-  30 lcd-cmd-no-wait
-  1 ms
-  30 lcd-cmd-no-wait
-  38 lcd-command
-  6 lcd-command
-  c lcd-command
-  1 lcd-command
+    \ finally, set to 4-bit interface
+    $20 lcd.4bs
+
+  \ finally, set # lines, font size, etc.
+  \ LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS
+  %00101010  lcd.cmd
+
 ;
 
 
-: lcd-page ( clear page )
-    1 lcd-command ( clear lcd )
-    3 lcd-command ( cursor home )
+\ initialize lcd to a default working state
+: lcd.init
+  lcd.sio
+  lcd.reset
 ;
-
