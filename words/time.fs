@@ -5,7 +5,7 @@
   \ if cpu speed is 16MHZ
   begin
   ?while   \ 4 cycles
-  1-       \ 2 cycles
+     1-       \ 2 cycles
   repeat   \ 2 cycles
   drop
 ;
@@ -15,8 +15,8 @@
 : msec
   begin
   ?while
-  1-
-  1000 usec
+    1-
+    1000 usec
   repeat
   drop
 ;
