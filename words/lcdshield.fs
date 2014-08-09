@@ -229,3 +229,13 @@ cvar lcd.line
   ?if drop $40 then +
   $80 or lcd.cmd
 ;
+
+\ turn backlight on
+: lcd.light
+  [ $05 2 sbi, ]
+;
+
+\ turn backlight off
+: lcd.light-
+  [ $05 2 cbi, ]
+;
