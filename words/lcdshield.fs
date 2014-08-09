@@ -77,10 +77,10 @@ cvar lcd.line
 
 \ setup port pins for I/O
 : lcd.sio
-  \ setup pins 4,5,6,7 on Port D for output
-  %11110000 $2B rbs
-  \ setup pins 0,1,2 on Port B for output
-  %00000111 $25 rbs
+  \ setup pins 4,5,6,7 on Port D DDR for output
+  %11110000 $2A rbs
+  \ setup pins 0,1,2 on Port B DDR for output
+  %00000111 $24 rbs
 ;
 
 \ pulse enable line of lcd
@@ -155,9 +155,77 @@ cvar lcd.line
 
 ;
 
+\ clear the lcd display
+: lcd.clr
+  1 lcd.cmd 2 msec
+;
+
+\ execute lcd display control command
+: lcd.ctrlx
+  lcd.ctrl c@ 8 or lcd.cmd
+;
+
+\ turn on flags in ctrl and send to lcd
+: lcd.ctrl+ ( n -- )
+  lcd.ctrl rbs lcd.ctrlx
+;
+
+\ turn off flags in ctrl and send to lcd
+: lcd.ctrl- ( n -- )
+  lcd.ctrl rbc lcd.ctrlx
+;
+
+\ turn display on
+: lcd.on
+   4 lcd.ctrl+
+;
+
+\ turn display off
+: lcd.off
+   4 lcd.ctrl-
+;
+
+\ turn blink on
+: lcd.blink
+   1 lcd.ctrl+
+;
+
+\ turn blink off
+: lcd.blink-
+   1 lcd.ctrl-
+;
+
+\ turn cursor on
+: lcd.cur
+   2 lcd.ctrl+
+;
+
+\ turn cursor off
+: lcd.cur-
+   2 lcd.ctrl-
+;
+
+\ move cursor to home position
+: lcd.home
+  2 lcd.cmd
+;
+
+\ turn cursor off
 
 \ initialize lcd to a default working state
 : lcd.init
   lcd.sio
   lcd.reset
+  \ clear settings to default
+  0 lcd.ctrl c!
+  0 lcd.mode c!
+  0 lcd.line c!
+  lcd.off \ turn display off
+  lcd.clr \ clear display
+;
+
+\ move cursor to col, row position
+: lcd.pos ( col row -- )
+  ?if drop $40 then +
+  $80 or lcd.cmd
 ;
