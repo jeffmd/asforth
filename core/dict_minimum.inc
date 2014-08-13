@@ -54,8 +54,8 @@ forthword_ PAD, 0, 3, "pad"
 forthword_ EMIT, 0, 4, "emit"
     call DODEFER
     .word USER_EMIT
-    addr_ UDEFERFETCH
-    addr_ UDEFERSTORE
+    addr_ FETCHU
+    addr_ STOREU
 
 ; ( -- f )
 ; Character IO
@@ -63,8 +63,8 @@ forthword_ EMIT, 0, 4, "emit"
 forthword_ EMITQ, 0, 5, "emit?"
     call DODEFER
     .word USER_EMITQ
-    addr_ UDEFERFETCH
-    addr_ UDEFERSTORE
+    addr_ FETCHU
+    addr_ STOREU
 
 ; ( -- c )
 ; Character IO
@@ -72,8 +72,8 @@ forthword_ EMITQ, 0, 5, "emit?"
 forthword_ KEY, 0, 3, "key"
     call DODEFER
     .word USER_KEY
-    addr_ UDEFERFETCH
-    addr_ UDEFERSTORE
+    addr_ FETCHU
+    addr_ STOREU
 
 ; ( -- f)
 ; Character IO
@@ -81,8 +81,8 @@ forthword_ KEY, 0, 3, "key"
 forthword_ KEYQ, 0, 4, "key?"
     call DODEFER
     .word USER_KEYQ
-    addr_ UDEFERFETCH
-    addr_ UDEFERSTORE
+    addr_ FETCHU
+    addr_ STOREU
 
 
 .pushsection .data
@@ -772,8 +772,8 @@ ACCEPT_END:
 forthword_ REFILL, 0, 6, "refill"
     call DODEFER
     .word USER_REFILL
-    addr_ UDEFERFETCH
-    addr_ UDEFERSTORE
+    addr_ FETCHU
+    addr_ STOREU
 
 ; ( "<spaces>name" -- c )
 ; Tools
@@ -993,8 +993,8 @@ PFA_CSCAN3:
 forthword_ SOURCE, 0, 6, "source"
     call DODEFER
     .word USER_SOURCE
-    addr_ UDEFERFETCH
-    addr_ UDEFERSTORE
+    addr_ FETCHU
+    addr_ STOREU
 
 ; ( addr1 u1 n -- addr2 u2 )
 ; String
@@ -1554,25 +1554,7 @@ forthword_ DOTO, DIS_CALL_OPT, 4, "(to)"
 PFA_TO1:
     rjmp DEFERSTORE
 
-; ( addr -- xt2 )
-; System
-; does the real defer@ for user based defers
-;forthword_ UDEFERFETCH, 0, 7, "Udefer@"
-UDEFERFETCH:
-    call UP_FETCH
-    call PLUS
-    jmp FETCH
 
-; ( xt1 xt2 -- )
-; System
-; does the real defer! for user based defers
-;forthword_ UDEFERSTORE, 0, 7, "Udefer!"
-UDEFERSTORE:
-    oneplus_
-    call FETCHI
-    call UP_FETCH
-    call PLUS
-    jmp STORE
 
 ; ( xt1 xt2 -- )
 ; System
@@ -1580,10 +1562,7 @@ UDEFERSTORE:
 forthword_ DEFERSTORE, 0, 6, "defer!"
     ; skip past call to get to data
     twoplus_                 ; ( xt1 xt2+2 )
-    dup_                     ; ( xt1 xt2+2 xt2+2 )
-    ; get defer address
-    call FETCHI              ; ( xt1 xt2+2 defaddr )
-    call SWAP                ; ( xt1 defaddr xt2+2 )
+    call DEFGET
     ; skip past data address and deferfetch section to get
     ; to deferstore section
     twoplus_                 ; ( xt1 defaddr xt2+4 )
@@ -1597,11 +1576,7 @@ forthword_ DEFERSTORE, 0, 6, "defer!"
 forthword_ DEFERFETCH, 0, 6, "defer@"
     ; skip passed call to get to data field
     twoplus_                 ; ( xt1+2 )
-    dup_                     ; ( xt1+2 xt1+2 )
-    ; skip past data to get to defer fetch field
-    oneplus_                 ; ( xt1+2 xt1+3 )
-    call FETCHI              ; ( xt1+2 deferfetchxt )
-    jmp EXEC
+    jmp DEFX
 
 ; ( i*x -- j*x )
 ; System

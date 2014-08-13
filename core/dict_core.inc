@@ -688,14 +688,22 @@ forthword_ DOVALUE, DIS_CALL_OPT, 7, "(value)"
     rcall R_FROM        ; ( raddr ) (R: raddr -- )
     rjmp DEFX           ; ( n )
 
+
+; ( defaddr -- deferval defaddr )
+; System
+; get defer contents
+forthword_ DEFGET, 0, 4, "def@"
+    dup_                ; ( addr addr )
+    ; get address of defer
+    rcall FETCHI        ; ( addr valaddr )
+    rjmp SWAP          ; ( valaddr addr )
+ 
+
 ; ( addr -- n )
 ; System
 ; execute the defer fetch
 forthword_ DEFX, 0, 4, "defx"
-    dup_                ; ( addr addr )
-    ; get address of defer
-    rcall FETCHI        ; ( addr valaddr )
-    rcall SWAP          ; ( valaddr addr )
+    rcall DEFGET
     ; get the fetch Xt pointer which is one word after the data
     oneplus_
     rcall FETCHI        ; ( valaddr xtfetch )
