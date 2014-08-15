@@ -14,9 +14,9 @@
 \ wait u milliseconds
 : msec
   begin
-  ?while
-    1-
-    1000 usec
-  repeat
+  ?while \ 4 cycles
+    1-   \ 2 cycles
+    999 usec
+  repeat \ 2 cycles
   drop
 ;
