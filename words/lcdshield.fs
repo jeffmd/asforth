@@ -5,17 +5,17 @@
 \ for asforth
 
 
-(
-  The circuit:
- * LCD RS pin to digital pin 8 PORTB 0
- * LCD Enable pin to digital pin 9 PORTB 1
- * LCD BL pin to digital pin 10 PORTB 2
- * LCD D4 pin to digital pin 4 PORTD 4
- * LCD D5 pin to digital pin 5 PORTD 5
- * LCD D6 pin to digital pin 6 PORTD 6
- * LCD D7 pin to digital pin 7 PORTD 7
- * KEY pin to analog pin 0 PORTC 0
-)
+
+\  The circuit:
+\ * LCD RS pin to digital pin 8 PORTB 0
+\ * LCD Enable pin to digital pin 9 PORTB 1
+\ * LCD BL pin to digital pin 10 PORTB 2
+\ * LCD D4 pin to digital pin 4 PORTD 4
+\ * LCD D5 pin to digital pin 5 PORTD 5
+\ * LCD D6 pin to digital pin 6 PORTD 6
+\ * LCD D7 pin to digital pin 7 PORTD 7
+\ * KEY pin to analog pin 0 PORTC 0
+
 
 \ PORTB $05 ($25)
 \ DDRB  $04 ($24)
@@ -78,27 +78,27 @@ cvar lcd.line
 \ setup port pins for I/O
 : lcd.sio
   \ setup pins 4,5,6,7 on Port D DDR for output
-  %11110000 $2A rbs
+  %11110000 DDRD rbs
   \ setup pins 0,1,2 on Port B DDR for output
-  %00000111 $24 rbs
+  %00000111 DDRB rbs
 ;
 
 \ pulse enable line of lcd
 : lcd.pen
     \ lcd-en toggle low high low
-    [ $05 1 cbi, ]
+    [ PORTB DIO 1 cbi, ]
     1 usec
-    [ $05 1 sbi, ]
+    [ PORTB DIO 1 sbi, ]
     1 usec \ enable pulse must be >450ns
-    [ $05 1 cbi, ]
+    [ PORTB DIO 1 cbi, ]
     40 usec \ commands need > 37us to settle
 ;
 
 \ send high 4 bits of byte to lcd
 : lcd.4bs ( c -- )
     %11110000 and
-    $2B >a ac@ %00001111 and or
-    ac! lcd.pen
+    $0F PORTD rbm
+    lcd.pen
 ;
 
 \ send a byte to lcd
@@ -110,24 +110,26 @@ cvar lcd.line
 \ send a command to lcd
 : lcd.cmd ( c -- )
     \ lcd-rs low
-    [ $05 0 cbi, ]
+    [ PORTB DIO 0 cbi, ]
     lcd.send
 ;
 
 \ send data to lcd
 : lcd.data ( c -- )
     \ lcd-rs high
-    [ $05 0 sbi, ]
+    [ PORTB DIO 0 sbi, ]
     lcd.send
 ;
 
 : lcd.reset
   \ lcd-rs low start off in command mode
-  [ $05 0 cbi, ]
+  [ PORTB DIO 0 cbi, ]
 
   \ SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
-  \ according to datasheet, we need at least 40ms after power rises above 2.7V
-  \ before sending commands. Arduino can turn on way befer 4.5V so we'll wait 200 ms
+  \ according to datasheet, we need at least 40ms
+  \ after power rises above 2.7V
+  \ before sending commands. Arduino can turn on way
+  \ before 4.5V so we'll wait 200 ms
   200 msec 
   
   \ put the LCD into 4 bit
@@ -238,4 +240,35 @@ cvar lcd.line
 \ turn backlight off
 : lcd.light-
   [ $05 2 cbi, ]
+;
+
+\ sends character to lcd
+\ used when defering system emit
+: lcd.emit ( c -- )
+  a swap lcd.data >a ;
+;
+
+\ print ram string
+: lcd.type ( addr len -- )
+  ['] lcd.emit to emit
+  type
+  ['] tx-poll to emit
+;
+
+\ print flash string
+: lcd.itype ( addr len -- )
+  ['] lcd.emit to emit
+  itype
+  ['] tx-poll to emit
+;
+
+\ print a fixed point number
+: lcd.f. ( fixedpoint -- )
+  <# # # [char] . hold #s #> lcd.type
+
+;
+
+\ print a number
+: lcd.. ( n -- )
+  <# #s #> lcd.type
 ;
