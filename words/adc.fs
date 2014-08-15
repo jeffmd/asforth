@@ -13,11 +13,11 @@
 : adc
 \ start conversion, auto conversion is on
   \ start conversion
-  %01000000 $7A rbs
+  %01000000 ADCSRA rbs
   \ wait ~200 usec
   200 usec
 \ read adcl and adch by doing 16 bit read from adcl
-  $78 @
+  ADC @
 
 ;
 
@@ -31,11 +31,7 @@
 \ channel 15 - 0V ground
 : amux
   $0F and
-  $7C \ admux is $7C
-  >a
-  ac@
-  $F0 and or
-  ac!
+  $F0 ADMUX rbm
 ;
 
 ( ref -- )
@@ -49,40 +45,36 @@
 : aref
   %11 and
   64 *
-  $7C
-  >a
-  ac@
-  $0F and or
-  ac!
+  $0F ADMUX rbm
 ;
 
 ( -- )
 \ initialize the ADC to default values
 : adcinit
 \ disable digital inputs on first 5 analog inputs
-%00111111 $7E rbs
+%00111111 DIDR0 rbs
 \ set voltage ref to AVcc
-%01000000 $7C rbs
+%01000000 ADMUX rbs
 \ enable adc
 \ set analog conversion to non free running mode
 \ set prescaler to 128 to give 125K sample cycle
-%10000111 $7A rbs
+%10000111 ADCSRA rbs
 ;
 
 ( -- temperature )
 \ get the temperature of the microcontroller in deg celcius
 : temp
   \ get copy of AMUX
-  $7C c@
+  ADMUX c@
   \ use internal 1.1V voltage ref
   \ 3 aref
   \ 8 amux \ set adc mux to channel 8
-  %11001000 $7C c!
+  %11001000 ADMUX c!
   \ give time for cap to change value when changing reference voltage
   10 msec
   adc
   \ formula to convert sensor val to celcius = (adc - Tos)/ k
   14 /
   \ restore AMUX
-  swap $7C c!
+  swap ADMUX c!
 ;

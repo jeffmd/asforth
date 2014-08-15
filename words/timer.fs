@@ -28,12 +28,12 @@ var ms
 \ 6 - external clock T0 pin, falling edge
 \ 7 - external clock T0 pin, rising edge
 
-: T0clk
+\ : T0clk
 
-;
+\ ;
 
 \ set T0ms as interrupt routine for timer 0 overflow
-&32 isr T0ms
+OVF0 isr T0ms
 
 \ setup timer 0 for ~1ms timer counter overflow interrupt
 ( -- )
@@ -41,11 +41,11 @@ var ms
   0 ms !
 \ use prescaler of 64
 \ timer 0 will generate an overflow event 976.5625 times in a second
-  %011 $45 c!
+  %011 TCCR0B c!
 \ setup timer in normal count mode and normal port mode
-  %0 $44 c!
+  %0 TCCR0A c!
 \ clear overflow flag by setting the flag
-  %1 $35 c!
+  %1 TIFR0 c!
 \ enable timer overflow interupt
-  %1 $6E c!
+  %1 TIMSK0 c!
 ;
