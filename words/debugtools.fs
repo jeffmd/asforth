@@ -77,6 +77,12 @@
 \ clear the bits of reg defined by bit pattern in bbb
 : rbc >a not ac@ and ac! ;
 
+\ modify bits of reg defined by mask
+: rbm ( val mask reg -- )
+    >a ac@ and or
+    ac!
+;
+
 ( reg -- )
 \ tools
 \ read register/ram byte contents and print in binary form
