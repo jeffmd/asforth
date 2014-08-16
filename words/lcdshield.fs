@@ -17,20 +17,9 @@
 \ * KEY pin to analog pin 0 PORTC 0
 
 
-\ PORTB $05 ($25)
-\ DDRB  $04 ($24)
-\ PINB  $03 ($23)
 
-\ PORTC $08 ($28)
-\ DDRC  $07 ($27)
-\ PINC  $06 ($26)
-
-\ PORTD $0B ($2B)
-\ DDRD  $0A ($2A)
-\ PIND  $09 ($29)
-
-\ $0B ($2B) lcd-data - PORTD
-\ $05 ($25) lcd-ctrl - PORTB
+\ lcd-data - PORTD
+\ lcd-ctrl - PORTB
 
 \ commands
 \ LCD_CLEARDISPLAY $01
@@ -225,6 +214,7 @@ cvar lcd.line
   0 lcd.line c!
   lcd.off \ turn display off
   lcd.clr \ clear display
+  adcinit
 ;
 
 \ move cursor to col, row position
