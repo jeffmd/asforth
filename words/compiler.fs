@@ -81,7 +81,7 @@
     pname wid findnfa
 ;
 
-
+\ compile into pending new word
 : compile
   ['f] (compile) cxt
   find ,
@@ -376,11 +376,9 @@
 : s"
     $22
     parse        ( -- addr n)
-    state
-    @
+    state @
     if  \ skip if not in compile mode
-      compile (sliteral)    ( -- addr n)
-      s,
+      sliteral
     then 
 ; immediate
 
@@ -388,8 +386,13 @@
 \ Compiler
 \ compiles string into dictionary to be printed at runtime
 : ."
-     s"              \ "
-     compile itype
+     [compile] s"             \ "
+     state @
+     if
+       compile itype
+     else
+       type
+     then
 ; immediate
 
 ( c<name> -- ) 
