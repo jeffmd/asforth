@@ -87,6 +87,7 @@
   find ,
 ; :ic
 
+
 ( -- ) ( C: x "<spaces>name" -- )
 \ compiler
 \ create a dictionary entry and register in word list
@@ -431,24 +432,12 @@
     ['] ! ,
 ;
 
-( val c<char> -- ) 
-\ System
-\ stores val into defer or compiles code to do so at runtime
-: to
-    '
-    state @
-    if
-      compile (to) ,
-    else
-      defer!
-    then
-; immediate
 
 ( xt1 c<char> -- ) 
 \ System
 \ stores xt into defer or compiles code to do so at runtime
 : is
-    to
+    [compile] to
 ; immediate
 
 ( n c<name> -- )

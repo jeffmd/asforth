@@ -1533,15 +1533,15 @@ forthword_ VER, 0, 3, "ver"
 ; ( n <name> -- )
 ; Tools
 ; store the TOS to the named value (eeprom cell)
-;forthword_ TO, IMMEDIATE_EN, 2, "to"
-;    rcall TICK          ; ( n xt ) get address of next word from input stream
-;    rcall STATE
-;    call FETCH
-;    zerosense_
-;    breq PFA_TO1        ; not in compile state, so jump to runtime operation
-;    call DOCOMPILE
-;    addr_ VE_DOTO
-;    jmp COMMA
+forthword_ TO, IMMEDIATE_EN, 2, "to"
+    rcall TICK          ; ( n xt ) get address of next word from input stream
+    rcall STATE
+    call FETCH
+    zerosense_
+    breq PFA_TO1        ; not in compile state, so jump to runtime operation
+    call DOCOMPILE
+    addr_ VE_DOTO
+    jmp COMMA
 
 ; ( n -- ) (R: IP -- IP+2)
 ; Tools
@@ -1551,7 +1551,7 @@ forthword_ DOTO, DIS_CALL_OPT, 4, "(to)"
     call R_FETCHPLUS    ; ( n -- n raddr ) (R: raddr -- raddr+1 )
     ; next cell contains address of deferred word
     call FETCHI         ; ( n defxt )
-;PFA_TO1:
+PFA_TO1:
     rjmp DEFERSTORE
 
 
