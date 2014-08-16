@@ -210,6 +210,7 @@ cvar lcd.line
 \ move cursor to home position
 : lcd.home
   2 lcd.cmd
+  1 msec \ takes a while to complete
 ;
 
 \ turn cursor off
@@ -234,12 +235,12 @@ cvar lcd.line
 
 \ turn backlight on
 : lcd.light
-  [ $05 2 sbi, ]
+  [ PORTB DIO 2 sbi, ]
 ;
 
 \ turn backlight off
 : lcd.light-
-  [ $05 2 cbi, ]
+  [ PORTB DIO 2 cbi, ]
 ;
 
 \ sends character to lcd
