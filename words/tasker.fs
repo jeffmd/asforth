@@ -25,29 +25,29 @@ cvar tcnt
 ( idx -- cnt )
 \ get count for a slot
 \ idx: index of slot
-: tcnt@
+: task.cnt@
   tcnt + c@
 ;
 
 \ increment tcnt array element using idx as index
 ( idx -- )
-: tcnt+
+: task.cnt+
   tcnt + 1+c!
 ;
 
 ( n idx -- )
 \ set tcnt array element using idx as index
-: tcnt!
+: task.cnt!
   tcnt + c!
 ;
 
 \ array of task slots in eeprom : max 31 tasks 62 bytes
 \ array is a binary process tree
-\                        0
-\             1                      2
-\      3           4           5           6
-\   7     8     9    10     11   12     13   14
-\ 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+\                        0                          125 ms
+\             1                      2              250 ms
+\      3           4           5           6        500 ms
+\   7     8     9    10     11   12     13   14     1 s
+\ 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30   2 s
 edp con tasks
 edp 62 + to edp
 
@@ -57,7 +57,7 @@ edp 62 + to edp
 : tidx+
   tidx@ 2* 1+ 
   \ if slot count is odd then 1+
-  tidx@ tcnt@
+  tidx@ task.cnt@
   1 and +
   tidx c!
 ;
@@ -77,33 +77,44 @@ edp 62 + to edp
   !e
 ;
 
+( idx -- )
+\ clear task at idx slot
+\ replaces task with noop
+: task.clr 
+  ['] noop swap task!
+;
+
 ( -- )
 \ execute active task and step to next task
-: taskex
+: tasks.ex
   \ increment count for task slot
-  tidx@ tcnt+
+  tidx@ task.cnt+
   tidx@ task@ exec
   tidx+
 ;
 
-\ time in ms since last taskex
-var taskms
+\ time in ms since last tasks.ex
+var tasks.ms
+\ how often in milliseconds to execute a task
+\ default to 25 ms
+25 val tasks.exms
+
 
 ( -- )
-\ execute taskex every 25 ms
-: tasker
-  ms @ taskms @ - 24 u> if ms @ taskms ! taskex then 
+\ execute tasks.ex every 25 ms
+: tasks.tick
+  ms @ tasks.ms @ - tasks.exms u> if ms @ tasks.ms ! tasks.ex then 
 ;
 
 ( -- )
 \ clear all tasks
-: tasksclr
+: tasks.clr
   \ iterate 0 to 30 and clear tcnt[] and set tasks[] to noop
   0
   begin
     0 tidx c!
-    0 over tcnt!
-    ['] noop over task! 
+    0 over task.cnt!
+    dup task.clr 
     1+ 
     dup 30 >  
   until
@@ -112,16 +123,23 @@ var taskms
 
 ( -- )
 \ start tasking
-: taskrun
+: tasks.run
   \ set taskms to ms
   T0init
-  ms @ taskms !
-  ['] tasker to pause
+  ms @ tasks.ms !
+  ['] tasks.tick to pause
 ;
 
 ( -- )
-\ initialize tasker
-: taskinit
-  tasksclr
-  taskrun
+\ reset tasker
+\ all tasks are reset to noop
+: tasks.reset
+  tasks.clr
+  tasks.run
+;
+
+( -- )
+\ stop tasks from running
+: tasks.stop
+  ['] noop to pause
 ;
