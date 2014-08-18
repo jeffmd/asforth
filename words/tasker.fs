@@ -97,11 +97,11 @@ edp 62 + to edp
 var tasks.ms
 \ how often in milliseconds to execute a task
 \ default to 25 ms
-25 val tasks.exms
+24 val tasks.exms
 
 
 ( -- )
-\ execute tasks.ex every 25 ms
+\ execute tasks.ex if tick time expired
 : tasks.tick
   ms @ tasks.ms @ - tasks.exms u> if ms @ tasks.ms ! tasks.ex then 
 ;
