@@ -46,6 +46,14 @@
     swap $F and or                  \ -- Rw kk00kkkk
     swap 4 << $30 and               \ -- kk ww0000
     or r> r> mask! , ;              \ kkww opcode mask mask! to flash
+    
+  \ Operands Rd,P-port
+: Rd,P,     ( Rd P opcode mask -- xxxx.xPPd.dddd.PPPP )
+    >r >r                              \ -- Rd P | -- mask opcode 
+    $3F and dup 5 << or $60F and     \ -- Rd PP00000PPPP
+    swap 4 << $1F0 and              \ -- PP 00ddddd0000
+    or r> r> mask! , ;                 \ ddPP opcode mask mask! to flash
+
 
 $00 con Z
 $01 con Z+
@@ -91,24 +99,6 @@ $0E con -X
 : andi,   $7000 $F000  Rd,k,  ;
 : cbr,    not andi, ;
 
-\ Rr={Z+,Y+}, 2 Y+ 3F ldd, 
-: ldd,    $8000 $D200  Rd,Rr+q, ; ( Rd Rr q -- ) 
-\ Rd={Z+,Y+}, Y+ 3F 2 std,
-: std,    -rot 
-          $8200 $D200  Rd,Rr+q, ; ( Rd q Rr -- ) 
-\ Rr={Z+,-Z,Y+,-Y,X+,-X,X,Y,Z}
-: ld,     $9000 $FE00  Rd,Rr, ;  ( Rd Rr -- )
-: lds,    swap
-          $9000 $FE0F  Rd, ,  ;  ( Rd k16 -- )
-\ Rr={Z,Z+}, 2 Z+ lpm_
-: lpm_,   $9004 $FE0E  Rd,Rr, ;  ( Rd Rr -- )
-\ Rr={Z,Z+} 
-: elpm_,  $9006 $FE0E  Rd,Rr, ;  ( Rd Rr -- )
-\ Rd={Z+,-Z,Y+,-Y,X+,-X,X,Y,Z}
-: st,     swap
-          $9200 $FE00  Rd,Rr, ;  ( Rd Rr -- ) 
-\ FFFF 2 sts, adr(FFFF)<--R2
-: sts,    $9200 $FE0F  Rd, ,  ;  ( k16 Rd -- ) 
 
 : lsl,    dup add, ;           ( Rd -- )
 : rol,    dup adc, ;
@@ -133,18 +123,9 @@ $0E con -X
 : sleep,  $9588 , ;
 : break,  $9598 , ;
 : wdr,    $95A8 , ;
-: lpm,    $95C8 , ;
-: elpm,   $95D8 , ;
-: spm,    $95E8 , ;
-: espm,   $95F8 , ;
-: ijmp,   $9409 , ;
-: eijmp,  $9419 , ;
-: icall,  $9509 , ;
-: eicall, $9519 , ;
 
 : clc,    $9488 , ;
 : clh,    $94D8 , ;
-: cli,    $94F8 , ;
 : cln,    $94A8 , ;
 : cls,    $94C8 , ;
 : clt,    $94E8 , ;
@@ -152,7 +133,6 @@ $0E con -X
 : clz,    $9498 , ;
 : sec,    $9408 , ;
 : seh,    $9458 , ;
-: sei,    $9478 , ;
 : sen,    $9428 , ;
 : ses,    $9448 , ;
 : set,    $9468 , ;
@@ -161,6 +141,16 @@ $0E con -X
 
 : adiw,   $9600 $FF00  Rw,k, ;   ( Rw k6 -- ) \ 3 3F adiw, ZLH=ZLH+#3F
 : sbiw,   $9700 $FF00  Rw,k, ;
+
+: in,     B000 F800  Rd,P, ;   ( Rd P -- )
+: out,    swap
+          B800 F800  Rd,P, ;   ( P Rr -- )
+
+: bld,    $F800 $FE08  Rd,Rr, ;  ( Rd b -- )
+: bst,    $FA00 $FE08  Rd,Rr, ;
+: sbrc,   $FC00 $FE08  Rd,Rr, ;
+: sbrs,   $FE00 $FE08  Rd,Rr, ;
+
 
 : brbc,   $F400 $FC00   P,b, ;   ( k7 b -- )
 : brbs,   $F000 $FC00   P,b, ;
