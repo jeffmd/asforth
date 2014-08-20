@@ -1081,8 +1081,7 @@ forthword_ PLUSCSTORE, 0, 3, "+c!"
 forthword_ ONEPLUSCSTORE, 0, 4, "1+c!"
     movw ZL, tosl
     ld tosl, Z
-    ldi temp2, 1
-    add tosl, temp2
+    subi tosl, -1
     rjmp ZCSTORE
 
 
