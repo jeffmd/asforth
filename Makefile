@@ -66,6 +66,7 @@ atmega328p.wfuse : LFUSE=0xFF
 atmega328p.wfuse : HFUSE=0xD9
 atmega328p.wfuse : EFUSE=0x05
 atmega328p.rfuse: PART=m328p
+atmega328p.verify: PART=m328p
 
 
 # ASFORTH VERSION TO USE
@@ -156,6 +157,12 @@ atmega328p.o : atmega328p.S $(INCS)
 %.bak:
 	@echo "Backup Flash & EEPRON from atmega328p $*" 
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -U flash:r:$*.hex.bak:i -U eeprom:r:$*.eep.hex.bak:i
+
+# Flash the target
+%.verify : 
+	@echo "verifying Hexfiles  $*" 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART)  -U flash:v:$*.hex:i 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -U eeprom:v:$*.eep.hex:i
 
 # ----------------------------------------------------------
 
