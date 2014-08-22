@@ -1562,7 +1562,7 @@ PFA_TO1:
 forthword_ DEFERSTORE, 0, 6, "defer!"
     ; skip past call to get to data
     twoplus_                 ; ( xt1 xt2+2 )
-    call DEFGET
+    call DEFGET              ; ( st1 defaddr xt2+2 )
     ; skip past data address and deferfetch section to get
     ; to deferstore section
     twoplus_                 ; ( xt1 defaddr xt2+4 )
