@@ -67,6 +67,7 @@ atmega328p.wfuse : HFUSE=0xD9
 atmega328p.wfuse : EFUSE=0x05
 atmega328p.rfuse: PART=m328p
 atmega328p.verify: PART=m328p
+atmega328p.eeprom: PART=m328p
 
 
 # ASFORTH VERSION TO USE
@@ -130,8 +131,13 @@ atmega328p.o : atmega328p.S $(INCS)
 # Flash the target
 % : %.hex %.eep.hex
 	@echo "Uploading Hexfiles to ATMEL $*" 
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -e -U flash:w:$*.hex:i 
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -U eeprom:w:$*.eep.hex:i
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -e -U eeprom:w:$*.eep.hex:i -U flash:w:$*.hex:i
+
+# program only eeprom using existing eep.hex	
+%.eeprom :
+	@echo "Uploading eeprom Hexfiles to ATMEL $*" 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -p $(PART) -U eeprom:w:$*.eep.hex:i 
+ 
 
 # Set the fuse bits
 %.wfuse :
