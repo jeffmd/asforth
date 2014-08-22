@@ -17,9 +17,9 @@
   \ Operands Rd,Rr
 : Rd,Rr,    ( Rd Rr opcode mask -- xxxz.xxrd.dddd.rrrr )
     >r >r                              \ -- Rd Rr | -- mask opcode 
-    1F and dup 5 << or $20F and        \ -- Rd r00000rrrr
+    $1F and dup 5 << or $20F and       \ -- Rd r00000rrrr
     swap 4 << $1F0 and                 \ -- rr 0ddddd0000
-    or r> r> mask!                     \ -- ddrr opcode mask mask!
+    or r> r>  mask!                  \ -- ddrr opcode mask mask!
     dup $FC07 and $9000 = if $EFFF and then , ; \ if Z or Y then z=0 
 
 
