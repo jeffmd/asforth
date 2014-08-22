@@ -379,7 +379,7 @@
     parse        ( -- addr n)
     state @
     if  \ skip if not in compile mode
-      sliteral
+      [compile] sliteral
     then 
 ; immediate
 
