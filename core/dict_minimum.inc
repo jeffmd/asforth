@@ -235,21 +235,6 @@ forthword_ MAX, 0, 3, "max"
     call LESS
     rjmp MIN_TEST
 
-; ( n min max -- f)
-; Compare
-; check if n is within min..max
-forthword_ WITHIN, 0, 6, "within"
-    call OVER
-    call MINUS
-    call TO_A
-    call MINUS
-    call A_
-    jmp ULESS
-
-; : within >r over > swap r> > or 0= ;
-; alternativly
-; : within over - >r - r> u< ;
-
 ;;;;;;;;;;;;;;;;;;;;;;
 ; ( -- addr )
 ; Numeric IO
@@ -267,13 +252,12 @@ ram_hld: .space 2
 ; prepend character to pictured numeric output buffer
 
 forthword_ HOLD, 0, 4, "hold"
-    rcall HLD    ; ( c ram_hld )
-    call TO_A    ; ( c ) A: ram_hld)
-    call AFETCH  ; ( c hpos )
-    oneminus_    ; ( c hpos-1 )
-    dup_         ; ( c hpos-1 hpos-1 )
-    call ASTORE  ; ( c hpos-1 )
-    jmp CSTORE   ; (  )
+    doliteral_ -1
+    rcall HLD    
+    call PLUSSTORE
+    rcall HLD
+    call FETCH
+    jmp CSTORE   
 
 ; ( -- )
 ; Numeric IO
@@ -324,9 +308,8 @@ forthword_ SHARP_G, 0, 2, "#>"
     drop_
     rcall HLD
     call FETCH
-    dup_
     rcall PAD
-    call SWAP
+    call OVER
     jmp MINUS
 
 ; ( n -- )
@@ -472,7 +455,7 @@ PFA_ITYPE1:
     aplus_                ; a+
     dup_                  ; ( len c1c2 c1c2 )
     rcall EMIT            ; ( len c1c2 )
-    call BYTESWAP         ; ( len c2c1 )
+    highbyte_             ; ( len c2c1 )
     rcall EMIT            ; ( len )
     oneminus_             ; ( len-1 )
     ; repeat
@@ -624,28 +607,6 @@ PFA_THROW1:
     call R_FROM        ; ( n SP ) (R: callerret )
     jmp SP_STORE      ; ( n )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ( addr1 n1 c -- addr2 n2 )
-; String
-; skips leading occurances in string at addr1/n1 leaving addr2/n2 pointing to the 1st non-c character
-
-forthword_ CSKIP, 0, 5, "cskip"
-    call TO_B           ; ( -- addr1 n1 ) B: c
-PFA_CSKIP1:
-    dupzerosense_       ; ( -- addr' n')
-    breq PFA_CSKIP2
-    call OVER           ; ( -- addr' n' addr' )
-    call CFETCH         ; ( -- addr' n' c' )
-    call B_             ; ( -- addr' n' c' c )
-    call EQUAL          ; ( -- addr' n' f )
-    zerosense_          ; ( -- addr' n')
-    breq PFA_CSKIP2
-    call ONE
-    rcall SLASHSTRING
-    rjmp PFA_CSKIP1
-
-PFA_CSKIP2:
-    ret
 ; ( -- )
 ; send Ctrl-Q (XON) to resume transmission
 ;forthword_ XON, 0, 3, "XON"
@@ -939,25 +900,35 @@ PFA_TO_NUMBER2:
 
 PFA_TO_NUMBER1:
     ret
-
-; ( char "ccc<char>" -- c-addr u )
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ( addr1 n1 c -- addr2 n2 )
 ; String
-; in input buffer parse ccc delimited string by the delimiter char.
-forthword_ PARSE, 0, 5, "parse"
-    call TO_R        ; ( -- ) (R: c )
-    rcall SRCIN      ; ( -- addr len)
-    call R_FROM      ; ( -- addr' len' c)
-    rcall CSCAN      ; ( -- addr' len'')
-    dup_             ; ( -- addr' len'' len'')
-    oneplus_         ; ( -- addr' len'' len''+1 )
-    rcall G_IN       ; ( -- addr' len'' len''+1 >in)
-    call PLUSSTORE   ; ( -- addr' len'')
-    call ONE         ; ( -- addr' len'' 1 )
-    rjmp SLASHSTRING ; ( -- addr' len''' )
+; skips leading occurances in string at addr1/n1 leaving addr2/n2 pointing to the 1st non-c character
+
+forthword_ CSKIP, 0, 5, "cskip"
+    call TO_B           ; ( -- addr1 n1 ) B: c
+PFA_CSKIP1:
+    dupzerosense_       ; ( -- addr' n')
+    breq PFA_CSKIP2
+    call OVER           ; ( -- addr' n' addr' )
+    call CFETCH         ; ( -- addr' n' c' )
+    call B_             ; ( -- addr' n' c' c )
+    call EQUAL          ; ( -- addr' n' f )
+    zerosense_          ; ( -- addr' n')
+    breq PFA_CSKIP2
+    call ONE
+    rcall SLASHSTRING
+    rjmp PFA_CSKIP1
+
+PFA_CSKIP2:
+    ret
+    
 
 ; ( addr1 n1 c -- addr1 n2 )
 ; String
-; Scan string at addr1/n1 for the first occurance of c, leaving addr1/n2, char at n2 is first non-c character
+; Scan string at addr1/n1 for the first occurance of c, leaving addr1 n2,
+; char at n2 is first non-c character
 
 forthword_ CSCAN, 0, 5, "cscan"
     niptob_           ; ( -- addr1 c ) B: n1
@@ -1017,42 +988,56 @@ forthword_ SRCIN, 0, 5, "srcin"
     call FETCH           ; ( srcaddr len gin)
     rjmp SLASHSTRING     ; ( srcaddr' len' )
 
+; ( -- )
+; Input
+; skip space in input source.
+forthword_ SKIPBL, 0, 6, "skipbl"
+    rcall SRCIN          ; ( srcaddr len )
+    rcall BL             ; ( srcaddr' len' c )
+    rcall CSKIP          ; ( addr2 n2 )
 
-; ( "<name>" -- c-addr u )
+    ; adjust >IN
+    drop_                ; ( addr2 )
+    rcall SOURCE         ; ( addr2 srcaddr len )
+    drop_                ; ( addr2 srcaddr )
+    call MINUS           ; ( gpos )
+    rcall G_IN           ; ( gpos ginaddr )
+    jmp STORE            ; (  )
+
+
+; ( char "ccc<char>" -- c-addr u )
+; String
+; in input buffer parse ccc delimited string by the delimiter char.
+forthword_ PARSE, 0, 5, "parse"
+    call TO_R        ; ( -- ) (R: c )
+    rcall SRCIN      ; ( -- addr len)
+    call R_FROM      ; ( -- addr' len' c)
+    rcall CSCAN      ; ( -- addr' len'')
+    dup_             ; ( -- addr' len'' len'')
+    oneplus_         ; ( -- addr' len'' len''+1 )
+    rcall G_IN       ; ( -- addr' len'' len''+1 >in)
+    jmp PLUSSTORE    ; ( -- addr' len'')
+
+
+; ( "<name>" -- c-addr len )
 ; String
 ; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
 forthword_ PNAME, 0, 5, "pname"
+    
+    rcall SKIPBL
     rcall BL
-    ; fall thru into SKIPSCANCHAR
+    rjmp PARSE
+    
 
-; ( c -- addr2 len2 )
-; String
-; skips char and scan what's left in source for char
-;forthword_ SKIPSCANCHAR, 0, 10, "skipscanchar"
-SKIPSCANCHAR:
-    call TO_R            ; (  ) (R: -- c )
-    rcall SRCIN         ; ( srcaddr len )
-    call R_FETCH         ; ( srcaddr' len' c )
-    rcall CSKIP          ; ( addr2 n2 )
-    call R_FROM          ; ( addr2 n2 c )
-    rcall CSCAN          ; ( addr2 n3 )
-
-    ; adjust >IN
-    call TWOOVER         ; ( addr2 n3 addr2 n3 )
-    call PLUS            ; ( addr2 n3 addr2+n3 )
-    rcall SOURCE         ; ( addr2 n3 addr2+n3 srcaddr len )
-    drop_                ; ( addr2 n3 addr2+n3 srcaddr )
-    call MINUS           ; ( addr2 n3 gpos )
-    rcall G_IN           ; ( addr2 n3 gpos ginaddr )
-    jmp STORE            ; ( addr2 n3 )
 
 ; ( addr len --  0 | [xt xtflags] )
 ; Tools
 ; search wordlists for the name from string addr/len
 forthword_ FINDNXT, 0, 7, "findnxt"
-    call GET_CURRENT   ; ( addr len EE_FORTHWORDLIST )
+    call CURRENT
+    call FETCH         ; ( addr len currentvoc )
     rcall FINDNFA      ; ( nfa )
-    jmp NFATOXTF      ; ( [xt] flag )
+    jmp NFATOXTF       ; ( [xt] flag )
     
 
 ; ( -- )
@@ -1087,7 +1072,7 @@ forthword_ DOTASKS, 0, 7, "dotasks"
 ; reset stacks and start over again
 forthword_ QUIT, 0, 4, "quit"
     ; reset data stack
-    call SP0
+    rcall SP0
     call SP_STORE
     ; reset return stack pointers
     rcall RP0
@@ -1266,6 +1251,8 @@ forthword_ WARM, 0, 4, "warm"
     rcall DEFERSTORE
     ; init DP in ram from eeprom
     call DPFETCHE
+    call FORTH
+    call DEFINITIONS
     rcall TURNKEY
     rjmp QUIT
 
@@ -1302,16 +1289,6 @@ DORP0:
     call DOUSER
     .word USER_RP
 
-; ( -- n )
-; Stack
-; number of single-cell values contained in the data stack before n was placed on the stack.
-forthword_ DEPTH, 0, 5, "depth"
-    call SP0
-    call SP_FETCH
-    call MINUS
-    twoslash_
-    oneminus_
-    ret
 
 ; ( -- ) (R: i*x - j*x )
 ; System
@@ -1485,6 +1462,16 @@ forthword_ REC_UNK, 0, 7, "rec-unk"
     doliteral_ -13
     rjmp THROW
 
+; ( -- n )
+; Stack
+; number of single-cell values contained in the data stack before n was placed on the stack.
+forthword_ DEPTH, 0, 5, "depth"
+    rcall SP0
+    call SP_FETCH
+    call MINUS
+    twoslash_
+    oneminus_
+    ret
 
 ; ( --  )
 ; Tools
@@ -1492,7 +1479,7 @@ forthword_ REC_UNK, 0, 7, "rec-unk"
 forthword_ QSTACK, 0, 6, "?stack"
 ; : ?stack ( -- )
 ;    depth 0< if -&4 throw then
-; ;
+; 
     rcall DEPTH
     call LESSZERO
     zerosense_
@@ -1744,12 +1731,10 @@ REFILLTIB_begin:
     rcall ACCEPT               ; ( f )
     dupzerosense_              ; ( f )
     breq REFILLTIB_exit
-    ;doliteral_ -1
     jmp CR
     
 REFILLTIB_exit:
     ret
-    ;jmp ZERO
 
 ; ( -- addr n )
 ; System

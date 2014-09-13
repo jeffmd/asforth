@@ -1,3 +1,40 @@
+; ( -- addr ) 
+; System Variable
+; current vocabulary for new words 
+forthword_ CURRENT, 0, 7, "current"
+    doliteral_ ram_CURRENT
+    ret
+
+.pushsection .data
+ram_CURRENT: .space 2
+.popsection
+
+; ( -- addr ) 
+; System Variable
+; current vocabulary for searching
+; array of wordlists
+forthword_ CONTEXT, 0, 7, "context"
+    doliteral_ ram_CONTEXT
+    ret
+
+.pushsection .data
+ram_CONTEXTidx: .space 2
+ram_CONTEXT: .space 2 * 5 ; 5 wordlists max
+.popsection
+
+; Used in the form:
+; cccc DEFINITIONS
+; Set the CURRENT vocabulary to the CONTEXT vocabulary. In the
+; example, executing vocabulary name cccc made it the CONTEXT
+; vocabulary and executing DEFINITIONS made both specify vocabulary
+; cccc.
+
+forthword_ DEFINITIONS, IMMEDIATE_EN, 11, "definitions"
+    rcall CONTEXT
+    rcall FETCH
+    rcall CURRENT
+    rjmp STORE
+
 
 ; ( -- addr ) 
 ; System Variable
@@ -84,15 +121,16 @@ TAILOPT_CALL:
 ; Compiler
 ; update wid from smudge if valid 
 forthword_ UWID, IMMEDIATE_EN, 4, "uwid"
-    doliteral_ COLON_SMUDGE
+    rcall SMUDGE
     rcall FETCH
     rcall QDUP
     zerosense_
     breq UWID_end
-       rcall GET_CURRENT
+       rcall CURRENT
+       call FETCH
        rcall STOREE
        rcall ZERO
-       doliteral_ COLON_SMUDGE
+       rcall SMUDGE
        rcall STORE
        jmp DPSTOREE
 UWID_end:
@@ -127,14 +165,6 @@ forthword_ LBRACKET, IMMEDIATE_EN, 1, "["
     call STATE
     rjmp STORE
 
-
-; ( -- c ) (C: "<space>name" -- )
-; Tools
-; skip leading space delimites, place the first character of the word on the stack
-
-forthword_ BRACKETCHAR, IMMEDIATE_EN, 6, "[char]"
-    call CHAR
-    jmp LIT
 
 ; ( addr len len' -- )
 ; Compiler
@@ -208,7 +238,8 @@ forthword_ DPPLUS, 0, 3, "dp+"
 ; parse the input and create an vocabulary entry without XT and data field (PF)
 forthword_ DOCREATE, 0, 8, "(create)"
     call PNAME
-    rcall GET_CURRENT
+    rcall CURRENT
+    rcall FETCH
     ; fall thru into HEADER
     rjmp HEADER
 
@@ -483,9 +514,10 @@ NFATOXTF_EXIT:
 
     
 
-; ( -- wid) 
+; ( -- ) 
 ; Dictionary
-; get the wid of the current compilation word list
-forthword_ GET_CURRENT, 0, 3, "wid"
+; set the context to forth vocabulary
+forthword_ FORTH, IMMEDIATE_EN, 5, "forth"
     doliteral_ EE_FORTHWORDLIST
-    ret
+    rcall CONTEXT
+    jmp STORE

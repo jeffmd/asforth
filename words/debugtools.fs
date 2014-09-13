@@ -7,7 +7,6 @@
 ;
     
 
-
 ( -- )
 ( System )
 ( Arduino pin 13 portB bit 5 debug.)
@@ -44,7 +43,7 @@
 \ prints a list of all (visible) words in the dictionary
 : words
     0                      ( 0 )
-    wid
+    context @
     @e
     begin
       ?dup                   ( cnt addr addr )
@@ -64,8 +63,11 @@
 
 ( addr -- )
 \ Tools
-\ print the contents at ram addr
+\ print the contents at ram word addr
 : ? @ . ;
+
+\ print the contents at ram char addr
+: c? c@ . ;
 
 ( bbb reg -- )
 \ tools
@@ -82,6 +84,7 @@
     >a ac@ and or
     ac!
 ;
+
 
 ( reg -- )
 \ tools
@@ -111,10 +114,10 @@ find r? val fence
       \ set dp to nfa
       dup           ( nfa nfa )
       to dp         ( nfa )
-      \ set wid to lfa
+      \ set context wid to lfa
       nfa>lfa       ( lfa )
       @i            ( nfa )
-      wid           ( nfa wid )
+      context @     ( nfa wid )
       !e
     else
       drop  

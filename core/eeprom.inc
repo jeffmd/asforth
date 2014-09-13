@@ -1,10 +1,10 @@
     .word -1           ; EEPROM Address 0 should not be used
 EE_DP:
-    addr_ DPSTART      ; Dictionary Pointer
+    addr_ DPSTART      ; Dictionary Pointer in flash
 EE_HERE:
-    .word HERESTART    ; Memory Allocation
+    .word HERESTART    ; RAM Memory Allocation pointer
 EE_EDP:
-    .word EDPSTART     ; EEProm Memory Allocation
+    .word EDPSTART     ; EEProm Memory Allocation pointer
 EE_TURNKEY:
     addr_ APPLTURNKEY  ; TURNKEY
 
@@ -19,8 +19,10 @@ EE_TURNKEY:
 
 EE_UBRRVAL:
     .word UBRR_VAL     ; BAUDRATE
+ ; Forth vocabulary
 EE_FORTHWORDLIST:
-    addr_ VE_HEAD      ; pre-defined (compiled in) wordlist
+    addr_ VE_HEAD      ; Head field - pre-defined (compiled in) top of forth wordlist
+    addr_ 0            ; Tail field - pre-defined bottom of forth wordlist 
 
 ; default user area
 EE_INITUSER:

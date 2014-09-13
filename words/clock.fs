@@ -6,26 +6,27 @@ cvar hrs
 cvar mins
 cvar secs
 
+
 \ increment number of days by one
 : days+ ( -- )
   days 1+!
 ;
 
+
 \ increment number of hours by one
 : hrs+ ( -- )
-  hrs c@ 1+ dup 23 > if 0: days+ then hrs c!
+  23 hrs 1+c!mx if days+ then
 ;
 
 \ increment number of minutes by one
 : mins+ ( -- )
-  mins c@ 1+ dup 59 > if 0: hrs+ then mins c!
+  59 mins 1+c!mx if hrs+ then
 ;
 
 \ increment number of seconds by one
 : secs+ ( -- )
-  secs c@ 1+ dup 59 > if 0: mins+ then secs c!
+  59 secs 1+c!mx if mins+ then
 ;
-
 
 \ clear the clock
 : clock.clr

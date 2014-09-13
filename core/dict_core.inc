@@ -440,6 +440,7 @@ forthword_ TWOSTAR, INLINE_OPT, 2, "2*"
     twostar_
     ret
 
+
 ; ( n1 n2 -- n3 ) 
 ; Logic
 ; bitwise and
@@ -642,6 +643,14 @@ forthword_ ZEROHIGH, INLINE_OPT, 2, "0~"
 forthword_ ZEROLOW, INLINE_OPT, 2, "~0"
     zerolow_
     ret
+
+; ( n1 -- n2 ) 
+; Arithmetics
+; put high byte of TOS in low byte
+forthword_ SREIGHT, INLINE_OPT, 2, "~h"
+    highbyte_
+    ret
+
 
 ; ( -- addr ) 
 ; System Variable

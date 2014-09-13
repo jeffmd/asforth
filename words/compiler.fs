@@ -1,5 +1,5 @@
 : widf 
-    wid
+    current @
     @e
     dup
     @i
@@ -78,7 +78,7 @@
 \ Dictionary
 \ search dictionary for name, returns nfa if found or 0 if not found
 : find
-    pname wid findnfa
+    pname context @ findnfa
 ;
 
 \ compile into pending new word
@@ -93,7 +93,7 @@
 \ create a dictionary entry and register in word list
 : rword
     (create)      ( voc-link )
-    wid           ( voc-link wid )
+    current @     ( voc-link wid )
     !e            ( )
 ;
 
@@ -153,6 +153,13 @@
     ['] !e ,
 ;
 
+( -- c ) ( C: "<space>name" -- )
+\ skip leading space delimites, place the first character of the word on the stack
+: [char]
+    char
+    [compile] lit
+; immediate
+
 ( -- )
 \ Compiler
 \ replace the XT written by CREATE to call the code that follows does>
@@ -163,7 +170,7 @@
     \ code at XT is 'call POPRET'
     \ want to change POPRET address to return address
     r>
-    wid
+    current @
     @e
     nfa>lfa
     2+         \ lfa>xt+1
@@ -395,65 +402,3 @@
        type
      then
 ; immediate
-
-( c<name> -- ) 
-\ Compiler
-\ creates a defer vector which is kept in eeprom.
-: edefer
-    (create)
-    wid
-    !e
-    compile (defer)
-
-    edp             ( -- EDP )
-    dup             ( -- EDP EDP )
-    ,               ( -- EDP )
-    ['] @e ,
-    ['] !e ,
-    \ increment EDP one cell then save it
-    2+              ( -- EDP+2 )
-    to edp
-;
-
-( c<name> -- ) 
-\ Compiler
-\ creates a RAM based defer vector
-: rdefer
-    (create)
-    wid
-    !e
-
-    compile (defer)
-
-    here ,
-    2 allot
-
-    ['] @ ,
-    ['] ! ,
-;
-
-
-( xt1 c<char> -- ) 
-\ System
-\ stores xt into defer or compiles code to do so at runtime
-: is
-    [compile] to
-; immediate
-
-( n c<name> -- )
-\ Compiler
-\ add an Interrupt Service Routine to the ISR vector table
-\ n is the address of the table entry
-\ only need to write the address 
-\ jmp instruction is already in vector table
-: isr 1+ ' swap !i ;
-
-( C: name -- )
-\ Compiler
-\ start defining an Interrupt Service Routine
-: :isr : compile (i:) ; immediate
-
-( -- )
-\ Compiler
-\ finish defining an Interrupt Service Routine
-: ;isr compile (i;) [compile] ; ; :ic
