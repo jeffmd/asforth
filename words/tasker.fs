@@ -1,5 +1,9 @@
 \ tasker.fs : words for managing tasks
 
+only forth definitions
+vocabulary tasker
+also tasker definitions
+
 \ the active index into the task list
 cvar tidx
 
@@ -25,19 +29,19 @@ cvar tcnt
 ( idx -- cnt )
 \ get count for a slot
 \ idx: index of slot
-: task.cnt@
+: cnt@
   tcnt + c@
 ;
 
 \ increment tcnt array element using idx as index
 ( idx -- )
-: task.cnt+
+: cnt+
   tcnt + 1+c!
 ;
 
 ( n idx -- )
 \ set tcnt array element using idx as index
-: task.cnt!
+: cnt!
   tcnt + c!
 ;
 
@@ -57,7 +61,7 @@ edp 62 + to edp
 : tidx+
   tidx@ 2* 1+ 
   \ if slot count is odd then 1+
-  tidx@ task.cnt@
+  tidx@ cnt@
   1 and +
   tidx c!
 ;
@@ -80,41 +84,41 @@ edp 62 + to edp
 ( idx -- )
 \ clear task at idx slot
 \ replaces task with noop
-: task.clr 
+: taskclr 
   ['] noop swap task!
 ;
 
 ( -- )
 \ execute active task and step to next task
-: tasks.ex
+: taskex
   \ increment count for task slot
-  tidx@ task.cnt+
+  tidx@ cnt+
   tidx@ task@ exec
   tidx+
 ;
 
 \ time in ms since last tasks.ex
-var tasks.ms
+var lastms
 \ how often in milliseconds to execute a task
 \ default to 25 ms
-24 val tasks.exms
+24 val exms
 
 
 ( -- )
 \ execute tasks.ex if tick time expired
-: tasks.tick
-  ms @ tasks.ms @ - tasks.exms u> if ms @ tasks.ms ! tasks.ex then 
+: tick
+  timer ms @ tasker lastms @ - exms u> if timer ms @ tasker lastms ! taskex then 
 ;
 
 ( -- )
 \ clear all tasks
-: tasks.clr
+: allclr
   \ iterate 0 to 30 and clear tcnt[] and set tasks[] to noop
   0
   begin
     0 tidx c!
-    0 over task.cnt!
-    dup task.clr 
+    0 over cnt!
+    dup taskclr 
     1+ 
     dup 30 >  
   until
@@ -123,23 +127,23 @@ var tasks.ms
 
 ( -- )
 \ start tasking
-: tasks.run
+: run
   \ set taskms to ms
-  T0init
-  ms @ tasks.ms !
-  ['] tasks.tick to pause
+  timer T0init
+  ms @ tasker lastms !
+  ['] tick to pause
 ;
 
 ( -- )
 \ reset tasker
 \ all tasks are reset to noop
-: tasks.reset
-  tasks.clr
-  tasks.run
+: reset
+  allclr
+  run
 ;
 
 ( -- )
 \ stop tasks from running
-: tasks.stop
+: stop
   ['] noop to pause
 ;

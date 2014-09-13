@@ -1,5 +1,9 @@
 \ ***** I/O REGISTER DEFINITIONS ******
 
+only forth definitions
+vocabulary I/O
+also I/O definitions
+
 \ USART0
 $C6 con UDR0	\ USART I/O Data Register
 $C0 con UCSR0A	\ USART Control and Status Register A
