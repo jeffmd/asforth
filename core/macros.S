@@ -148,6 +148,10 @@
     rol tosh
 .endm
 
+.macro highbyte_
+  mov tosl, tosh
+.endm
+
 .macro nip_
     adiw YL, 2
 .endm
