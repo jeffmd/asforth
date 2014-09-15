@@ -532,27 +532,6 @@ PFA_TYPE2:
     jmp DROP
 
 
-; ( "<spaces>name" -- XT XTflags)
-; Dictionary
-; search dictionary for name, returns XT and its flags or throw an exception -13
-forthword_ TICKF, 0, 2, "'f"
-    rcall PNAME
-    rcall FINDNXT
-    dupzerosense_
-    brne TICKFEXIT
-    doliteral_ -13
-    rjmp THROW
-TICKFEXIT:
-    ret
-
-; ( "<spaces>name" -- XT )
-; Dictionary
-; search dictionary for name, returns XT or throw an exception -13
-forthword_ TICK, 0, 1, "'"
-    rcall TICKF
-    drop_
-    ret
-    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( -- a-addr )
@@ -1027,18 +1006,7 @@ forthword_ PNAME, 0, 5, "pname"
     rcall SKIPBL
     rcall BL
     rjmp PARSE
-    
-
-
-; ( addr len --  0 | [xt xtflags] )
-; Tools
-; search wordlists for the name from string addr/len
-forthword_ FINDNXT, 0, 7, "findnxt"
-    call CURRENT
-    call FETCH         ; ( addr len currentvoc )
-    rcall FINDNFA      ; ( nfa )
-    jmp NFATOXTF       ; ( [xt] flag )
-    
+            
 
 ; ( -- )
 ; System
@@ -1252,7 +1220,6 @@ forthword_ WARM, 0, 4, "warm"
     ; init DP in ram from eeprom
     call DPFETCHE
     call FORTH
-    call DEFINITIONS
     rcall TURNKEY
     rjmp QUIT
 
@@ -1411,12 +1378,13 @@ PFA_REC_NONUMBER:
 ; will 
 forthword_ REC_WORD, 0, 8, "rec-word"
 
-    rcall FINDNXT
+    rcall FINDW
     dupzerosense_
     brne REC_WORD_FOUND
     ret
 
 REC_WORD_FOUND:
+    call NFATOXTF
     ; check if compile only word
     sbrc tosh, COMPILE_ONLY_FB 
         rjmp CHECK_IMMEDIATE
@@ -1577,43 +1545,6 @@ forthword_ DODEFER, 0, 7, "(defer)"
     ; EXEC the defer
     jmp EXEC
 
-; ( c-addr len wid -- [ 0 | nfa ] )
-; find a word in the dictionary
-; 0 if word not found in dictionary
-; nfa if word is found
-forthword_ FINDNFA, 0, 7, "findnfa"
-    call FETCHE                ; ( c-addr len nfa )
-    ; <begin>
-FINDNFA_BEGIN:
-    ; <while>
-    dupzerosense_              ; ( c-addr len nfa )
-    brne FINDNFA_CHECK
-      ; terminating, 0 found
-      dnip_                     ; ( 0 )
-      ret
-
-FINDNFA_CHECK:
-    call TO_R                  ; ( c-addr len ) (R: nfa )
-    call TWOOVER               ; ( c-addr len c-addr len )
-    call R_FETCH               ; ( c-addr len c-addr len nfa )
-    rcall ICOUNT               ; ( c-addr len c-addr len f-addr len )
-    zerohigh_                  ; ( c-addr len c-addr len f-addr 0:len )
-    rcall ICOMPARE             ; ( c-addr len flag )
-    ; <if>
-    zerosense_
-    breq FINDNFA_NEXT
-      ; we found the string
-      call DDROP               ; ( )
-      call R_FROM              ; ( nfa )
-      ret
-    ; <then>
-FINDNFA_NEXT:
-      ; next try
-      call R_FROM
-      call NFA2LFA
-      call FETCHI
-      ; <repeat>
-      rjmp FINDNFA_BEGIN
 
 
 ; ( r-addr r-len f-addr f-len --  f)
@@ -1688,6 +1619,119 @@ PFA_ICOMPARE_DONE:
     drop_
     doliteral_ -1
     ret
+
+
+; ( c-addr len wid -- [ 0 | nfa ] )
+; find a word in the dictionary
+; 0 if word not found in dictionary
+; nfa if word is found
+forthword_ FINDNFA, 0, 7, "findnfa"
+    dupzerosense_
+    brne FINDNFA_
+      ; terminating, wid is empty
+      dnip_
+      ret
+FINDNFA_:
+    call FETCHE                ; ( c-addr len nfa )
+    ; <begin>
+FINDNFA_BEGIN:
+    ; <while>
+    dupzerosense_              ; ( c-addr len nfa )
+    brne FINDNFA_CHECK
+      ; terminating, 0 found
+      dnip_                     ; ( 0 )
+      ret
+
+FINDNFA_CHECK:
+    call TO_R                  ; ( c-addr len ) (R: nfa )
+    call TWOOVER               ; ( c-addr len c-addr len )
+    call R_FETCH               ; ( c-addr len c-addr len nfa )
+    rcall ICOUNT               ; ( c-addr len c-addr len f-addr len )
+    zerohigh_                  ; ( c-addr len c-addr len f-addr 0:len )
+    rcall ICOMPARE             ; ( c-addr len flag )
+    ; <if>
+    zerosense_
+    breq FINDNFA_NEXT
+      ; we found the string
+      call DDROP               ; ( )
+      call R_FROM              ; ( nfa )
+      ret
+    ; <then>
+FINDNFA_NEXT:
+      ; next try
+      call R_FROM
+      call NFA2LFA
+      call FETCHI
+      ; <repeat>
+      rjmp FINDNFA_BEGIN
+
+
+; ( addr len idx -- 0 | nfa )
+FINDWI:
+      twostar_         ; ( addr len idx*2)
+      call CONTEXT     ; ( addr len idx*2 context )
+      call PLUS        ; ( addr len context' )
+      call FETCH       ; ( addr len wid )
+      rjmp FINDNFA     ; ( nfa)
+
+; ( addr len --  0 | nfa )
+; Tools
+; search wordlists for the name from string addr/len
+forthword_ FINDW, 0, 5, "findw"
+    ; loop through context slots to find a word
+    ; start with last slot
+    call CONTEXT      ; ( addr len context )
+    ; get context index and use as counter
+    oneminus_          ; ( addr len context-1 )
+    call CFETCH        ; ( addr len idx )
+FINDW_BEGIN:
+    dupzerosense_
+    breq FINDWI        ; ( addr len idx )
+      call TO_R        ; ( addr len ) ( R: idx )
+      call TWOOVER     ; ( addr len addr len ) ( R: idx )
+      ; get next wordlist in array
+      call R_FROM      ; ( addr len addr len idx ) ( R: )
+      dup_r_           ; ( addr len addr len idx ) ( R: idx)
+      rcall FINDWI
+      call R_FROM      ; ( addr len nfa idx ) ( R: )
+      call SWAP        ; ( addr len idx nfa )
+      dupzerosense_
+      ; end loop if word found
+      breq FINDW_NEXT
+        dnip_          ; ( addr nfa )
+        nip_           ; ( nfa )
+        ret
+        
+FINDW_NEXT:
+      drop_            ; ( addr len idx )
+      ; decrement index
+      oneminus_        ; ( addr len idx-1 )
+      rjmp FINDW_BEGIN
+
+    
+
+
+; ( "<spaces>name" -- XT XTflags)
+; Dictionary
+; search dictionary for name, returns XT and its flags or throw an exception -13
+forthword_ TICKF, 0, 2, "'f"
+    rcall PNAME
+    rcall FINDW
+    dupzerosense_
+    brne TICKFEXIT
+    doliteral_ -13
+    rjmp THROW
+TICKFEXIT:
+    jmp NFATOXTF
+
+; ( "<spaces>name" -- XT )
+; Dictionary
+; search dictionary for name, returns XT or throw an exception -13
+forthword_ TICK, 0, 1, "'"
+    rcall TICKF
+    drop_
+    ret
+    
 
 
 ; (addr-from addr-to n -- )
