@@ -1,6 +1,6 @@
 \ ***** I/O REGISTER DEFINITIONS ******
 
-only forth definitions
+forth
 vocabulary I/O
 also I/O definitions
 
