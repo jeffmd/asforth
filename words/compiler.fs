@@ -78,7 +78,7 @@
 \ Dictionary
 \ search dictionary for name, returns nfa if found or 0 if not found
 : find
-    pname context @ findnfa
+    pname findw
 ;
 
 \ compile into pending new word
@@ -248,6 +248,7 @@
     [compile] brnz1,
 ;
 
+
 ( f -- ) ( C: -- orig )
 \ Compiler
 \ start conditional branch
@@ -264,6 +265,7 @@
     ??brc
     >mark 
 ; :ic
+
 
 ( C: orig1 -- orig2 ) 
 \ Compiler

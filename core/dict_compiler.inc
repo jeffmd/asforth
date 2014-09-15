@@ -18,22 +18,10 @@ forthword_ CONTEXT, 0, 7, "context"
     ret
 
 .pushsection .data
-ram_CONTEXTidx: .space 2
+ram_CONTEXTidx: .space 1
 ram_CONTEXT: .space 2 * 5 ; 5 wordlists max
 .popsection
 
-; Used in the form:
-; cccc DEFINITIONS
-; Set the CURRENT vocabulary to the CONTEXT vocabulary. In the
-; example, executing vocabulary name cccc made it the CONTEXT
-; vocabulary and executing DEFINITIONS made both specify vocabulary
-; cccc.
-
-forthword_ DEFINITIONS, IMMEDIATE_EN, 11, "definitions"
-    rcall CONTEXT
-    rcall FETCH
-    rcall CURRENT
-    rjmp STORE
 
 
 ; ( -- addr ) 
@@ -512,12 +500,26 @@ forthword_ NFATOXTF, 0, 7, "nfa>xtf"
 NFATOXTF_EXIT:
     ret
 
-    
-
 ; ( -- ) 
 ; Dictionary
-; set the context to forth vocabulary
+; set the context and current to forth vocabulary and remove
+; other vocabularies
 forthword_ FORTH, IMMEDIATE_EN, 5, "forth"
+    ; forth vocab always takes slot 0
     doliteral_ EE_FORTHWORDLIST
+    dup_
     rcall CONTEXT
-    jmp STORE
+    rcall STORE
+    ; make current also forth vocab
+    rcall CURRENT
+    rcall STORE
+    ; move index to next slot
+    rcall ONE
+    rcall CONTEXT
+    oneminus_
+    rcall CSTORE
+    ; make second slot have no vocab
+    rcall ZERO
+    rcall CONTEXT
+    twoplus_
+    rjmp STORE

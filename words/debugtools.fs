@@ -38,28 +38,6 @@
  drop
 ;
 
-( -- ) 
-\ Tools
-\ prints a list of all (visible) words in the dictionary
-: words
-    0                      ( 0 )
-    context @
-    @e
-    begin
-      ?dup                   ( cnt addr addr )
-    while                    ( cnt addr ) \ is nfa = counted string
-      dup                    ( cnt addr addr )
-      $l $FF and             ( cnt addr addr n ) \ mask immediate bit
-      itype space            ( cnt addr )
-      nfa>lfa                ( cnt lfa )
-      @i                     ( cnt addr )
-      swap                   ( addr cnt )
-      1+                     ( addr cnt+1 )
-      swap                   ( cnt+1 addr )
-    repeat 
-
-    cr .
-;
 
 ( addr -- )
 \ Tools
@@ -101,7 +79,10 @@ find r? val fence
 
 ( c: name -- )
 : forget
-  find            ( nfa )
+  pname
+  context@
+  ?if else drop context @ then
+  findnfa            ( nfa )
   ?dup
   if
     \ nfa must be greater than fence
@@ -117,8 +98,7 @@ find r? val fence
       \ set context wid to lfa
       nfa>lfa       ( lfa )
       @i            ( nfa )
-      context @     ( nfa wid )
-      !e
+      context!      (  )
     else
       drop  
     then

@@ -22,7 +22,6 @@ EE_UBRRVAL:
  ; Forth vocabulary
 EE_FORTHWORDLIST:
     addr_ VE_HEAD      ; Head field - pre-defined (compiled in) top of forth wordlist
-    addr_ 0            ; Tail field - pre-defined bottom of forth wordlist 
 
 ; default user area
 EE_INITUSER:
