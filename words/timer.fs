@@ -9,10 +9,11 @@
 \ TIFR0   $15 ($35) Timer/Counter 0 Interrupt Flag Register
 \ TIMSK0  ($6E) Timer/Counter Interrupt Mask Register
 
-only forth definitions
+forth
+also I/O
 vocabulary timer
 also timer definitions
-I/O
+
 
 \ number of milliseconds since last clear
 var ms

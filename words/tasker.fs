@@ -1,6 +1,7 @@
 \ tasker.fs : words for managing tasks
 
-only forth definitions
+forth
+also timer
 vocabulary tasker
 also tasker definitions
 
@@ -107,7 +108,7 @@ var lastms
 ( -- )
 \ execute tasks.ex if tick time expired
 : tick
-  timer ms @ tasker lastms @ - exms u> if timer ms @ tasker lastms ! taskex then 
+  ms @ lastms @ - exms u> if ms @ lastms ! taskex then 
 ;
 
 ( -- )
@@ -129,8 +130,8 @@ var lastms
 \ start tasking
 : run
   \ set taskms to ms
-  timer T0init
-  ms @ tasker lastms !
+  T0init
+  ms @ lastms !
   ['] tick to pause
 ;
 
