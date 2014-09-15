@@ -7,10 +7,13 @@
 \ ADCL $78 - adc data register low
 \ DIDR0 $7E - digital input disable register 0
 
+only I/O
+vocabulary Adc
+also Adc definitions
 
 ( -- val )
 \ do adc conversion, puts 10 bit value on top of stack
-: adc
+: conv
 \ start conversion, auto conversion is on
   \ start conversion
   %01000000 ADCSRA rbs
@@ -50,7 +53,7 @@
 
 ( -- )
 \ initialize the ADC to default values
-: adcinit
+: init
 \ disable digital inputs on first 5 analog inputs
 %00111111 DIDR0 rbs
 \ set voltage ref to AVcc
@@ -72,7 +75,7 @@
   %11001000 ADMUX c!
   \ give time for cap to change value when changing reference voltage
   10 msec
-  adc
+  conv
   \ formula to convert sensor val to celcius = (adc - Tos)/ k
   14 /
   \ restore AMUX

@@ -20,8 +20,11 @@ EE_TURNKEY:
 EE_UBRRVAL:
     .word UBRR_VAL     ; BAUDRATE
  ; Forth vocabulary
+EE_ROOTWORDLIST:
+    addr_ VE_HEAD      ; pre-defined (compiled in) top of root wordlist
+
 EE_FORTHWORDLIST:
-    addr_ VE_HEAD      ; Head field - pre-defined (compiled in) top of forth wordlist
+    addr_ VE_HEAD      ; pre-defined (compiled in) top of forth wordlist
 
 ; default user area
 EE_INITUSER:

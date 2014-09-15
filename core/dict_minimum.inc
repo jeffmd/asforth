@@ -1219,7 +1219,7 @@ forthword_ WARM, 0, 4, "warm"
     rcall DEFERSTORE
     ; init DP in ram from eeprom
     call DPFETCHE
-    call FORTH
+    call ONLY
     rcall TURNKEY
     rjmp QUIT
 

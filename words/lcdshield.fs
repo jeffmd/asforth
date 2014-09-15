@@ -57,15 +57,19 @@
 \ LCD_5x10DOTS $04
 \ LCD_5x8DOTS $00
 
+only I/O
+vocabulary LCD
+also LCD definitions
+
 \ track lcd control status
-cvar lcd.ctrl
+cvar ctrl
 \ track lcd mode status
-cvar lcd.mode
+cvar mode
 \ current line for next print
-cvar lcd.line
+cvar line
 
 \ setup port pins for I/O
-: lcd.sio
+: sio
   \ setup pins 4,5,6,7 on Port D DDR for output
   %11110000 DDRD rbs
   \ setup pins 0,1,2 on Port B DDR for output
@@ -73,7 +77,7 @@ cvar lcd.line
 ;
 
 \ pulse enable line of lcd
-: lcd.pen
+: pen
     \ lcd-en toggle low high low
     [ PORTB DIO 1 cbi, ]
     1 usec
@@ -84,33 +88,33 @@ cvar lcd.line
 ;
 
 \ send high 4 bits of byte to lcd
-: lcd.4bs ( c -- )
+: 4bs ( c -- )
     %11110000 and
     $0F PORTD rbm
-    lcd.pen
+    pen
 ;
 
 \ send a byte to lcd
-: lcd.send ( c -- )
-    dup lcd.4bs
-    swnib lcd.4bs
+: send ( c -- )
+    dup 4bs
+    swnib 4bs
 ;
 
 \ send a command to lcd
-: lcd.cmd ( c -- )
+: cmd ( c -- )
     \ lcd-rs low
     [ PORTB DIO 0 cbi, ]
-    lcd.send
+    send
 ;
 
 \ send data to lcd
-: lcd.data ( c -- )
+: data ( c -- )
     \ lcd-rs high
     [ PORTB DIO 0 sbi, ]
-    lcd.send
+    send
 ;
 
-: lcd.reset
+: reset
   \ lcd-rs low start off in command mode
   [ PORTB DIO 0 cbi, ]
 
@@ -126,140 +130,142 @@ cvar lcd.line
     \ figure 24, pg 46
 
     \ we start in 8bit mode, try to set 4 bit mode
-    $30 lcd.4bs 
+    $30 4bs 
     4100 usec \ wait min 4.1ms
 
     \ second try
-    $30 lcd.4bs 
+    $30 4bs 
     100 usec
     
     \ third go!
-    $30 lcd.4bs
+    $30 4bs
     40 usec
 
     \ finally, set to 4-bit interface
-    $20 lcd.4bs
+    $20 4bs
 
   \ finally, set # lines, font size, etc.
   \ LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS
-  %00101010  lcd.cmd
+  %00101010  cmd
 
 ;
 
 \ clear the lcd display
-: lcd.clr
-  1 lcd.cmd 2 msec
+: clr
+  1 cmd 2 msec
 ;
 
 \ execute lcd display control command
-: lcd.ctrlx
-  lcd.ctrl c@ 8 or lcd.cmd
+: ctrlx
+  ctrl c@ 8 or cmd
 ;
 
 \ turn on flags in ctrl and send to lcd
-: lcd.ctrl+ ( n -- )
-  lcd.ctrl rbs lcd.ctrlx
+: ctrl+ ( n -- )
+  ctrl rbs ctrlx
 ;
 
 \ turn off flags in ctrl and send to lcd
-: lcd.ctrl- ( n -- )
-  lcd.ctrl rbc lcd.ctrlx
+: ctrl- ( n -- )
+  ctrl rbc ctrlx
 ;
 
 \ turn display on
-: lcd.on
-   4 lcd.ctrl+
+: on
+   4 ctrl+
 ;
 
 \ turn display off
-: lcd.off
-   4 lcd.ctrl-
+: off
+   4 ctrl-
 ;
 
 \ turn blink on
-: lcd.blink
-   1 lcd.ctrl+
+: blink
+   1 ctrl+
 ;
 
 \ turn blink off
-: lcd.blink-
-   1 lcd.ctrl-
+: blink-
+   1 ctrl-
 ;
 
 \ turn cursor on
-: lcd.cur
-   2 lcd.ctrl+
+: cur
+   2 ctrl+
 ;
 
 \ turn cursor off
-: lcd.cur-
-   2 lcd.ctrl-
+: cur-
+   2 ctrl-
 ;
 
 \ move cursor to home position
-: lcd.home
-  2 lcd.cmd
+: home
+  2 cmd
   1 msec \ takes a while to complete
 ;
 
-\ turn cursor off
 
 \ initialize lcd to a default working state
-: lcd.init
-  lcd.sio
-  lcd.reset
+: init
+  sio
+  reset
   \ clear settings to default
-  0 lcd.ctrl c!
-  0 lcd.mode c!
-  0 lcd.line c!
-  lcd.off \ turn display off
-  lcd.clr \ clear display
-  adcinit
+  0 ctrl c!
+  0 mode c!
+  0 line c!
+  off \ turn display off
+  clr \ clear display
+  Adc init
+  LCD
 ;
 
 \ move cursor to col, row position
-: lcd.pos ( col row -- )
+: pos ( col row -- )
   ?if drop $40 then +
-  $80 or lcd.cmd
+  $80 or cmd
 ;
 
 \ turn backlight on
-: lcd.light
+: light
   [ PORTB DIO 2 sbi, ]
 ;
 
 \ turn backlight off
-: lcd.light-
+: light-
   [ PORTB DIO 2 cbi, ]
 ;
 
 \ sends character to lcd
 \ used when defering system emit
-: lcd.emit ( c -- )
-  a swap lcd.data >a ;
+: emit ( c -- )
+  a swap data >a ;
 ;
 
 \ print ram string
-: lcd.type ( addr len -- )
-  ['] lcd.emit to emit
+: type ( addr len -- )
+  ['] emit Forth to emit
   type
   ['] tx-poll to emit
+  LCD
 ;
 
 \ print flash string
-: lcd.itype ( addr len -- )
-  ['] lcd.emit to emit
+: itype ( addr len -- )
+  ['] emit Forth to emit
   itype
   ['] tx-poll to emit
+  LCD
 ;
 
 \ print a fixed point number
-: lcd.f. ( fixedpoint -- )
-  <# # # [char] . hold #s #> lcd.type
+: .f ( fixedpoint -- )
+  <# # # [char] . hold #s #> type
 
 ;
 
 \ print a number
-: lcd.. ( n -- )
-  <# #s #> lcd.type
+: .. ( n -- )
+  <# #s #> type
 ;

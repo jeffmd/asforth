@@ -9,10 +9,9 @@
 \ TIFR0   $15 ($35) Timer/Counter 0 Interrupt Flag Register
 \ TIMSK0  ($6E) Timer/Counter Interrupt Mask Register
 
-forth
-also I/O
-vocabulary timer
-also timer definitions
+only I/O
+vocabulary Timer
+also Timer definitions
 
 
 \ number of milliseconds since last clear

@@ -83,7 +83,9 @@
    context!
 ;
 
-
+: Forth ( -- )
+  context @ context!
+;
 
 \ List the names of the definitions in the context vocabulary.
 \ Does not list other linked vocabularies.

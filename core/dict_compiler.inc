@@ -502,9 +502,9 @@ NFATOXTF_EXIT:
 
 ; ( -- ) 
 ; Dictionary
-; set the context and current to forth vocabulary and remove
+; set the context and current to root forth vocabulary and remove
 ; other vocabularies
-forthword_ FORTH, IMMEDIATE_EN, 5, "forth"
+forthword_ ONLY, IMMEDIATE_EN, 4, "only"
     ; forth vocab always takes slot 0
     doliteral_ EE_FORTHWORDLIST
     dup_

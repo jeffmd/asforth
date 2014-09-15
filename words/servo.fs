@@ -1,4 +1,7 @@
 \ servo words
+only I/O
+vocabulary Servo
+also Servo definitions
 
 \ set pwm for servo on timer1 using an angle
 ( angle -- )

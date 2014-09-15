@@ -1,3 +1,5 @@
+only
+
 ( u -- )
 \ wait u microseconds
 : usec

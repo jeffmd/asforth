@@ -1,9 +1,8 @@
 \ tasker.fs : words for managing tasks
 
-forth
-also timer
-vocabulary tasker
-also tasker definitions
+only Timer
+vocabulary Tasker
+also Tasker definitions
 
 \ the active index into the task list
 cvar tidx
