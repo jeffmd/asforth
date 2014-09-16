@@ -283,8 +283,7 @@ PFA_GREATERDONE:
 ; Compare
 ; compare with zero
 forthword_ LESSZERO, 0, 2, "0<"
-    cp tosl, zerol
-    cpc tosh, zerol
+    sbiw tosl, 0
     rjmp PFA_LESSDONE
 
 ; ( u1 u2 -- flag ) 
@@ -303,8 +302,7 @@ forthword_ UGREATER, 0, 2, "u>"
 ; Compare
 ; true if n1 is greater than 0
 forthword_ GREATERZERO, 0, 2, "0>"
-    cp tosl, zerol
-    cpc tosh, zerol
+    sbiw tosl, 0
     rjmp PFA_GREATERDONE
 
 ; ( -- 0 ) 
