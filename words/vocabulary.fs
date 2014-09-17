@@ -27,7 +27,7 @@
   context 1- 1+c!
   context!
   
-;
+; immediate
 
 
 : previous ( -- )
@@ -39,7 +39,7 @@
      else
        ddrop
      then
-;
+; immediate
 
 \ Used in the form:
 \ cccc DEFINITIONS
@@ -51,7 +51,7 @@
 : definitions
     context@
     current !
-;
+; immediate
 
 \ A defining word used in the form:
 \     vocabulary cccc  
@@ -85,7 +85,7 @@
 
 : Forth ( -- )
   context @ context!
-;
+; immediate
 
 \ List the names of the definitions in the context vocabulary.
 \ Does not list other linked vocabularies.

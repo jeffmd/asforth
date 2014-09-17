@@ -207,13 +207,13 @@ forthword_ CALLC, 0, 5, "callc"
 
 ; branch 1 word if not zero
 ; ( -- )
-forthword_ BRNZ1_COMPILE, IMMEDIATE_EN, 6, "brnz1,"
+forthword_ BRNZ1_COMPILE, 0, 6, "brnz1,"
     ;compile brne 1w : F409
     doliteral_ 0xf409
     jmp COMMA
 
 ; dupzerosense inline
 ; ( f -- f )
-forthword_ DUPZEROSENSE_COMPILE, IMMEDIATE_EN, 4, "?0?,"
+forthword_ DUPZEROSENSE_COMPILE, 0, 4, "?0?,"
     doliteral_ 0x9700
     jmp COMMA

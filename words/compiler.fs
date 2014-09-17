@@ -239,13 +239,13 @@
 : ?brc
     
     compile 0?       \ inline zerosense
-    [compile] brnz1,
+    brnz1,
 ;
 
 \ compile dupzerosense and conditional branch forward
 : ??brc
-    [compile] ?0?,
-    [compile] brnz1,
+    ?0?,
+    brnz1,
 ;
 
 
