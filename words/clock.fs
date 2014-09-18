@@ -1,6 +1,10 @@
 \ clock.fs
 \ uses tasker to keep track of days, hours, minutes, seconds since starting
 
+only Tasker
+vocabulary Clock
+also Clock definitions
+
 var days
 cvar hrs
 cvar mins
@@ -29,7 +33,7 @@ cvar secs
 ;
 
 \ clear the clock
-: clock.clr
+: clr
   0 dup days !
   dup hrs c!
   dup mins c!
@@ -37,10 +41,10 @@ cvar secs
 ;
 
 \ run the clock
-: clock.run ( -- )
+: run ( -- )
   ['] secs+ 14 task!
 ;
 
-: clock.stop ( -- )
-  14 task.clr
+: stop ( -- )
+  14 taskclr
 ;
