@@ -266,6 +266,6 @@ cvar line
 ;
 
 \ print a number
-: .. ( n -- )
+: . ( n -- )
   <# #s #> type
 ;
