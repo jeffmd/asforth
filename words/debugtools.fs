@@ -80,8 +80,7 @@ find r? val fence
 ( c: name -- )
 : forget
   pname
-  context@
-  ?if else drop context @ then
+  current @
   findnfa            ( nfa )
   ?dup
   if
@@ -98,7 +97,8 @@ find r? val fence
       \ set context wid to lfa
       nfa>lfa       ( lfa )
       @i            ( nfa )
-      context!      (  )
+      current @     ( nfa wid )
+      !e            (  )
     else
       drop  
     then
