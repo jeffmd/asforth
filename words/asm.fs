@@ -73,8 +73,8 @@ $0E con -X
 
 
 
-: movw,   1 >> swap        \ R0:1,R2:3,R4:5,..R30:31
-          1 >> swap        \ 0 2 movw, R0:1<--R2:3
+: movw,   2/ swap        \ R0:1,R2:3,R4:5,..R30:31
+          2/ swap        \ 0 2 movw, R0:1<--R2:3
           $0100 $FF00  Rd,Rr, ;  ( Rd Rr -- )
 : mul,    $9C00 $FC00  Rd,Rr, ;  \ 2 3 mul,
 : muls,   $0200 $FF00  Rd,Rr, ;
@@ -145,9 +145,9 @@ $0E con -X
 : adiw,   $9600 $FF00  Rw,k, ;   ( Rw k6 -- ) \ 3 3F adiw, ZLH=ZLH+#3F
 : sbiw,   $9700 $FF00  Rw,k, ;
 
-: in,     B000 F800  Rd,P, ;   ( Rd P -- )
+: in,     $B000 $F800  Rd,P, ;   ( Rd P -- )
 : out,    swap
-          B800 F800  Rd,P, ;   ( P Rr -- )
+          $B800 $F800  Rd,P, ;   ( P Rr -- )
 
 : bld,    $F800 $FE08  Rd,Rr, ;  ( Rd b -- )
 : bst,    $FA00 $FE08  Rd,Rr, ;
