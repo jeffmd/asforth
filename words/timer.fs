@@ -44,9 +44,9 @@ OVF0 isr T0ms
 ( -- )
 : T0init
   0 ms !
-\ use prescaler of 64
-\ timer 0 will generate an overflow event 976.5625 times in a second
-  %011 TCCR0B c!
+\ use prescaler of 8
+\ timer 0 will generate an overflow event 7812.5 times in a second
+  %010 TCCR0B c!
 \ setup timer in normal count mode and normal port mode
   %0 TCCR0A c!
 \ clear overflow flag by setting the flag

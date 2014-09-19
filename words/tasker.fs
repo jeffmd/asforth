@@ -100,8 +100,8 @@ edp 62 + to edp
 \ time in ms since last tasks.ex
 var lastms
 \ how often in milliseconds to execute a task
-\ default to 25 ms
-24 val exms
+\ default to 25 ms : 7.8 counts per ms
+195 val exms
 
 
 ( -- )
