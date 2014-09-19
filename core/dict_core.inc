@@ -1502,7 +1502,7 @@ forthword_ IEND, 0, 4, "(i;)"
     movw ZL, isrZL
     movw XL, isrXL
     movw temp0, isrt0
-    movw temp2, temp2
+    movw temp2, isrt2
     
     pop isrt0
     out SREG, isrt0    
