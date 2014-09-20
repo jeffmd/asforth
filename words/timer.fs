@@ -22,14 +22,14 @@ var us
 \ each tick is 1.024 ms
 \ 42 ticks of 24 us is 1.008 ms
 :isr T0ms
-  ms 1+! us @ 24 +
+  ms 1+! us @ 253 +
   \ check if microsecond accumulator is > 1000
-  dup 999 >
+  dup 9999 >
   if
     \ add extra millisecond
     ms 1+!
     \ remove 1000 microseconds from accumulator
-    1000 -
+    10000 -
   then
   us !
 ;isr

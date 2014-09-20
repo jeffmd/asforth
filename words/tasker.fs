@@ -100,14 +100,14 @@ edp 62 + to edp
 \ time in ms since last tasks.ex
 var lastms
 \ how often in milliseconds to execute a task
-\ default to 25 ms : 7.8 counts per ms
-195 val exms
+\ default to 25 ms 
+cvar exms
 
 
 ( -- )
 \ execute tasks.ex if tick time expired
 : tick
-  ms @ lastms @ - exms u> if ms @ lastms ! taskex then 
+  ms @ lastms @ - exms c@ u> if ms @ lastms ! taskex then 
 ;
 
 ( -- )
@@ -130,6 +130,7 @@ var lastms
 : run
   \ set taskms to ms
   T0init
+  24 exms c!
   ms @ lastms !
   ['] tick to pause
 ;
