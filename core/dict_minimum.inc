@@ -1666,6 +1666,15 @@ FINDNFA_NEXT:
       rjmp FINDNFA_BEGIN
 
 
+; ( addr len --  0 | nfa )
+; Tools
+; search root wordlists for the name from string addr/len
+forthword_ FINDROOT, 0, 5, "froot"
+    ; put root wid on stack
+    doliteral_  pm(VE_STARTOVER) 
+    ; search root
+    rjmp FINDNFA_BEGIN
+
 ; ( addr len idx -- 0 | nfa )
 FINDWI:
       twostar_         ; ( addr len idx*2)
@@ -1674,6 +1683,10 @@ FINDWI:
       call FETCH       ; ( addr len wid )
       rjmp FINDNFA     ; ( nfa)
 
+FINDLAST:
+      drop_
+      rjmp FINDROOT
+      
 ; ( addr len --  0 | nfa )
 ; Tools
 ; search wordlists for the name from string addr/len
@@ -1686,7 +1699,7 @@ forthword_ FINDW, 0, 5, "findw"
     call CFETCH        ; ( addr len idx )
 FINDW_BEGIN:
     dupzerosense_
-    breq FINDWI        ; ( addr len idx )
+    brmi FINDLAST      ; ( addr len idx )
       call TO_R        ; ( addr len ) ( R: idx )
       call TWOOVER     ; ( addr len addr len ) ( R: idx )
       ; get next wordlist in array

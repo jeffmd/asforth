@@ -1540,3 +1540,26 @@ ITOI_B:
 
 ITOI_END:
     rjmp DDROP
+
+
+; must be last word in core    
+forthword_ STARTOVER, 0, 9, "STARTOVER"
+    ; reset forth dictionary, here, edp, dp to original burn state
+    ; set EE_DP to DPSTART
+    doliteral_ pm(DPSTART)
+    doliteral_ EE_DP
+    rcall STOREE
+    ; set EE_HERE to HERESTART
+    doliteral_ HERESTART
+    doliteral_ EE_HERE
+    rcall STOREE
+    ; set EE_EDP to EDPSTART
+    doliteral_ EDPSTART
+    doliteral_ EE_EDP
+    rcall STOREE
+    ; set EE_TURNKEY to APPLTURNKEY
+    ; set EE_FORTHWORDLIST to 0
+    rcall ZERO
+    doliteral_ EE_FORTHWORDLIST
+    rcall STOREE
+    ret

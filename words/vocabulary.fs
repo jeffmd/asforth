@@ -87,14 +87,10 @@
   context @ context!
 ; immediate
 
-\ List the names of the definitions in the context vocabulary.
-\ Does not list other linked vocabularies.
-\ Use words to see all words in the top context search.
-: words
-    0                      ( 0 )
-    context@
-    ?if else drop context @ then
-    @e                       ( 0 addr )
+
+\ list words starting at a name field address
+: lwords ( nfa -- )
+    0 swap
     begin
       ?dup                   ( cnt addr addr )
     while                    ( cnt addr ) \ is nfa = counted string
@@ -109,4 +105,19 @@
     repeat 
 
     cr .
+;
+
+\ List the names of the definitions in the context vocabulary.
+\ Does not list other linked vocabularies.
+\ Use words to see all words in the top context search.
+: words ( -- )
+    context@
+    ?if else drop context @ then
+    @e                       ( 0 addr )
+    lwords
+;
+\ list the root words
+: rwords ( -- )
+  [ find STARTOVER lit ]
+  lwords
 ;
