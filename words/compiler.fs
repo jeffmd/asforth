@@ -59,7 +59,7 @@
 \ compiles xt as literal
 : [']
     '
-    [compile] lit
+    lit
 ; :ic
 
 
@@ -70,8 +70,8 @@
 : ['f]
     'f
     swap
-    [compile] lit
-    [compile] lit
+    lit
+    lit
 ; :ic
 
 ( C:"<spaces>name" -- 0 | nfa )
@@ -102,8 +102,8 @@
 \ create a constant in the dictionary
 : con
     rword
-    [compile] lit  
-    [compile] ret,
+    lit  
+    ret,
 ;
 
 ( cchar -- ) 
@@ -157,7 +157,7 @@
 \ skip leading space delimites, place the first character of the word on the stack
 : [char]
     char
-    [compile] lit
+    lit
 ; immediate
 
 ( -- )
