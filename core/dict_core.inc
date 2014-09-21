@@ -1562,4 +1562,4 @@ forthword_ STARTOVER, 0, 9, "STARTOVER"
     rcall ZERO
     doliteral_ EE_FORTHWORDLIST
     rcall STOREE
-    ret
+    jmp COLD
