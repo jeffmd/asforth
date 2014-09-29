@@ -332,7 +332,7 @@ SIGN_POS:
 ; singed PNO with single cell numbers
 forthword_ DOT, 0, 1, "."
     dup_             ; ( n n )
-    call ABS        ; ( n n' )
+    rcall ABS        ; ( n n' )
     call ZERO        ; ( n n' 0 ) not right aligned
     rcall DOTR
     rjmp SPACE
@@ -830,7 +830,7 @@ PFA_SETBASE2:        ; ( error)
 NUMBERSIGN:        ; ( addr len -- )
     call OVER      ; ( addr len addr )
     call CFETCH    ; ( addr len char )
-    doliteral_ '+           ; ( addr len char '+' )
+    doliteral_ '+  ; ( addr len char '+' )
     call EQUAL     ; ( addr len flag )
     zerosense_
     breq PFA_NUMBERSIGN_MINUS
@@ -1257,178 +1257,6 @@ DORP0:
     .word USER_RP
 
 
-; ( -- ) (R: i*x - j*x )
-; System
-; interpret input word by word.
-forthword_ INTERPRET, 0, 9, "interpret"
-    ; begin
-    rcall PNAME     ; ( -- addr len )
-
-    ; ?while
-    dupzerosense_       ; ( -- addr len )
-    breq INTERPRET_END
-
-    rcall RECX          ; ( )
-    rcall QSTACK        ; ( )
-
-    ; repeat
-    rjmp INTERPRET
-
-INTERPRET_END:
-    jmp DDROP
-
-; ( addr len -- )
-; System
-; recognize and execute name of word in ram using recognizer list.
-forthword_ RECX, 0, 4, "recx"
-    call ZERO            ; ( addr len n )
-    call TO_R            ; ( addr len ) (R: n )
-
-    ; begin
-RECX_BEGIN:
-    call R_FETCHPLUS     ; ( addr len n ) (R: n+1 )
-    rcall RECFETCH       ; ( addr len recxt )
-
-    ; ?while
-    dupzerosense_        ; ( addr len recxt )
-    breq RECX_DONE
-
-    call TO_A            ; ( addr len ) A: recxt
-    call TWOOVER         ; ( addr len addr len  )
-    ; put addr and len on return stack so that
-    ; stack can be manipulated by interpreted word
-    call TO_R            ; ( addr len addr ) (R: n len )
-    call TO_R            ; ( addr len ) (R: n len addr )
-    call A_              ; ( addr len recxt ) A:
-    call EXEC            ; ( [...] flag )
-    ; restore data stack to known state
-    call TO_A            ; ( ) A: flag
-    call R_FROM          ; ( addr ) (R: n len )
-    call R_FROM          ; ( addr len ) (R: n )
-    call A_              ; ( addr len flag ) A:  
-
-    ; <if>
-    zerosense_           ; ( addr len )
-    breq RECX_NEXT
-
-    call DDROP         ; ( ) (R: n)
-    r_drop_              ; ( ) (R: )
-    ret
-
-    ; <then>
-    ; <repeat>
-RECX_NEXT:
-    rjmp RECX_BEGIN
-
-RECX_DONE:
-    dnip_
-    drop_
-    r_drop_
-    ret
-
-; ( n -- recxt )
-; Interpreter
-; get a recognizer from the recognizer list
-; recxt is zero if at end of list
-forthword_ RECFETCH, 0, 4, "rec@"
-    dup_                            ; ( n n )
-    doliteral_ EE_RECOGNIZERLISTLEN ; ( n n ee-reclen )
-    call FETCHE                     ; ( n n len )
-    call LESS                       ; ( n flag )
-    ; <if>
-    zerosense_                      ; ( n )
-    breq PFA_RECFETCH_ZERO
-      twostar_                        ; ( 2*n )
-      doliteral_ EE_RECOGNIZERLIST    ; ( 2*n listaddr )
-      call PLUS                       ; ( listaddr' )
-      jmp FETCHE                      ; ( recxt )
-
-    ; <then>
-PFA_RECFETCH_ZERO:
-    zerotos_
-    ret
-
-
-
-
-
-; ( addr len -- n f )
-; Interpreter
-; recognizer for integer numbers
-forthword_ REC_NUM, 0, 7, "rec-num"
-    ; try converting to a number
-    rcall NUMBER             ; ( [n] f )
-    zerosense_
-    breq PFA_REC_NONUMBER
-
-    rcall STATE
-    call FETCH              ; ( n state )
-    zerosense_
-    breq PFA_REC_NUMBER_OK
-    rcall LIT
-PFA_REC_NUMBER_OK:
-    jmp TRUE               ; ( n true )
-
-PFA_REC_NONUMBER:
-    jmp ZERO               ; ( 0 )
-
-; ( addr len -- f )
-; Interpreter
-; recognize a word in the dictionary
-; will 
-forthword_ REC_WORD, 0, 8, "rec-word"
-
-    rcall FINDW
-    dupzerosense_
-    brne REC_WORD_FOUND
-    ret
-
-REC_WORD_FOUND:
-    call NFATOXTF
-    ; check if compile only word
-    sbrc tosh, COMPILE_ONLY_FB 
-        rjmp CHECK_IMMEDIATE
-        
-CHECK_COMPILE_ONLY:
-    rcall STATE
-    call FETCH
-    zerosense_
-    brne CHECK_IMMEDIATE
-        ; word can only be used in compile state
-        doliteral_ -14
-        rjmp THROW
-    
-
-CHECK_IMMEDIATE:
-	; either compile or EXEC the XT
-    ; check if word is immediate: bit 7 is clear if immediate
-	sbrs tosh, IMMEDIATE_EN_FB ; skip next instruction if bit 7 is set: not immediate word
-	    ; flag is 0: always EXEC
-	    rjmp REC_WORD_EXECUTE
-
-REC_WORD_CHECKSTATE:
-        ; check state
-	    rcall STATE
-	    call FETCH
-	    zerosense_
-	    breq REC_WORD_EXECUTE
-        ; in compile mode so compile xt
- 	    rcall COMPILEXT
-	    rjmp REC_WORD_OK
-REC_WORD_EXECUTE:
-    drop_
-    ; state is zero, EXEC xt
-    call EXEC
-REC_WORD_OK:
-    jmp TRUE
-
-; ( addr len --  )
-; Interpreter
-; recognizer for NOT FOUND
-forthword_ REC_UNK, 0, 7, "rec-unk"
-    rcall TYPE
-    doliteral_ -13
-    rjmp THROW
 
 ; ( -- n )
 ; Stack
@@ -1546,6 +1374,43 @@ forthword_ DODEFER, 0, 7, "(defer)"
     jmp EXEC
 
 
+; ( r-addr r-len f-addr f-len --  f) 
+; String
+; compares two strings in RAM
+
+forthword_ COMPARE, 0, 7, "compare"
+    movw temp0, tosl
+    poptos
+    movw XL, tosl
+    poptos
+    movw temp2, tosl
+    poptos
+    movw ZL, tosl
+PFA_COMPARE_LOOP:
+    ld temp4, X+
+    ld temp5, Z+
+    cp temp4, temp5
+    brne PFA_COMPARE_NOTEQUAL
+    dec temp0
+    breq PFA_COMPARE_ENDREACHED2
+    dec temp2
+    brne PFA_COMPARE_LOOP
+    rjmp PFA_COMPARE_ENDREACHED
+PFA_COMPARE_ENDREACHED2:
+    dec temp2
+PFA_COMPARE_ENDREACHED:
+    or temp0, temp2
+    brne PFA_COMPARE_CHECKLASTCHAR
+    clr tosl
+    rjmp PFA_COMPARE_DONE
+PFA_COMPARE_CHECKLASTCHAR:
+PFA_COMPARE_NOTEQUAL:
+    ser tosl
+
+PFA_COMPARE_DONE:
+    mov tosh, tosl
+    ret
+
 
 ; ( r-addr r-len f-addr f-len --  f)
 ; Memory
@@ -1621,106 +1486,6 @@ PFA_ICOMPARE_DONE:
     ret
 
 
-; ( c-addr len wid -- [ 0 | nfa ] )
-; find a word in the dictionary
-; 0 if word not found in dictionary
-; nfa if word is found
-forthword_ FINDNFA, 0, 7, "findnfa"
-    dupzerosense_
-    brne FINDNFA_
-      ; terminating, wid is empty
-      dnip_
-      ret
-FINDNFA_:
-    call FETCHE                ; ( c-addr len nfa )
-    ; <begin>
-FINDNFA_BEGIN:
-    ; <while>
-    dupzerosense_              ; ( c-addr len nfa )
-    brne FINDNFA_CHECK
-      ; terminating, 0 found
-      dnip_                     ; ( 0 )
-      ret
-
-FINDNFA_CHECK:
-    call TO_R                  ; ( c-addr len ) (R: nfa )
-    call TWOOVER               ; ( c-addr len c-addr len )
-    call R_FETCH               ; ( c-addr len c-addr len nfa )
-    rcall ICOUNT               ; ( c-addr len c-addr len f-addr len )
-    zerohigh_                  ; ( c-addr len c-addr len f-addr 0:len )
-    rcall ICOMPARE             ; ( c-addr len flag )
-    ; <if>
-    zerosense_
-    breq FINDNFA_NEXT
-      ; we found the string
-      call DDROP               ; ( )
-      call R_FROM              ; ( nfa )
-      ret
-    ; <then>
-FINDNFA_NEXT:
-      ; next try
-      call R_FROM
-      call NFA2LFA
-      call FETCHI
-      ; <repeat>
-      rjmp FINDNFA_BEGIN
-
-
-; ( addr len --  0 | nfa )
-; Tools
-; search root wordlists for the name from string addr/len
-forthword_ FINDROOT, 0, 5, "froot"
-    ; put root wid on stack
-    doliteral_  pm(VE_STARTOVER) 
-    ; search root
-    rjmp FINDNFA_BEGIN
-
-; ( addr len idx -- 0 | nfa )
-FINDWI:
-      twostar_         ; ( addr len idx*2)
-      call CONTEXT     ; ( addr len idx*2 context )
-      call PLUS        ; ( addr len context' )
-      call FETCH       ; ( addr len wid )
-      rjmp FINDNFA     ; ( nfa)
-
-FINDLAST:
-      drop_
-      rjmp FINDROOT
-      
-; ( addr len --  0 | nfa )
-; Tools
-; search wordlists for the name from string addr/len
-forthword_ FINDW, 0, 5, "findw"
-    ; loop through context slots to find a word
-    ; start with last slot
-    call CONTEXT      ; ( addr len context )
-    ; get context index and use as counter
-    oneminus_          ; ( addr len context-1 )
-    call CFETCH        ; ( addr len idx )
-FINDW_BEGIN:
-    dupzerosense_
-    brmi FINDLAST      ; ( addr len idx )
-      call TO_R        ; ( addr len ) ( R: idx )
-      call TWOOVER     ; ( addr len addr len ) ( R: idx )
-      ; get next wordlist in array
-      call R_FROM      ; ( addr len addr len idx ) ( R: )
-      dup_r_           ; ( addr len addr len idx ) ( R: idx)
-      rcall FINDWI
-      call R_FROM      ; ( addr len nfa idx ) ( R: )
-      call SWAP        ; ( addr len idx nfa )
-      dupzerosense_
-      ; end loop if word found
-      breq FINDW_NEXT
-        dnip_          ; ( addr nfa )
-        nip_           ; ( nfa )
-        ret
-        
-FINDW_NEXT:
-      drop_            ; ( addr len idx )
-      ; decrement index
-      oneminus_        ; ( addr len idx-1 )
-      rjmp FINDW_BEGIN
-
     
 
 
@@ -1729,7 +1494,7 @@ FINDW_NEXT:
 ; search dictionary for name, returns XT and its flags or throw an exception -13
 forthword_ TICKF, 0, 2, "'f"
     rcall PNAME
-    rcall FINDW
+    call FINDW
     dupzerosense_
     brne TICKFEXIT
     doliteral_ -13
@@ -1842,3 +1607,314 @@ forthword_ INITUSER, 0, 9, "init-user"
     doliteral_ SYSUSERSIZE
     twoslash_
     rjmp EE2RAM
+    
+
+; ( u1 u2 -- u)
+; Arithmetics
+; multiply 2 unsigned cells to a cell
+forthword_ STAR, 0, 1, "*"
+    rcall MSTAR
+    drop_
+    ret
+
+; ( u1 u2 -- u)
+; Arithmetics
+; multiply 2 unsigned cells to a cell
+forthword_ MSTAR, 0, 2, "m*"
+    movw temp0, tosl
+    poptos
+    movw temp2, tosl
+    ; high cell ah*bh
+    muls temp3, temp1
+    movw temp4, r0
+    ; low cell  al*bl
+    mul  temp2, temp0
+    movw tosl, r0
+    ; signed ah*bl
+    mulsu temp3, temp0
+    sbc   temp5, zerol
+    add   tosh,  r0
+    adc   temp4, r1
+    adc   temp5, zerol
+
+    ; signed al*bh
+    mulsu temp1, temp2
+    sbc   temp5, zerol
+    add   tosh,  r0
+    adc   temp4, r1
+    adc   temp5, zerol
+
+    pushtos
+    movw tosl, temp4
+    ret
+
+; ( ud u2 -- rem quot)
+; Arithmetics
+; unsigned division ud / u2 with remainder
+forthword_ UMSLASHMOD, 0, 6, "um/mod"
+    movw temp4, tosl
+
+    ld temp2, Y+
+    ld temp3, Y+
+
+    ld temp0, Y+
+    ld temp1, Y+
+
+;; unsigned 32/16 -> 16r16 divide
+
+PFA_UMSLASHMODmod:
+
+  ; set loop counter
+    ldi XL, 0x10
+
+PFA_UMSLASHMODmod_loop:
+    ; shift left, saving high bit
+    clr XH
+    lsl temp0
+    rol temp1
+    rol temp2
+    rol temp3
+    rol XH
+
+  ; try subtracting divisor
+    cp temp2, temp4
+    cpc temp3, temp5
+    cpc XH,zerol
+
+    brcs PFA_UMSLASHMODmod_loop_control
+
+PFA_UMSLASHMODmod_subtract:
+    ; dividend is large enough
+    ; do the subtraction for real
+    ; and set lowest bit
+    inc temp0
+    sub temp2, temp4
+    sbc temp3, temp5
+
+PFA_UMSLASHMODmod_loop_control:
+    dec  XL
+    brne PFA_UMSLASHMODmod_loop
+
+PFA_UMSLASHMODmod_done:
+    ; put remainder on stack
+    st -Y,temp3
+    st -Y,temp2
+
+    ; put quotient on stack
+    movw tosl, temp0
+    ret
+
+   
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ( n1 -- n2 )
+; Logic
+; 2-complement
+forthword_ NEGATE, INLINE_OPT, 6, "negate"
+    not_
+    oneplus_
+    ret
+
+
+; code adapted from atmel avr200.asm
+DIV16_16:
+	clr	temp4        	;clear remainder Low byte
+    sub	temp5, temp5    ;clear remainder High byte and carry
+    ldi	XL, 17	    ;init loop counter
+
+DIV16_16_1:
+	rol	temp0		    ;shift left dividend
+    rol	temp1
+    dec	XL	    	;decrement counter
+    brne DIV16_16_2		;if done
+    ret
+
+DIV16_16_2:
+	rol	temp4	;shift dividend into remainder
+    rol	temp5
+    sub	temp4, temp2	;remainder = remainder - divisor
+    sbc	temp5, temp3	;
+    brcc	DIV16_16_3		;if result negative
+    add	temp4, temp2	;    restore remainder
+    adc	temp5, temp3
+    clc			;    clear carry to be shifted into result
+    rjmp	DIV16_16_1		;else
+
+DIV16_16_3:
+	sec			;    set carry to be shifted into result
+    rjmp	DIV16_16_1
+
+; ( n1 n2 -- rem quot)
+; Arithmetics
+; unsigned division n1/n2 with remainder and quotient
+forthword_ USLASHMOD, 0, 5, "u/mod"
+    movw temp2, tosl
+
+    ld temp0, Y+
+    ld temp1, Y+
+
+    rcall DIV16_16
+    rjmp SLASHMOD_end
+
+
+; ( n1 n2 -- rem quot)
+; Arithmetics
+; signed division n1/n2 with remainder and quotient
+forthword_ SLASHMOD, 0, 4, "/mod"
+    movw temp2, tosl
+
+    ld temp0, Y+
+    ld temp1, Y+
+
+    mov	XL, temp1	;move dividend High to sign register
+    eor	XL, temp3	;xor divisor High with sign register
+    sbrs	temp1, 7	;if MSB in dividend set
+    rjmp	SLASHMOD_1
+    com	temp1		;    change sign of dividend
+    com	temp0
+    subi	temp0, lo8(-1)
+    sbci	temp1, hi8(-1)
+
+SLASHMOD_1:
+    sbrs	temp3, 7	;if MSB in divisor set
+    rjmp	SLASHMOD_2
+    com	temp3		;    change sign of divisor
+    com	temp2
+    subi	temp2, lo8(-1)
+    sbci	temp3, hi8(-1)
+
+SLASHMOD_2:
+    rcall DIV16_16
+
+    sbrs	XL, 7		;    if MSB in sign register set
+    rjmp	SLASHMOD_end
+    com	temp1            	;        change sign of result
+    com	temp0
+    subi	temp0, lo8(-1)
+    sbci	temp1, hi8(-1)
+
+SLASHMOD_end:
+    ; put remainder on stack
+    st -Y, temp5
+    st -Y, temp4
+    ; put quotient on stack
+    movw tosl, temp0
+    ret
+
+
+; ( n1 -- u1 )
+; Arithmetics
+; get the absolute value
+
+forthword_ ABS, 0, 3 "abs"
+    dup_
+    call LESSZERO
+    ; <if>
+    zerosense_
+    breq ABS_exit
+      jmp NEGATE
+    ; <then>  
+ABS_exit:
+    ret
+
+
+; ( -- ) 
+; Tools
+; stack dump
+forthword_ DOTS, 0, 2, ".s"
+    call SP_FETCH        ; ( limit ) setup limit
+    twominus_
+    rcall SP0              ; ( limit counter )
+    ; <begin>
+PFA_DOTS1:
+    twominus_             ; ( limit counter-2 )
+    call TWOOVER            ; ( limit counter-2 limit counter-2 )
+    call NOTEQUAL           ; ( limit counter-2 flag )
+    ; <while>
+    zerosense_
+    breq PFA_DOTS2
+    dup_                  ; ( limit counter-2 counter-2 )
+    call FETCH           ; ( limit counter-2 val )
+    call UDOT            ; ( limit counter-2 )
+    ; <repeat>
+    rjmp PFA_DOTS1
+    
+PFA_DOTS2:
+    jmp DDROP
+
+
+; ( -- ) System
+; R( -- )
+; application specific turnkey action
+forthword_ APPLTURNKEY, 0, 4, "atky"
+    rcall USART
+    rcall INTON
+    rjmp VER
+    
+; ( -- faddr len ) 
+; Environment
+; flash address of the amforth name string
+forthword_ ENV_FORTHNAME, 0, 5, "fname"
+    rcall DOSLITERAL
+    ascii_ 7, "asforth" ; a simplified forth based on amforth
+    ret
+
+; ( -- n ) 
+; Environment
+; version number of amforth
+forthword_ ENV_FORTHVERSION, 0, 7, "version"
+    doliteral_ 11
+    ret
+
+; ( -- faddr len ) 
+; Environment
+; flash address of the CPU identification string
+forthword_ ENV_CPU, 0, 3, "cpu"
+    doliteral_ pm(mcu_name)
+    rjmp ICOUNT
+
+; ( -- faddr len ) 
+; Environment
+; flash address of some CPU specific parameters
+forthword_ ENV_MCUINFO, 0, 8, "mcu-info"
+    doliteral_ pm(mcu_info)
+    ret
+
+; ( -- usersize ) 
+; Environment
+; size of the USER area in bytes
+forthword_ ENVUSERSIZE, 0, 5, "/user"
+    doliteral_ (SYSUSERSIZE+APPUSERSIZE)
+    ret
+
+
+; ( -- )
+; ISR
+; define the start of an Interrupt Service Routine
+; must be called
+forthword_ ISTART, DIS_CALL_OPT, 4, "(i:)"
+    ; save important registers
+    movw isrZL, ZL
+    movw isrXL, XL
+    movw isrt0, temp0
+    movw isrt2, temp2
+    
+    ; pop return address
+    pop ZH
+    pop ZL
+    
+    ; save status register
+    in temp0, SREG
+    push temp0
+    ijmp
+; ( -- )
+; ISR
+; define the end of an Interupt Service Routine
+forthword_ IEND, 0, 4, "(i;)"
+    movw ZL, isrZL
+    movw XL, isrXL
+    movw temp0, isrt0
+    movw temp2, isrt2
+    
+    pop isrt0
+    out SREG, isrt0    
+    reti

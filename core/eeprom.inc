@@ -1,3 +1,4 @@
+;;;;;
     .word -1           ; EEPROM Address 0 should not be used
 EE_DP:
     addr_ DPSTART      ; Dictionary Pointer in flash

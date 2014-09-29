@@ -48,6 +48,53 @@
     ['] ! ,
 ;
 
+
+\ signed multiply n1 * n2 and division  with n3 with double
+\ precision intermediate and remainder
+: */mod  ( n1 n2 n3 -- rem quot )
+    >r
+    m*
+    r>
+    um/mod
+;
+
+
+\ signed multiply and division with double precision intermediate
+: */ ( n1 n2 n3 -- n4 )
+    */mod
+    nip
+;
+
+\ divide n1 by n2. giving the quotient
+: /  ( n1 n2 -- n3)
+    /mod
+    nip
+;
+
+
+\ divide n1 by n2 giving the remainder n3
+: mod ( n1 n2 -- n3 )
+    /mod
+    drop
+;
+
+
+\ fill u bytes memory beginning at a-addr with character c
+\ : fill  ( a-addr u c -- ) 
+\    rrot           ( c a-addr u )
+\    nip>a          ( c u ) ( A: a-addr )
+\    begin
+\    ?while
+\      over         ( c u c )
+\      ac!          ( c u )
+\      a+
+\      1-           ( c u-1 )
+\    repeat
+\    ddrop
+\;
+
+
+
 ( xt1 c<char> -- ) 
 \ stores xt into defer or compiles code to do so at runtime
 : is

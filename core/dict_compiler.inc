@@ -356,41 +356,6 @@ forthword_ ABORT, 0, 5, "abort"
 
 
 
-; ( -- faddr len ) 
-; Environment
-; flash address of the amforth name string
-forthword_ ENV_FORTHNAME, 0, 5, "fname"
-    call DOSLITERAL
-    ascii_ 7, "asforth" ; a simplified forth based on amforth
-    ret
-
-; ( -- n ) 
-; Environment
-; version number of amforth
-forthword_ ENV_FORTHVERSION, 0, 7, "version"
-    doliteral_ 11
-    ret
-
-; ( -- faddr len ) 
-; Environment
-; flash address of the CPU identification string
-forthword_ ENV_CPU, 0, 3, "cpu"
-    doliteral_ pm(mcu_name)
-    jmp ICOUNT
-
-; ( -- faddr len ) 
-; Environment
-; flash address of some CPU specific parameters
-forthword_ ENV_MCUINFO, 0, 8, "mcu-info"
-    doliteral_ pm(mcu_info)
-    ret
-
-; ( -- usersize ) 
-; Environment
-; size of the USER area in bytes
-forthword_ ENVUSERSIZE, 0, 5, "/user"
-    doliteral_ (SYSUSERSIZE+APPUSERSIZE)
-    ret
 
 ; ( ee-addr -- itemn .. item0 n) 
 ; Tools
@@ -438,42 +403,6 @@ PFA_STORE_EE_ARRAY2:
     ret
 
 
-; ( r-addr r-len f-addr f-len --  f) 
-; String
-; compares two strings in RAM
-
-forthword_ COMPARE, 0, 7, "compare"
-    movw temp0, tosl
-    poptos
-    movw XL, tosl
-    poptos
-    movw temp2, tosl
-    poptos
-    movw ZL, tosl
-PFA_COMPARE_LOOP:
-    ld temp4, X+
-    ld temp5, Z+
-    cp temp4, temp5
-    brne PFA_COMPARE_NOTEQUAL
-    dec temp0
-    breq PFA_COMPARE_ENDREACHED2
-    dec temp2
-    brne PFA_COMPARE_LOOP
-    rjmp PFA_COMPARE_ENDREACHED
-PFA_COMPARE_ENDREACHED2:
-    dec temp2
-PFA_COMPARE_ENDREACHED:
-    or temp0, temp2
-    brne PFA_COMPARE_CHECKLASTCHAR
-    clr tosl
-    rjmp PFA_COMPARE_DONE
-PFA_COMPARE_CHECKLASTCHAR:
-PFA_COMPARE_NOTEQUAL:
-    ser tosl
-
-PFA_COMPARE_DONE:
-    mov tosh, tosl
-    ret
 
 ; ( nfa -- lfa )
 ; System
