@@ -1,5 +1,137 @@
 ; dict_interpret.inc
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ( addr1 n1 c -- addr2 n2 )
+; String
+; skips leading occurances in string at addr1/n1 leaving addr2/n2 pointing to the 1st non-c character
+
+forthword_ CSKIP, 0, 5, "cskip"
+    rcall TO_B           ; ( -- addr1 n1 ) B: c
+PFA_CSKIP1:
+    dupzerosense_       ; ( -- addr' n')
+    breq PFA_CSKIP2
+    rcall OVER           ; ( -- addr' n' addr' )
+    rcall CFETCH         ; ( -- addr' n' c' )
+    rcall B_             ; ( -- addr' n' c' c )
+    rcall EQUAL          ; ( -- addr' n' f )
+    zerosense_          ; ( -- addr' n')
+    breq PFA_CSKIP2
+    rcall ONE
+    call SLASHSTRING
+    rjmp PFA_CSKIP1
+
+PFA_CSKIP2:
+    ret
+    
+
+; ( addr1 n1 c -- addr1 n2 )
+; String
+; Scan string at addr1/n1 for the first occurance of c, leaving addr1 n2,
+; char at n2 is first non-c character
+
+forthword_ CSCAN, 0, 5, "cscan"
+    niptob_           ; ( -- addr1 c ) B: n1
+    rcall OVER         ; ( -- addr1 c addr1 )
+    copytoa_          ; ( -- addr1 c addr1 ) A: addr1
+    zerotos_          ; ( -- addr1 c 0 )
+PFA_CSCAN1:
+    dup_              ; ( -- addr1 c n2 n2 )
+    rcall B_           ; ( -- addr1 c n2 n2 n1 )
+    rcall LESS         ; ( -- addr1 c n2 flag )
+    zerosense_        ; ( -- addr1 c n2 )
+    breq PFA_CSCAN3
+    rcall OVER         ; ( -- addr1 c n2 c )
+    rcall ACFETCH      ; ( -- addr1 c n2 c c')
+    aplus_
+    rcall EQUAL        ; ( -- addr1 c n2 f)
+    zerosense_        ; ( -- addr1 c n2 )
+    breq PFA_CSCAN2
+    nip_              ; ( -- addr1 n2 )
+    ret
+
+PFA_CSCAN2:
+    oneplus_          ; ( -- addr1 c n2+1 )
+    rjmp PFA_CSCAN1   ; ( -- addr1 c n2+1 )
+
+PFA_CSCAN3:
+    rcall DDROP      ; ( -- addr1)
+    jmp B_            ; ( -- addr1 n1)
+
+
+
+; ( r-addr r-len f-addr f-len --  f)
+; Memory
+; compares string in RAM with string in flash
+forthword_ ICOMPARE, 0, 8, "icompare"
+    rcall TO_B               ; ( r-addr r-len f-addr)  B: f-len
+    rcall OVER               ; ( r-addr r-len f-addr r-len)
+    rcall B_                 ; ( r-addr r-len f-addr r-len f-len )
+    ; check if strings are same length
+    rcall NOTEQUAL           ; ( r-addr r-len f-addr flag )
+    ; if
+    zerosense_              ; ( r-addr r-len f-addr )
+    breq PFA_ICOMPARE_SAMELEN
+
+    ; strings are not the same length
+    dnip_
+    zerotos_                ; ( 0 )
+    ret
+
+    ; then
+PFA_ICOMPARE_SAMELEN:
+    twostar_                ; ( r-addr len f-addr*2 )
+    rcall TO_A               ; ( r-addr len ) A: f-addr
+    oneplus_                ; ( r-addr len+1 )
+    twoslash_               ; ( r-addr (len+1)/2 )
+
+    ; begin
+PFA_ICOMPARE_LOOP:
+    copytob_                ; ( r-addr len ) B: len
+    ; while
+    zerosense_              ; ( r-addr )
+    breq PFA_ICOMPARE_DONE
+
+    dup_                    ; ( r-addr r-addr )
+    rcall FETCH              ; ( r-addr r-cc )
+    rcall AFETCHI            ; ( r-addr r-cc f-cc )
+    aplus_
+    ; flash strings are zero-padded at the last cell
+    ; that means: if the flash cell is less $0100, than mask the
+    ; high byte in the ram cell
+    dup_                    ; ( r-addr r-cc f-cc f-cc )
+    doliteral_ 0x100        ; ( r-addr r-cc f-cc f-cc 0x100 )
+    rcall ULESS               ; ( r-addr r-cc f-cc flag)
+    ; if
+    zerosense_
+    breq PFA_ICOMPARE_LASTCELL
+    rcall SWAP               ; ( r-addr f-cc r-cc)
+    zerohigh_               ; ( r-addr f-cc 0:r-cc)
+    ; then
+PFA_ICOMPARE_LASTCELL:
+    rcall NOTEQUAL           ; ( r-addr flag)
+    ; if
+    zerosense_              ; ( r-addr )
+    breq PFA_ICOMPARE_NEXTLOOP
+
+    ; strings don't match
+    zerotos_                ; ( 0 )
+    ret
+
+    ; then
+PFA_ICOMPARE_NEXTLOOP:
+    twoplus_              ; ( r-addr+2 )
+    rcall B_               ; ( r-addr+2 len )
+    oneminus_             ; ( r-addr+2 len-1 )
+
+    ; repeat
+    rjmp PFA_ICOMPARE_LOOP
+
+PFA_ICOMPARE_DONE:
+    ; strings are the same
+    drop_
+    doliteral_ -1
+    ret
+
 ; ( c-addr len wid -- [ 0 | nfa ] )
 ; find a word in the dictionary
 ; 0 if word not found in dictionary
@@ -192,10 +324,6 @@ forthword_ RECFETCH, 0, 4, "rec@"
 PFA_RECFETCH_ZERO:
     zerotos_
     ret
-
-
-
-
 
 ; ( addr len -- n f )
 ; Interpreter
