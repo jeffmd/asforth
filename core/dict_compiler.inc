@@ -1,3 +1,23 @@
+
+; ( -- addr )
+; System Variable
+; system state
+forthword_ STATE, 0, 5, "state"
+    doliteral_ ram_state
+    ret
+
+.pushsection .data
+ram_state: .space 2
+.popsection
+
+; ( -- a-addr )
+; System Variable
+; pointer to current read position in input buffer
+forthword_ G_IN, 0, 3, ">in"
+    call DOUSER
+    .word USER_G_IN
+
+
 ; ( -- addr ) 
 ; System Variable
 ; current vocabulary for new words 
@@ -48,6 +68,35 @@ forthword_ SMUDGE, 0, 6, "smudge"
 COLON_SMUDGE: .space 2
 .popsection
 
+; ( -- f-addr )
+; System Value
+; address of the next free dictionary cell
+forthword_ DP, 0, 2, "dp"
+    call DOVALUE
+    .word ram_dp
+    addr_ FETCH
+    addr_ STORE
+
+; ( -- )
+; Compiler
+; backup DP to eeprom
+forthword_ DPSTOREE, 0, 4, "dp!e"
+  doliteral_ ram_dp
+  rcall FETCH
+  doliteral_ EE_DP
+  rjmp STOREE 
+
+; ( -- )
+; Compiler
+; fetch DP from eeprom and put in ram
+forthword_ DPFETCHE, 0, 4, "dp@e"
+  doliteral_ EE_DP
+  rcall FETCHE 
+  doliteral_ ram_dp
+  rjmp STORE
+
+
+
 ; ( -- ) (C: "<spaces>name" -- )
 ; Compiler
 ; create a named entry in the dictionary, XT is DO_COLON
@@ -56,7 +105,7 @@ forthword_ COLON, 0, 1, ":"
     rcall DOCREATE
     rcall SMUDGE
     rcall STORE
-    call DP
+    rcall DP
     rcall LATEST
     rcall STORE
     rjmp RBRACKET
@@ -77,7 +126,7 @@ forthword_ TAILOPT, IMMEDIATE_EN, 4, ";opt"
     ;   rcall           ->       rjmp
     ; 1101kkkk kkkkkkkk -> 1100kkkk kkkkkkkk
     ; fetch contents at DP-1
-    call DP       ; ( DP )
+    rcall DP       ; ( DP )
     oneminus_      ; ( DP-1 )
     dup_           ; ( DP-1 DP-1 )
     rcall FETCHI   ; ( DP-1 inst )
@@ -99,7 +148,7 @@ TAILOPT_CALL:
     ; bit 1 of high word low byte must be cleared.
     ; write in 0x940C at DP-2
     doliteral_ 0x940C  ; ( 0x940c )
-    call DP            ; ( 0x940c DP )
+    rcall DP            ; ( 0x940c DP )
     twominus_          ; ( 0x940c DP-2 )
     rjmp STOREI        ; (  )
 
@@ -115,12 +164,12 @@ forthword_ UWID, IMMEDIATE_EN, 4, "uwid"
     zerosense_
     breq UWID_end
        rcall CURRENT
-       call FETCH
+       rcall FETCH
        rcall STOREE
        rcall ZERO
        rcall SMUDGE
        rcall STORE
-       jmp DPSTOREE
+       rjmp DPSTOREE
 UWID_end:
     ret
 
@@ -142,7 +191,7 @@ forthword_ RBRACKET, 0, 1, "]"
     ; set disable tail optimize flag
     sbr fflags, 1<<DIS_CALL_OPT_FB
     rcall ONE
-    call STATE
+    rcall STATE
     rjmp STORE
 
 ; ( --  ) 
@@ -150,7 +199,7 @@ forthword_ RBRACKET, 0, 1, "]"
 ; enter interpreter mode
 forthword_ LBRACKET, IMMEDIATE_EN, 1, "["
     rcall ZERO
-    call STATE
+    rcall STATE
     rjmp STORE
 
 
@@ -200,7 +249,7 @@ forthword_ SCOMMA, 0, 2, "s,"
 ; Dictionary
 ; compile 16 bit into flash at (dictionary pointer) DP
 forthword_ COMMA, 0, 1, ","
-    call DP
+    rcall DP
     rcall STOREI
     rjmp DPPLUSONE
 
@@ -215,7 +264,7 @@ forthword_ DPPLUSONE, 0, 4, "dp+1"
 ; Dictionary
 ; add offset to 16 bit (dictionary pointer) DP
 forthword_ DPPLUS, 0, 3, "dp+"
-    call DP
+    rcall DP
     rcall PLUS
     call DOTO
     addr_ DP
@@ -225,7 +274,7 @@ forthword_ DPPLUS, 0, 3, "dp+"
 ; Compiler
 ; parse the input and create an vocabulary entry without XT and data field (PF)
 forthword_ DOCREATE, 0, 8, "(create)"
-    call PNAME
+    rcall PNAME
     rcall CURRENT
     rcall FETCH
     ; fall thru into HEADER
@@ -235,7 +284,7 @@ forthword_ DOCREATE, 0, 8, "(create)"
 ; Compiler
 ; creates the vocabulary header without XT and data field (PF) in the wordlist wid
 forthword_ HEADER, 0, 6, "header"
-    call DP              ; ( addr len wid DP )
+    rcall DP              ; ( addr len wid DP )
     rcall TO_R           ; ( addr len wid ) (R: DP )
     rcall TO_R           ; ( addr len ) (R: DP wid )
     ; <if>
@@ -246,7 +295,7 @@ forthword_ HEADER, 0, 6, "header"
       rcall DOSCOMMA      ; ( )
       ; make voc link
       rcall R_FROM        ; ( wid ) (R: DP )
-      call FETCHE         ; ( VE_HEAD )
+      rcall FETCHE         ; ( VE_HEAD )
       rcall COMMA         ; ( )
       rcall R_FROM         ; ( DP ) (R: )
       ret
@@ -312,11 +361,11 @@ forthword_ INLINE, 0, 6, "inline"
     rcall FINDI              ; ( start count )
 
     ; dp swap dup dp+ itoi
-    call DP                  ; ( start count dp )
+    rcall DP                  ; ( start count dp )
     rcall SWAP               ; ( start dp count )
     dup_                     ; ( start dp count count )
     rcall DPPLUS             ; ( start dp count )
-    jmp ITOI
+    rjmp ITOI
 
 
 
@@ -378,7 +427,7 @@ PFA_FETCH_EE_ARRAY1:
     twominus_          ; ( item_i ee-addr2-2 blen-2)
     rjmp PFA_FETCH_EE_ARRAY1
 PFA_FETCH_EE_ARRAY2:
-    call DDROP       ; ( ... item_i )
+    rcall DDROP       ; ( ... item_i )
     rjmp A_            ; ( ... item_i len )
 
 ; ( recn .. rec0 n ee-addr -- ) 

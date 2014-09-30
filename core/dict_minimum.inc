@@ -1,15 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; ( -- addr )
-; System Variable
-; system state
-forthword_ STATE, 0, 5, "state"
-    doliteral_ ram_state
-    ret
-
-.pushsection .data
-ram_state: .space 2
-.popsection
 
 ; ( -- a-addr )
 ; Numeric IO
@@ -19,13 +9,6 @@ forthword_ BASE, 0, 4, "base"
     call DOUSER
     addr_ USER_BASE
 
-
-; ( -- a-addr )
-; System Variable
-; pointer to current read position in input buffer
-forthword_ G_IN, 0, 3, ">in"
-    call DOUSER
-    .word USER_G_IN
 
 
 ; ( -- addr )
@@ -88,33 +71,6 @@ forthword_ KEYQ, 0, 4, "key?"
 .pushsection .data
 ram_dp: .space 2
 .popsection
-
-; ( -- f-addr )
-; System Value
-; address of the next free dictionary cell
-forthword_ DP, 0, 2, "dp"
-    call DOVALUE
-    .word ram_dp
-    addr_ FETCH
-    addr_ STORE
-
-; ( -- )
-; Compiler
-; backup DP to eeprom
-forthword_ DPSTOREE, 0, 4, "dp!e"
-  doliteral_ ram_dp
-  call FETCH
-  doliteral_ EE_DP
-  jmp STOREE 
-
-; ( -- )
-; Compiler
-; fetch DP from eeprom and put in ram
-forthword_ DPFETCHE, 0, 4, "dp@e"
-  doliteral_ EE_DP
-  call FETCHE 
-  doliteral_ ram_dp
-  jmp STORE
 
 
 
@@ -719,7 +675,7 @@ forthword_ REFILL, 0, 6, "refill"
 ; Tools
 ; copy the first character of the next word onto the stack
 forthword_ CHAR, 0, 4, "char"
-    rcall PNAME
+    call PNAME
     drop_
     jmp CFETCH
 
@@ -783,7 +739,7 @@ PFA_PRAEFIX0:
     call CFETCH
     rcall SETBASE
     doliteral_ 0x1
-    rjmp SLASHSTRING
+    jmp SLASHSTRING
 
 ; (c -- ) Numeric IO
 ; R( -- )
@@ -835,7 +791,7 @@ NUMBERSIGN:        ; ( addr len -- )
     zerosense_
     breq PFA_NUMBERSIGN_MINUS
       call ONE
-      rcall SLASHSTRING
+      call SLASHSTRING
 PFA_NUMBERSIGN_MINUS:
     call OVER          ; ( -- addr len addr )
     call CFETCH
@@ -846,7 +802,7 @@ PFA_NUMBERSIGN_MINUS:
     zerosense_
     breq PFA_NUMBERSIGN_PLUS
     call ONE      ; skip sign character
-    rcall SLASHSTRING
+    call SLASHSTRING
 PFA_NUMBERSIGN_PLUS:
     call R_FROM        ; ( addr len flag )
     ret
@@ -874,88 +830,18 @@ PFA_TO_NUMBER2:
         call PLUS            ; ( adr len u')
         call RROT            ; ( u' adr len )
         call ONE
-        rcall SLASHSTRING
+        call SLASHSTRING
         rjmp TO_NUMBER
 
 PFA_TO_NUMBER1:
     ret
     
-; ( -- addr n )
-; System
-; address and current length of the input buffer
-forthword_ SOURCE, 0, 6, "source"
-    call DODEFER
-    .word USER_SOURCE
-    addr_ FETCHU
-    addr_ STOREU
-
-; ( addr1 u1 n -- addr2 u2 )
-; String
-; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
-forthword_ SLASHSTRING, 0, 2, "/$"
-    call OVER    ; ( -- addr1 u1 n u1)
-    rcall MIN     ; ( -- addr1 u1 n|u1)
-    call ROT     ; ( -- u1 n addr1 )
-    call OVER    ; ( -- u1 n addr1 n)
-    call PLUS    ; ( -- u1 n addr2 )
-    call RROT    ; ( -- addr2 u1 n )
-    jmp MINUS   ; ( -- addr2 u2)
-
-; ( -- srcaddr len  )
-; String
-; Adjust the source addr using >in.
-forthword_ SRCIN, 0, 5, "srcin"
-    rcall SOURCE         ; ( srcaddr len )
-    rcall G_IN           ; ( srcaddr len ginaddr )
-    call FETCH           ; ( srcaddr len gin)
-    rjmp SLASHSTRING     ; ( srcaddr' len' )
-
-; ( -- )
-; Input
-; skip space in input source.
-forthword_ SKIPBL, 0, 6, "skipbl"
-    rcall SRCIN          ; ( srcaddr len )
-    rcall BL             ; ( srcaddr' len' c )
-    call CSKIP          ; ( addr2 n2 )
-
-    ; adjust >IN
-    drop_                ; ( addr2 )
-    rcall SOURCE         ; ( addr2 srcaddr len )
-    drop_                ; ( addr2 srcaddr )
-    call MINUS           ; ( gpos )
-    rcall G_IN           ; ( gpos ginaddr )
-    jmp STORE            ; (  )
-
-
-; ( char "ccc<char>" -- c-addr u )
-; String
-; in input buffer parse ccc delimited string by the delimiter char.
-forthword_ PARSE, 0, 5, "parse"
-    call TO_R        ; ( -- ) (R: c )
-    rcall SRCIN      ; ( -- addr len)
-    call R_FROM      ; ( -- addr' len' c)
-    call CSCAN      ; ( -- addr' len'')
-    dup_             ; ( -- addr' len'' len'')
-    oneplus_         ; ( -- addr' len'' len''+1 )
-    rcall G_IN       ; ( -- addr' len'' len''+1 >in)
-    jmp PLUSSTORE    ; ( -- addr' len'')
-
-
-; ( "<name>" -- c-addr len )
-; String
-; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
-forthword_ PNAME, 0, 5, "pname"
-    
-    rcall SKIPBL
-    rcall BL
-    rjmp PARSE
-            
 
 ; ( -- )
 ; System
 ; check if a ready prompt is required
 forthword_ QP_RD, 0, 5, "?p_rd"
-    rcall STATE
+    call STATE
     call FETCH
     ; output ready prompt if in interpret mode
     ; <-if>
@@ -1098,7 +984,7 @@ forthword_ PROMPTERROR, 0, 4, "p_er"
 	rcall DECIMAL
 	rcall DOT
 	; print the offending word
-	rcall G_IN
+	call G_IN
 	call FETCH
 	rcall DOT
 	; restore base
@@ -1261,7 +1147,7 @@ forthword_ VER, 0, 3, "ver"
 ; store the TOS to the named value (eeprom cell)
 forthword_ TO, IMMEDIATE_EN, 2, "to"
     rcall TICK          ; ( n xt ) get address of next word from input stream
-    rcall STATE
+    call STATE
     call FETCH
     zerosense_
     breq PFA_TO1        ; not in compile state, so jump to runtime operation
@@ -1364,7 +1250,7 @@ PFA_COMPARE_DONE:
 ; Dictionary
 ; search dictionary for name, returns XT and its flags or throw an exception -13
 forthword_ TICKF, 0, 2, "'f"
-    rcall PNAME
+    call PNAME
     call FINDW
     dupzerosense_
     brne TICKFEXIT

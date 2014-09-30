@@ -131,6 +131,78 @@ PFA_ICOMPARE_DONE:
     drop_
     doliteral_ -1
     ret
+    
+; ( -- addr n )
+; System
+; address and current length of the input buffer
+forthword_ SOURCE, 0, 6, "source"
+    call DODEFER
+    .word USER_SOURCE
+    addr_ FETCHU
+    addr_ STOREU
+
+; ( addr1 u1 n -- addr2 u2 )
+; String
+; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
+forthword_ SLASHSTRING, 0, 2, "/$"
+    rcall OVER    ; ( -- addr1 u1 n u1)
+    call MIN     ; ( -- addr1 u1 n|u1)
+    rcall ROT     ; ( -- u1 n addr1 )
+    rcall OVER    ; ( -- u1 n addr1 n)
+    rcall PLUS    ; ( -- u1 n addr2 )
+    rcall RROT    ; ( -- addr2 u1 n )
+    rjmp MINUS   ; ( -- addr2 u2)
+
+; ( -- srcaddr len  )
+; String
+; Adjust the source addr using >in.
+forthword_ SRCIN, 0, 5, "srcin"
+    rcall SOURCE         ; ( srcaddr len )
+    rcall G_IN           ; ( srcaddr len ginaddr )
+    rcall FETCH           ; ( srcaddr len gin)
+    rjmp SLASHSTRING     ; ( srcaddr' len' )
+
+; ( -- )
+; Input
+; skip space in input source.
+forthword_ SKIPBL, 0, 6, "skipbl"
+    rcall SRCIN          ; ( srcaddr len )
+    call BL             ; ( srcaddr' len' c )
+    rcall CSKIP          ; ( addr2 n2 )
+
+    ; adjust >IN
+    drop_                ; ( addr2 )
+    rcall SOURCE         ; ( addr2 srcaddr len )
+    drop_                ; ( addr2 srcaddr )
+    rcall MINUS           ; ( gpos )
+    rcall G_IN           ; ( gpos ginaddr )
+    rjmp STORE            ; (  )
+
+
+; ( char "ccc<char>" -- c-addr u )
+; String
+; in input buffer parse ccc delimited string by the delimiter char.
+forthword_ PARSE, 0, 5, "parse"
+    rcall TO_R        ; ( -- ) (R: c )
+    rcall SRCIN      ; ( -- addr len)
+    rcall R_FROM      ; ( -- addr' len' c)
+    rcall CSCAN      ; ( -- addr' len'')
+    dup_             ; ( -- addr' len'' len'')
+    oneplus_         ; ( -- addr' len'' len''+1 )
+    rcall G_IN       ; ( -- addr' len'' len''+1 >in)
+    rjmp PLUSSTORE    ; ( -- addr' len'')
+
+
+; ( "<name>" -- c-addr len )
+; String
+; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
+forthword_ PNAME, 0, 5, "pname"
+    
+    rcall SKIPBL
+    call BL
+    rjmp PARSE
+            
+    
 
 ; ( c-addr len wid -- [ 0 | nfa ] )
 ; find a word in the dictionary
