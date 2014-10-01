@@ -81,7 +81,7 @@
 
 \ fill u bytes memory beginning at a-addr with character c
 \ : fill  ( a-addr u c -- ) 
-\    rrot           ( c a-addr u )
+\    -rot           ( c a-addr u )
 \    nip>a          ( c u ) ( A: a-addr )
 \    begin
 \    ?while

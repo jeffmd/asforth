@@ -1,4 +1,5 @@
 ; dict_interpret.inc
+; forth words that make up the forth interpreter
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( addr1 n1 c -- addr2 n2 )
@@ -31,19 +32,19 @@ PFA_CSKIP2:
 
 forthword_ CSCAN, 0, 5, "cscan"
     niptob_           ; ( -- addr1 c ) B: n1
-    rcall OVER         ; ( -- addr1 c addr1 )
+    rcall OVER        ; ( -- addr1 c addr1 )
     copytoa_          ; ( -- addr1 c addr1 ) A: addr1
     zerotos_          ; ( -- addr1 c 0 )
 PFA_CSCAN1:
     dup_              ; ( -- addr1 c n2 n2 )
-    rcall B_           ; ( -- addr1 c n2 n2 n1 )
-    rcall LESS         ; ( -- addr1 c n2 flag )
+    rcall B_          ; ( -- addr1 c n2 n2 n1 )
+    rcall LESS        ; ( -- addr1 c n2 flag )
     zerosense_        ; ( -- addr1 c n2 )
     breq PFA_CSCAN3
-    rcall OVER         ; ( -- addr1 c n2 c )
-    rcall ACFETCH      ; ( -- addr1 c n2 c c')
+    rcall OVER        ; ( -- addr1 c n2 c )
+    rcall ACFETCH     ; ( -- addr1 c n2 c c')
     aplus_
-    rcall EQUAL        ; ( -- addr1 c n2 f)
+    rcall EQUAL       ; ( -- addr1 c n2 f)
     zerosense_        ; ( -- addr1 c n2 )
     breq PFA_CSCAN2
     nip_              ; ( -- addr1 n2 )
@@ -54,7 +55,7 @@ PFA_CSCAN2:
     rjmp PFA_CSCAN1   ; ( -- addr1 c n2+1 )
 
 PFA_CSCAN3:
-    rcall DDROP      ; ( -- addr1)
+    rcall DDROP       ; ( -- addr1)
     jmp B_            ; ( -- addr1 n1)
 
 
@@ -146,12 +147,12 @@ forthword_ SOURCE, 0, 6, "source"
 ; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
 forthword_ SLASHSTRING, 0, 2, "/$"
     rcall OVER    ; ( -- addr1 u1 n u1)
-    call MIN     ; ( -- addr1 u1 n|u1)
+    call MIN      ; ( -- addr1 u1 n|u1)
     rcall ROT     ; ( -- u1 n addr1 )
     rcall OVER    ; ( -- u1 n addr1 n)
     rcall PLUS    ; ( -- u1 n addr2 )
     rcall RROT    ; ( -- addr2 u1 n )
-    rjmp MINUS   ; ( -- addr2 u2)
+    rjmp MINUS    ; ( -- addr2 u2)
 
 ; ( -- srcaddr len  )
 ; String
@@ -159,7 +160,7 @@ forthword_ SLASHSTRING, 0, 2, "/$"
 forthword_ SRCIN, 0, 5, "srcin"
     rcall SOURCE         ; ( srcaddr len )
     rcall G_IN           ; ( srcaddr len ginaddr )
-    rcall FETCH           ; ( srcaddr len gin)
+    rcall FETCH          ; ( srcaddr len gin)
     rjmp SLASHSTRING     ; ( srcaddr' len' )
 
 ; ( -- )
@@ -167,43 +168,41 @@ forthword_ SRCIN, 0, 5, "srcin"
 ; skip space in input source.
 forthword_ SKIPBL, 0, 6, "skipbl"
     rcall SRCIN          ; ( srcaddr len )
-    call BL             ; ( srcaddr' len' c )
+    call BL              ; ( srcaddr' len' c )
     rcall CSKIP          ; ( addr2 n2 )
 
     ; adjust >IN
     drop_                ; ( addr2 )
     rcall SOURCE         ; ( addr2 srcaddr len )
     drop_                ; ( addr2 srcaddr )
-    rcall MINUS           ; ( gpos )
+    rcall MINUS          ; ( gpos )
     rcall G_IN           ; ( gpos ginaddr )
-    rjmp STORE            ; (  )
+    rjmp STORE           ; (  )
 
 
 ; ( char "ccc<char>" -- c-addr u )
 ; String
 ; in input buffer parse ccc delimited string by the delimiter char.
 forthword_ PARSE, 0, 5, "parse"
-    rcall TO_R        ; ( -- ) (R: c )
+    rcall TO_R       ; ( -- ) (R: c )
     rcall SRCIN      ; ( -- addr len)
-    rcall R_FROM      ; ( -- addr' len' c)
+    rcall R_FROM     ; ( -- addr' len' c)
     rcall CSCAN      ; ( -- addr' len'')
     dup_             ; ( -- addr' len'' len'')
     oneplus_         ; ( -- addr' len'' len''+1 )
     rcall G_IN       ; ( -- addr' len'' len''+1 >in)
-    rjmp PLUSSTORE    ; ( -- addr' len'')
+    rjmp PLUSSTORE   ; ( -- addr' len'')
 
 
 ; ( "<name>" -- c-addr len )
 ; String
 ; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
-forthword_ PNAME, 0, 5, "pname"
-    
+forthword_ PNAME, 0, 5, "pname"   
     rcall SKIPBL
     call BL
     rjmp PARSE
             
-    
-
+            
 ; ( c-addr len wid -- [ 0 | nfa ] )
 ; find a word in the dictionary
 ; 0 if word not found in dictionary
@@ -219,7 +218,7 @@ FINDNFA_:
     ; <begin>
 FINDNFA_BEGIN:
     ; <while>
-    dupzerosense_              ; ( c-addr len nfa )
+    dupzerosense_               ; ( c-addr len nfa )
     brne FINDNFA_CHECK
       ; terminating, 0 found
       dnip_                     ; ( 0 )
@@ -260,11 +259,11 @@ forthword_ FINDROOT, 0, 5, "froot"
 
 ; ( addr len idx -- 0 | nfa )
 FINDWI:
-      twostar_         ; ( addr len idx*2)
+      twostar_          ; ( addr len idx*2)
       rcall CONTEXT     ; ( addr len idx*2 context )
       rcall PLUS        ; ( addr len context' )
       rcall FETCH       ; ( addr len wid )
-      rjmp FINDNFA     ; ( nfa)
+      rjmp FINDNFA      ; ( nfa)
 
 FINDLAST:
       drop_
@@ -276,32 +275,32 @@ FINDLAST:
 forthword_ FINDW, 0, 5, "findw"
     ; loop through context slots to find a word
     ; start with last slot
-    rcall CONTEXT      ; ( addr len context )
+    rcall CONTEXT       ; ( addr len context )
     ; get context index and use as counter
-    oneminus_          ; ( addr len context-1 )
+    oneminus_           ; ( addr len context-1 )
     rcall CFETCH        ; ( addr len idx )
 FINDW_BEGIN:
     dupzerosense_
-    brmi FINDLAST      ; ( addr len idx )
+    brmi FINDLAST       ; ( addr len idx )
       rcall TO_R        ; ( addr len ) ( R: idx )
       rcall TWOOVER     ; ( addr len addr len ) ( R: idx )
       ; get next wordlist in array
       rcall R_FROM      ; ( addr len addr len idx ) ( R: )
-      dup_r_           ; ( addr len addr len idx ) ( R: idx)
+      dup_r_            ; ( addr len addr len idx ) ( R: idx)
       rcall FINDWI
       rcall R_FROM      ; ( addr len nfa idx ) ( R: )
       rcall SWAP        ; ( addr len idx nfa )
       dupzerosense_
       ; end loop if word found
       breq FINDW_NEXT
-        dnip_          ; ( addr nfa )
-        nip_           ; ( nfa )
+        dnip_           ; ( addr nfa )
+        nip_            ; ( nfa )
         ret
         
 FINDW_NEXT:
-      drop_            ; ( addr len idx )
+      drop_             ; ( addr len idx )
       ; decrement index
-      oneminus_        ; ( addr len idx-1 )
+      oneminus_         ; ( addr len idx-1 )
       rjmp FINDW_BEGIN
 
 
@@ -311,14 +310,14 @@ FINDW_NEXT:
 ; interpret input word by word.
 forthword_ INTERPRET, 0, 9, "interpret"
     ; begin
-    call PNAME     ; ( -- addr len )
+    call PNAME          ; ( -- addr len )
 
     ; ?while
     dupzerosense_       ; ( -- addr len )
     breq INTERPRET_END
 
     rcall RECX          ; ( )
-    call QSTACK        ; ( )
+    call QSTACK         ; ( )
 
     ; repeat
     rjmp INTERPRET
@@ -336,10 +335,10 @@ forthword_ RECX, 0, 4, "recx"
     ; begin
 RECX_BEGIN:
     rcall R_FETCHPLUS     ; ( addr len n ) (R: n+1 )
-    rcall RECFETCH       ; ( addr len recxt )
+    rcall RECFETCH        ; ( addr len recxt )
 
     ; ?while
-    dupzerosense_        ; ( addr len recxt )
+    dupzerosense_         ; ( addr len recxt )
     breq RECX_DONE
 
     rcall TO_A            ; ( addr len ) A: recxt
@@ -357,11 +356,11 @@ RECX_BEGIN:
     rcall A_              ; ( addr len flag ) A:  
 
     ; <if>
-    zerosense_           ; ( addr len )
+    zerosense_            ; ( addr len )
     breq RECX_NEXT
 
-    rcall DDROP         ; ( ) (R: n)
-    r_drop_              ; ( ) (R: )
+    rcall DDROP           ; ( ) (R: n)
+    r_drop_               ; ( ) (R: )
     ret
 
     ; <then>
@@ -380,15 +379,15 @@ RECX_DONE:
 ; get a recognizer from the recognizer list
 ; recxt is zero if at end of list
 forthword_ RECFETCH, 0, 4, "rec@"
-    dup_                            ; ( n n )
-    doliteral_ EE_RECOGNIZERLISTLEN ; ( n n ee-reclen )
-    rcall FETCHE                     ; ( n n len )
-    rcall LESS                       ; ( n flag )
+    dup_                               ; ( n n )
+    doliteral_ EE_RECOGNIZERLISTLEN    ; ( n n ee-reclen )
+    rcall FETCHE                       ; ( n n len )
+    rcall LESS                         ; ( n flag )
     ; <if>
-    zerosense_                      ; ( n )
+    zerosense_                         ; ( n )
     breq PFA_RECFETCH_ZERO
-      twostar_                        ; ( 2*n )
-      doliteral_ EE_RECOGNIZERLIST    ; ( 2*n listaddr )
+      twostar_                         ; ( 2*n )
+      doliteral_ EE_RECOGNIZERLIST     ; ( 2*n listaddr )
       rcall PLUS                       ; ( listaddr' )
       rjmp FETCHE                      ; ( recxt )
 
@@ -402,7 +401,7 @@ PFA_RECFETCH_ZERO:
 ; recognizer for integer numbers
 forthword_ REC_NUM, 0, 7, "rec-num"
     ; try converting to a number
-    call NUMBER             ; ( [n] f )
+    call NUMBER              ; ( [n] f )
     zerosense_
     breq PFA_REC_NONUMBER
 
@@ -412,10 +411,10 @@ forthword_ REC_NUM, 0, 7, "rec-num"
     breq PFA_REC_NUMBER_OK
     call LIT
 PFA_REC_NUMBER_OK:
-    rjmp TRUE               ; ( n true )
+    rjmp TRUE                ; ( n true )
 
 PFA_REC_NONUMBER:
-    rjmp ZERO               ; ( 0 )
+    rjmp ZERO                ; ( 0 )
 
 ; ( addr len -- f )
 ; Interpreter
@@ -524,20 +523,20 @@ forthword_ DOREFILL, 0, 8, "dorefill"
   ; if just starting new input line then check prompt and reset input position
   rcall G_IN               ; ( >inaddr )
   rcall FETCH              ; ( >in )
-  zerosense_              ; ( )
+  zerosense_               ; ( )
   breq DOREFILL_do
     rcall ZERO             ; ( 0 )
-    dup_                  ; ( 0 0 )
+    dup_                   ; ( 0 0 )
     rcall G_IN             ; ( 0 0 >inaddr )
     rcall STORE            ; ( 0 )
     ; reset input buffer cursor position
-    call SHARPTIB           ; ( 0 #tibaddr )
-    rcall STORE               ; ( )
+    call SHARPTIB          ; ( 0 #tibaddr )
+    rcall STORE            ; ( )
     rjmp QP_RD
     
 DOREFILL_do:
   ; refill the input buffer
-  call REFILL             ; ( f )
+  call REFILL              ; ( f )
   ; <if>
   zerosense_
   breq DOREFILL_end
@@ -629,6 +628,11 @@ forthword_ PROMPTERROR, 0, 4, "p_er"
 	rcall R_FROM
 	jmp BASESTORE
 
+
+.pushsection .noinit
+ram_pause: .space 2
+.popsection
+
 ; ( -- )
 ; Multitasking
 ; Fetch pause vector and EXEC it. may make a context/task switch
@@ -637,7 +641,3 @@ forthword_ PAUSE, 0, 5, "pause"
     .word ram_pause
     addr_ FETCH
     addr_ STORE
-
-.pushsection .noinit
-ram_pause: .space 2
-.popsection

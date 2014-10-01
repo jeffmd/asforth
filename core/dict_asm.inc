@@ -1,3 +1,4 @@
+; dict_asm.inc
 ; Based on:
 ; AvrAsm - assembler Atmega chips, Lubos Pekny, www.forth.cz
 ; Library for amforth 3.0 mFC 1.0

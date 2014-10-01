@@ -1,5 +1,6 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+; dict_minimum.inc
+; words needed to make up minimum forth system. These are placed
+; in low flash
 
 ; ( -- a-addr )
 ; Numeric IO

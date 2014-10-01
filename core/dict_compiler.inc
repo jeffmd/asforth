@@ -1,3 +1,9 @@
+; dict_compiler.inc
+
+.pushsection .noinit
+ram_state: .space 2
+.popsection
+
 
 ; ( -- addr )
 ; System Variable
@@ -5,10 +11,6 @@
 forthword_ STATE, 0, 5, "state"
     doliteral_ ram_state
     ret
-
-.pushsection .noinit
-ram_state: .space 2
-.popsection
 
 ; ( -- a-addr )
 ; System Variable

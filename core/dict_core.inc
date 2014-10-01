@@ -1,4 +1,6 @@
+; dict_core.inc
 ; this part of the dictionay has to fit into the nrww flash
+; most of these words are assembly and can be inlinned when required.
 
 ; ( -- ) (R: nest-sys -- )
 ; Compiler
@@ -1051,7 +1053,7 @@ forthword_ FETCHU, 0, 2, "@u"
 
 ; ( n index -- ) 
 ; Memory
-; write n to RAM memory at addr, low byte first
+; write n to user RAM memory at addr, low byte first
 forthword_ STOREU, 0, 2, "!u"
     rcall UP_FETCH
     rcall PLUS
