@@ -7,7 +7,7 @@ EE_HERE:
 EE_EDP:
     .word EDPSTART     ; EEProm Memory Allocation pointer
 EE_TURNKEY:
-    addr_ APPLTURNKEY  ; TURNKEY
+    addr_ NOOP         ; TURNKEY
 
 ; calculate baud rate error
 .equ UBRR_VAL,   ((F_CPU+BAUD*8)/(BAUD*16)-1)  ; smart round

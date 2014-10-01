@@ -88,17 +88,4 @@ int_vectors:
 ; compatability layer (maybe empty)
 .equ SPMEN,  SELFPRGEN
 
-; controller data area, environment query mcu-info
-mcu_info:
-mcu_ramsize:
-	.word 2048
-mcu_eepromsize:
-	.word 1024
-mcu_maxdp:
-	.word 28672 
-mcu_numints:
-	.word 26
-mcu_name:
-	ascii_ 10, "ATmega328P"
-
 .set codestart, .

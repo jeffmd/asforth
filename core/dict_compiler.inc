@@ -17,6 +17,9 @@ forthword_ G_IN, 0, 3, ">in"
     call DOUSER
     .word USER_G_IN
 
+.pushsection .noinit
+ram_CURRENT: .space 2
+.popsection
 
 ; ( -- addr ) 
 ; System Variable
@@ -26,7 +29,8 @@ forthword_ CURRENT, 0, 7, "current"
     ret
 
 .pushsection .noinit
-ram_CURRENT: .space 2
+ram_CONTEXTidx: .space 1
+ram_CONTEXT: .space 2 * 5 ; 5 wordlists max
 .popsection
 
 ; ( -- addr ) 
@@ -38,11 +42,8 @@ forthword_ CONTEXT, 0, 7, "context"
     ret
 
 .pushsection .noinit
-ram_CONTEXTidx: .space 1
-ram_CONTEXT: .space 2 * 5 ; 5 wordlists max
+ram_LATEST: .space 2
 .popsection
-
-
 
 ; ( -- addr ) 
 ; System Variable
@@ -52,9 +53,8 @@ forthword_ LATEST, 0, 6, "latest"
     ret
 
 .pushsection .noinit
-ram_LATEST: .space 2
+COLON_SMUDGE: .space 2
 .popsection
-
 
 ; ( -- addr ) 
 ; System Variable
@@ -64,9 +64,11 @@ forthword_ SMUDGE, 0, 6, "smudge"
     doliteral_ COLON_SMUDGE
     ret
 
+
 .pushsection .noinit
-COLON_SMUDGE: .space 2
+ram_dp: .space 2
 .popsection
+
 
 ; ( -- f-addr )
 ; System Value
@@ -95,6 +97,22 @@ forthword_ DPFETCHE, 0, 4, "dp@e"
   doliteral_ ram_dp
   rjmp STORE
 
+; ( offset -- )
+; Dictionary
+; add offset to 16 bit (dictionary pointer) DP
+forthword_ DPPLUS, 0, 3, "dp+"
+    rcall DP
+    rcall PLUS
+    call DOTO
+    addr_ DP
+    ret
+
+; ( -- )
+; Dictionary
+; increment 16 bit (dictionary pointer) DP by one
+forthword_ DPPLUSONE, 0, 4, "dp+1"
+    rcall ONE
+    rjmp DPPLUS
 
 
 ; ( -- ) (C: "<spaces>name" -- )
@@ -253,22 +271,7 @@ forthword_ COMMA, 0, 1, ","
     rcall STOREI
     rjmp DPPLUSONE
 
-; ( -- )
-; Dictionary
-; increment 16 bit (dictionary pointer) DP by one
-forthword_ DPPLUSONE, 0, 4, "dp+1"
-    rcall ONE
-    rjmp DPPLUS
 
-; ( offset -- )
-; Dictionary
-; add offset to 16 bit (dictionary pointer) DP
-forthword_ DPPLUS, 0, 3, "dp+"
-    rcall DP
-    rcall PLUS
-    call DOTO
-    addr_ DP
-    ret
 
 ; ( --  ) (C: "<spaces>name" -- voc-link )
 ; Compiler

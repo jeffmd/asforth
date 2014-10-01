@@ -115,3 +115,11 @@
 ( -- )
 \ finish defining an Interrupt Service Routine
 : ;isr compile (i;) [compile] ; ; :ic
+
+\ print the version string
+: ?ver ( -- )
+    ." asforth 1.2 atmega328p" 
+;
+
+
+' ?ver is turnkey

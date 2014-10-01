@@ -68,12 +68,6 @@ forthword_ KEYQ, 0, 4, "key?"
     addr_ STOREU
 
 
-.pushsection .noinit
-ram_dp: .space 2
-.popsection
-
-
-
 ; ( -- e-addr )
 ; System Value
 ; address of the next free address in eeprom
@@ -118,6 +112,19 @@ QDIST_HTEST:
     brsh QDIST_INRANGE
     jmp ZERO
 
+; ( n -- )
+; Numeric IO
+; save base
+forthword_ BASESTORE, 0, 5, "base!"
+    rcall BASE
+    jmp STORE
+
+; ( n -- )
+; Numeric IO
+; load base
+forthword_ BASEFETCH, 0, 5, "base@"
+    rcall BASE
+    jmp FETCH
 
 ; ( -- )
 ; Numeric IO
@@ -141,13 +148,6 @@ forthword_ HEX, 0, 3, "hex"
     doliteral_ 16
     rjmp BASESTORE
     
-; ( n -- )
-; Numeric IO
-; save base
-forthword_ BASESTORE, 0, 5, "base!"
-    rcall BASE
-    jmp STORE
-
 ; ( -- 32 )
 ; Character IO
 ; put ascii code of the blank/space character to the stack
@@ -227,9 +227,8 @@ forthword_ L_SHARP, 0, 2, "<#"
 ; Numeric IO
 ; pictured numeric output: convert one digit
 forthword_ SHARP, 0, 1, "#"
-    rcall BASE
-    call FETCH          ; ( u1 base )
-    call USLASHMOD       ; ( rem u2 )
+    rcall BASEFETCH     ; ( u1 base )
+    call USLASHMOD      ; ( rem u2 )
     call SWAP           ; ( u2 rem )
     doliteral_ 9                 ; ( u2 rem 9 )
     call OVER           ; ( u2 rem 9 rem )
@@ -335,8 +334,7 @@ forthword_ DIGITQ, 0, 6, "digit?"
 
 PFA_DIGITQ0:
     dup_
-    rcall BASE
-    call FETCH
+    rcall BASEFETCH
     call UGREATEREQUAL
     zerosense_
     breq PFA_DIGITQ2
@@ -683,8 +681,7 @@ forthword_ CHAR, 0, 4, "char"
 ; Numeric IO
 ; convert a string at addr to a number
 forthword_ NUMBER, 0, 6, "number"
-    rcall BASE
-    call FETCH
+    rcall BASEFETCH
     call TO_R               ; ( addr len ) (R: base)
     rcall NUMBERSIGN
     call TO_R               ; ( addr len ) (R: base flagsign)
@@ -815,7 +812,7 @@ forthword_ TO_NUMBER, 0, 7, ">number"
     breq PFA_TO_NUMBER1
         call OVER            ; ( u adr len adr)
         call CFETCH          ; ( u adr len char)
-        rcall DIGITQ          ; ( u adr len digit flag)
+        rcall DIGITQ         ; ( u adr len digit flag)
         zerosense_
         brne PFA_TO_NUMBER2
             ; character is not a recognized number
@@ -823,9 +820,8 @@ forthword_ TO_NUMBER, 0, 7, ">number"
 PFA_TO_NUMBER2:
         call TO_B            ; ( u adr len) B: digit
         call ROT             ; ( adr len u)
-        rcall BASE
-        call FETCH           ; ( adr len u base)
-        call STAR           ; ( adr len u*base)
+        rcall BASEFETCH      ; ( adr len u base)
+        call STAR            ; ( adr len u*base)
         call B_              ; ( adr len u' digit)
         call PLUS            ; ( adr len u')
         call RROT            ; ( u' adr len )
@@ -882,6 +878,8 @@ forthword_ WARM, 0, 4, "warm"
     ; init DP in ram from eeprom
     call DPFETCHE
     call ONLY
+    rcall USART
+    rcall INTON
     rcall TURNKEY
     jmp QUIT
 
@@ -946,33 +944,6 @@ forthword_ QSTACK, 0, 6, "?stack"
 PFA_QSTACKERROR:
       doliteral_ -4
       rjmp THROW
-
-; ( -- )
-; Tools
-; print the version string
-forthword_ VER, 0, 3, "ver"
-    rcall ENV_FORTHNAME
-    rcall ITYPE
-    rcall SPACE
-    rcall BASE
-    call FETCH
-    call TO_R
-    rcall DECIMAL
-
-    rcall ENV_FORTHVERSION
-    rcall L_SHARP
-    rcall SHARP
-    doliteral_ '.
-    rcall HOLD
-    rcall SHARP_S
-    rcall SHARP_G
-    call R_FROM
-    rcall BASESTORE
-
-    rcall TYPE
-    rcall SPACE
-    rcall ENV_CPU
-    rjmp ITYPE
 
 
 ; ( n <name> -- )
@@ -1426,43 +1397,6 @@ PFA_DOTS1:
 PFA_DOTS2:
     jmp DDROP
 
-
-; ( -- ) System
-; R( -- )
-; application specific turnkey action
-forthword_ APPLTURNKEY, 0, 4, "atky"
-    rcall USART
-    rcall INTON
-    rjmp VER
-    
-; ( -- faddr len ) 
-; Environment
-; flash address of the amforth name string
-forthword_ ENV_FORTHNAME, 0, 5, "fname"
-    rcall DOSLITERAL
-    ascii_ 7, "asforth" ; a simplified forth based on amforth
-    ret
-
-; ( -- n ) 
-; Environment
-; version number of amforth
-forthword_ ENV_FORTHVERSION, 0, 7, "version"
-    doliteral_ 11
-    ret
-
-; ( -- faddr len ) 
-; Environment
-; flash address of the CPU identification string
-forthword_ ENV_CPU, 0, 3, "cpu"
-    doliteral_ pm(mcu_name)
-    rjmp ICOUNT
-
-; ( -- faddr len ) 
-; Environment
-; flash address of some CPU specific parameters
-forthword_ ENV_MCUINFO, 0, 8, "mcu-info"
-    doliteral_ pm(mcu_info)
-    ret
 
 ; ( -- usersize ) 
 ; Environment
