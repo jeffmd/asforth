@@ -1,8 +1,8 @@
 ; ISR routines
-.pushsection .data
+;.pushsection .data
 ;intcur: .space 1
 ;intvec: .space INTVECTORS * CELLSIZE
-.popsection
+;.popsection
 
 ; interrupt routine gets called (again) by rcall! This gives the
 ; address of the int-vector on the stack.
@@ -22,4 +22,3 @@
 ;    ld r0, Y+
 ;    set ; set the interrupt flag for the inner interpreter
 ;    ret ; returns the interrupt, the rcall stack frame is removed!
-

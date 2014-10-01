@@ -23,7 +23,7 @@
 ;  .error "*** Flash size exceeded, please edit your dict_appl_core file to use less space! Aborting."
 ;.endif
 
-.pushsection .data
+.pushsection .noinit
 ; define a label for the 1st free ram address
 HERESTART:
 .popsection

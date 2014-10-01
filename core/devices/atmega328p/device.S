@@ -2,7 +2,7 @@
 
 .include "m328Pdef.inc"
 
-.pushsection .data
+.pushsection .noinit
 .org 0xa0 ; SRAM_START
 .popsection
 

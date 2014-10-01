@@ -6,7 +6,7 @@ forthword_ STATE, 0, 5, "state"
     doliteral_ ram_state
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_state: .space 2
 .popsection
 
@@ -25,7 +25,7 @@ forthword_ CURRENT, 0, 7, "current"
     doliteral_ ram_CURRENT
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_CURRENT: .space 2
 .popsection
 
@@ -37,7 +37,7 @@ forthword_ CONTEXT, 0, 7, "context"
     doliteral_ ram_CONTEXT
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_CONTEXTidx: .space 1
 ram_CONTEXT: .space 2 * 5 ; 5 wordlists max
 .popsection
@@ -51,7 +51,7 @@ forthword_ LATEST, 0, 6, "latest"
     doliteral_ ram_LATEST
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_LATEST: .space 2
 .popsection
 
@@ -64,7 +64,7 @@ forthword_ SMUDGE, 0, 6, "smudge"
     doliteral_ COLON_SMUDGE
     ret
 
-.pushsection .data
+.pushsection .noinit
 COLON_SMUDGE: .space 2
 .popsection
 
@@ -409,47 +409,47 @@ forthword_ ABORT, 0, 5, "abort"
 ; ( ee-addr -- itemn .. item0 n) 
 ; Tools
 ; Get an array from EEPROM and put on the stack
-forthword_ FETCH_EE_ARRAY, 0, 4, "@e[]"
-    dup_               ; ( ee-addr ee-addr )
-    rcall FETCHE       ; ( ee-addr len )
-    rcall _A           ; ( ee-addr len ) A: len
-    twostar_           ; ( ee-addr blen )
+;forthword_ FETCH_EE_ARRAY, 0, 4, "@e[]"
+;    dup_               ; ( ee-addr ee-addr )
+;    rcall FETCHE       ; ( ee-addr len )
+;    rcall _A           ; ( ee-addr len ) A: len
+;    twostar_           ; ( ee-addr blen )
     ; go from bigger to smaller addresses
-PFA_FETCH_EE_ARRAY1:
-    copytob_           ; ( ee-addr2 blen )
-    dupzerosense_      ; ( ee-addr2 blen)
-    breq PFA_FETCH_EE_ARRAY2
-    rcall OVER         ; ( ee-addr2 blen ee-addr2 )
-    rcall PLUS          ; ( ee-addr2 ee-addr3 )
-    rcall FETCHE       ; ( ee-addr2 item_i )
-    rcall SWAP         ; ( item_i ee-addr2 )
-    rcall B_           ; ( item_i ee-addr2-2 blen)
-    twominus_          ; ( item_i ee-addr2-2 blen-2)
-    rjmp PFA_FETCH_EE_ARRAY1
-PFA_FETCH_EE_ARRAY2:
-    rcall DDROP       ; ( ... item_i )
-    rjmp A_            ; ( ... item_i len )
+;PFA_FETCH_EE_ARRAY1:
+;    copytob_           ; ( ee-addr2 blen )
+;    dupzerosense_      ; ( ee-addr2 blen)
+;    breq PFA_FETCH_EE_ARRAY2
+;    rcall OVER         ; ( ee-addr2 blen ee-addr2 )
+;    rcall PLUS          ; ( ee-addr2 ee-addr3 )
+;    rcall FETCHE       ; ( ee-addr2 item_i )
+;    rcall SWAP         ; ( item_i ee-addr2 )
+;    rcall B_           ; ( item_i ee-addr2-2 blen)
+;    twominus_          ; ( item_i ee-addr2-2 blen-2)
+;    rjmp PFA_FETCH_EE_ARRAY1
+;PFA_FETCH_EE_ARRAY2:
+;    rcall DDROP       ; ( ... item_i )
+;    rjmp A_            ; ( ... item_i len )
 
 ; ( recn .. rec0 n ee-addr -- ) 
 ; Tools
 ; Write a list to EEPROM
-forthword_ STORE_EE_ARRAY, 0, 4, "!e[]"
-    rcall TWOOVER   ; ( recn .. rec0 n ee-addr n ee-addr )
-    rcall STOREE ; ( recn .. rec0 n e-addr )
-    rcall SWAP   ; ( recn .. rec0 e-addr n )
-PFA_STORE_EE_ARRAY1:
-    copytob_       ; ( recn .. rec0 e-addr n ) B: n
-    zerosense_
-    breq PFA_STORE_EE_ARRAY2
-    twoplus_       ; ( i_x e-addr+2 )
-    rcall TUCK     ; ( e-addr+2 i_x e-addr+2 )
-    rcall STOREE   ; ( e-addr+2 )
-    rcall B_       ; ( e-addr+2 n )
-    oneminus_      ; ( e-addr+2 n-1 )
-    rjmp PFA_STORE_EE_ARRAY1
-PFA_STORE_EE_ARRAY2:
-    drop_
-    ret
+;forthword_ STORE_EE_ARRAY, 0, 4, "!e[]"
+;    rcall TWOOVER   ; ( recn .. rec0 n ee-addr n ee-addr )
+;    rcall STOREE ; ( recn .. rec0 n e-addr )
+;    rcall SWAP   ; ( recn .. rec0 e-addr n )
+;PFA_STORE_EE_ARRAY1:
+;    copytob_       ; ( recn .. rec0 e-addr n ) B: n
+;    zerosense_
+;    breq PFA_STORE_EE_ARRAY2
+;    twoplus_       ; ( i_x e-addr+2 )
+;    rcall TUCK     ; ( e-addr+2 i_x e-addr+2 )
+;    rcall STOREE   ; ( e-addr+2 )
+;    rcall B_       ; ( e-addr+2 n )
+;    oneminus_      ; ( e-addr+2 n-1 )
+;    rjmp PFA_STORE_EE_ARRAY1
+;PFA_STORE_EE_ARRAY2:
+;    drop_
+;    ret
 
 
 

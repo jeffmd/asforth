@@ -94,7 +94,7 @@ AVRDUDE_FLAGS= -c $(PROGRAMMER)
 AS_INCLUDE=  -I $(CORE) -I $(CORE)/drivers -I $(CORE)/devices/$(MCU) -I words
 
 # Override is only needed by avr-lib build system.
-LDSECTION  = --section-start=.text=0x0 
+LDSECTION  = --section-start=.text=0x0
 
 override ASFLAGS  = -v -Wall -g3 -gdwarf-2 -mmcu=$(MCU) -al
 override LDFLAGS  = $(LDSECTION) -v -Map=map.txt -mavr5 

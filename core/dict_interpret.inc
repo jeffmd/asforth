@@ -474,3 +474,170 @@ forthword_ REC_UNK, 0, 7, "rec-unk"
     call TYPE
     doliteral_ -13
     jmp THROW
+    
+; ( -- )
+; System
+; check if a ready prompt is required
+forthword_ QP_RD, 0, 5, "?p_rd"
+    rcall STATE
+    rcall FETCH
+    ; output ready prompt if in interpret mode
+    ; <-if>
+    zerosense_
+    brne QP_RD_exit
+      rjmp PROMPTRDY
+QP_RD_exit:
+    ; <then>
+      rjmp PROMPTCOMPILE
+
+    
+
+; ( -- )
+; System
+; main loop - iterate through scheduled tasks 
+forthword_ DOTASKS, 0, 7, "dotasks"
+    ; <begin>
+      rcall DOREFILL
+      rcall PAUSE
+    ; <again>
+    rjmp DOTASKS
+
+; ( -- )
+; System
+; reset stacks and start over again
+forthword_ QUIT, 0, 4, "quit"
+    ; reset data stack
+    call SP0
+    rcall SP_STORE
+    ; reset return stack pointers
+    call RP0
+    rcall RP_STORE
+    ; switch to interpret mode
+    rcall LBRACKET
+    
+    rjmp DOTASKS
+    
+; ( -- )
+; System
+; wait for the input buffer to be refilled then interpret
+forthword_ DOREFILL, 0, 8, "dorefill"
+  ; if just starting new input line then check prompt and reset input position
+  rcall G_IN               ; ( >inaddr )
+  rcall FETCH              ; ( >in )
+  zerosense_              ; ( )
+  breq DOREFILL_do
+    rcall ZERO             ; ( 0 )
+    dup_                  ; ( 0 0 )
+    rcall G_IN             ; ( 0 0 >inaddr )
+    rcall STORE            ; ( 0 )
+    ; reset input buffer cursor position
+    call SHARPTIB           ; ( 0 #tibaddr )
+    rcall STORE               ; ( )
+    rjmp QP_RD
+    
+DOREFILL_do:
+  ; refill the input buffer
+  call REFILL             ; ( f )
+  ; <if>
+  zerosense_
+  breq DOREFILL_end
+  
+    ; there is something in the input buffer, try interpreting it      
+    rjmp DOINTERPRET
+DOREFILL_end:
+  ; <then>
+  ret      
+        
+; ( -- )
+; System
+; interpret what is in the input buffer
+forthword_ DOINTERPRET, 0, 11, "dointerpret"
+      ; input buffer has something so try to interpret it
+      ; setup exception handling in case of error
+  doliteral_ pm(INTERPRET)
+  call CATCH
+  ; check to make sure data stack is ok
+  rcall QDUP
+  ; <if>
+  zerosense_
+  breq DOINTERPRET_ok
+    dup_
+	doliteral_ -2
+	rcall LESS
+	; <if>
+	zerosense_
+	breq DOINTERPRET_reset
+	  rcall PROMPTERROR
+	
+	; <then>
+DOINTERPRET_reset:
+	rjmp QUIT
+	
+  ; <then>
+DOINTERPRET_ok:
+  ; make sure in buf pointer is not at zero
+  ;call ONE                ; ( 1 )
+  rcall G_IN               ; ( 1 >inaddr )
+  rcall ONEPLUSSTORE       ; ( )
+  rjmp PROMPTOK
+
+; ( -- )
+; System
+; send the READY prompt to the command line
+forthword_ PROMPTRDY, 0, 4, "p_rd"
+    call CR
+    call DOSLITERAL
+    ascii_ 2, "> "
+    jmp ITYPE
+
+; ( -- )
+; System
+; send the READY prompt to the command line
+forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
+    call CR
+    call DOSLITERAL
+    ascii_ 2, ": "
+    jmp ITYPE
+
+; ( -- )
+; System
+; send the OK prompt to the command line
+forthword_ PROMPTOK, 0, 4, "p_ok"
+    call DOSLITERAL
+    ascii_ 3, " ok"
+    jmp ITYPE
+
+; ( n -- )
+; System
+; process the error prompt
+forthword_ PROMPTERROR, 0, 4, "p_er"
+	call DOSLITERAL
+	ascii_ 4, " ?? "
+    call ITYPE
+    ; save base to return stack
+	call BASE
+	rcall FETCH
+	rcall TO_R
+	; make sure in decimal mode
+	call DECIMAL
+	call DOT
+	; print the offending word
+	rcall G_IN
+	rcall FETCH
+	call DOT
+	; restore base
+	rcall R_FROM
+	jmp BASESTORE
+
+; ( -- )
+; Multitasking
+; Fetch pause vector and EXEC it. may make a context/task switch
+forthword_ PAUSE, 0, 5, "pause"
+    call DODEFER
+    .word ram_pause
+    addr_ FETCH
+    addr_ STORE
+
+.pushsection .noinit
+ram_pause: .space 2
+.popsection

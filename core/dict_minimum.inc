@@ -18,7 +18,7 @@ forthword_ SHARPTIB, 0, 4, "#tib"
     doliteral_ ram_sharptib
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_sharptib: .space 2
 .popsection
 
@@ -68,7 +68,7 @@ forthword_ KEYQ, 0, 4, "key?"
     addr_ STOREU
 
 
-.pushsection .data
+.pushsection .noinit
 ram_dp: .space 2
 .popsection
 
@@ -199,7 +199,7 @@ forthword_ HLD, 0, 3, "hld"
     doliteral_ ram_hld
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_hld: .space 2
 .popsection
 
@@ -839,174 +839,7 @@ PFA_TO_NUMBER1:
 
 ; ( -- )
 ; System
-; check if a ready prompt is required
-forthword_ QP_RD, 0, 5, "?p_rd"
-    call STATE
-    call FETCH
-    ; output ready prompt if in interpret mode
-    ; <-if>
-    zerosense_
-    brne QP_RD_exit
-      rjmp PROMPTRDY
-QP_RD_exit:
-    ; <then>
-      rjmp PROMPTCOMPILE
-
-    
-
-; ( -- )
-; System
-; main loop - iterate through scheduled tasks 
-forthword_ DOTASKS, 0, 7, "dotasks"
-    ; <begin>
-      rcall DOREFILL
-      rcall PAUSE
-    ; <again>
-    rjmp DOTASKS
-
-; ( -- )
-; System
-; reset stacks and start over again
-forthword_ QUIT, 0, 4, "quit"
-    ; reset data stack
-    rcall SP0
-    call SP_STORE
-    ; reset return stack pointers
-    rcall RP0
-    call RP_STORE
-    ; switch to interpret mode
-    call LBRACKET
-    
-    rjmp DOTASKS
-    
-; ( -- )
-; System
-; wait for the input buffer to be refilled then interpret
-forthword_ DOREFILL, 0, 8, "dorefill"
-  ; if just starting new input line then check prompt and reset input position
-  call G_IN               ; ( >inaddr )
-  call FETCH              ; ( >in )
-  zerosense_              ; ( )
-  breq DOREFILL_do
-    call ZERO             ; ( 0 )
-    dup_                  ; ( 0 0 )
-    call G_IN             ; ( 0 0 >inaddr )
-    call STORE            ; ( 0 )
-    ; reset input buffer cursor position
-    rcall SHARPTIB           ; ( 0 #tibaddr )
-    call STORE               ; ( )
-    rjmp QP_RD
-    
-DOREFILL_do:
-  ; refill the input buffer
-  rcall REFILL             ; ( f )
-  ; <if>
-  zerosense_
-  breq DOREFILL_end
-  
-    ; there is something in the input buffer, try interpreting it      
-    rjmp DOINTERPRET
-DOREFILL_end:
-  ; <then>
-  ret      
-        
-; ( -- )
-; System
-; interpret what is in the input buffer
-forthword_ DOINTERPRET, 0, 11, "dointerpret"
-      ; input buffer has something so try to interpret it
-      ; setup exception handling in case of error
-  doliteral_ pm(INTERPRET)
-  rcall CATCH
-  ; check to make sure data stack is ok
-  call QDUP
-  ; <if>
-  zerosense_
-  breq DOINTERPRET_ok
-    dup_
-	doliteral_ -2
-	call LESS
-	; <if>
-	zerosense_
-	breq DOINTERPRET_reset
-	  rcall PROMPTERROR
-	
-	; <then>
-DOINTERPRET_reset:
-	rjmp QUIT
-	
-  ; <then>
-DOINTERPRET_ok:
-  ; make sure in buf pointer is not at zero
-  ;call ONE                ; ( 1 )
-  call G_IN               ; ( 1 >inaddr )
-  call ONEPLUSSTORE       ; ( )
-  rjmp PROMPTOK
-
-; ( -- )
-; System
-; send the READY prompt to the command line
-forthword_ PROMPTRDY, 0, 4, "p_rd"
-    rcall CR
-    rcall DOSLITERAL
-    ascii_ 2, "> "
-    rjmp ITYPE
-
-; ( -- )
-; System
-; send the READY prompt to the command line
-forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
-    rcall CR
-    rcall DOSLITERAL
-    ascii_ 2, ": "
-    rjmp ITYPE
-
-; ( -- )
-; System
-; send the OK prompt to the command line
-forthword_ PROMPTOK, 0, 4, "p_ok"
-    rcall DOSLITERAL
-    ascii_ 3, " ok"
-    rjmp ITYPE
-
-; ( n -- )
-; System
-; process the error prompt
-forthword_ PROMPTERROR, 0, 4, "p_er"
-	rcall DOSLITERAL
-	ascii_ 4, " ?? "
-    rcall ITYPE
-    ; save base to return stack
-	rcall BASE
-	call FETCH
-	call TO_R
-	; make sure in decimal mode
-	rcall DECIMAL
-	rcall DOT
-	; print the offending word
-	call G_IN
-	call FETCH
-	rcall DOT
-	; restore base
-	call R_FROM
-	rjmp BASESTORE
-
-; ( -- )
-; Multitasking
-; Fetch pause vector and EXEC it. may make a context/task switch
-forthword_ PAUSE, 0, 5, "pause"
-    call DODEFER
-    .word ram_pause
-    addr_ FETCH
-    addr_ STORE
-
-.pushsection .data
-ram_pause: .space 2
-.popsection
-
-; ( -- )
-; System
-; start up amforth.
+; start up asforth.
 
 forthword_ COLD, 0, 4, "cold"
     in_ r10, MCUSR
@@ -1034,7 +867,7 @@ forthword_ COLD, 0, 4, "cold"
     std Z+USER_SP0+1, YH
     rjmp WARM
 
-.pushsection .data
+.pushsection .noinit
 ram_user1: .space SYSUSERSIZE + APPUSERSIZE
 .popsection
 
@@ -1050,7 +883,7 @@ forthword_ WARM, 0, 4, "warm"
     call DPFETCHE
     call ONLY
     rcall TURNKEY
-    rjmp QUIT
+    jmp QUIT
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1118,15 +951,15 @@ PFA_QSTACKERROR:
 ; Tools
 ; print the version string
 forthword_ VER, 0, 3, "ver"
-    call ENV_FORTHNAME
+    rcall ENV_FORTHNAME
     rcall ITYPE
-    call SPACE
+    rcall SPACE
     rcall BASE
     call FETCH
     call TO_R
     rcall DECIMAL
 
-    call ENV_FORTHVERSION
+    rcall ENV_FORTHVERSION
     rcall L_SHARP
     rcall SHARP
     doliteral_ '.
@@ -1137,8 +970,8 @@ forthword_ VER, 0, 3, "ver"
     rcall BASESTORE
 
     rcall TYPE
-    call SPACE
-    call ENV_CPU
+    rcall SPACE
+    rcall ENV_CPU
     rjmp ITYPE
 
 
@@ -1207,43 +1040,38 @@ forthword_ DODEFER, 0, 7, "(defer)"
 ; String
 ; compares two strings in RAM
 
-forthword_ COMPARE, 0, 7, "compare"
-    movw temp0, tosl
-    poptos
-    movw XL, tosl
-    poptos
-    movw temp2, tosl
-    poptos
-    movw ZL, tosl
-PFA_COMPARE_LOOP:
-    ld temp4, X+
-    ld temp5, Z+
-    cp temp4, temp5
-    brne PFA_COMPARE_NOTEQUAL
-    dec temp0
-    breq PFA_COMPARE_ENDREACHED2
-    dec temp2
-    brne PFA_COMPARE_LOOP
-    rjmp PFA_COMPARE_ENDREACHED
-PFA_COMPARE_ENDREACHED2:
-    dec temp2
-PFA_COMPARE_ENDREACHED:
-    or temp0, temp2
-    brne PFA_COMPARE_CHECKLASTCHAR
-    clr tosl
-    rjmp PFA_COMPARE_DONE
-PFA_COMPARE_CHECKLASTCHAR:
-PFA_COMPARE_NOTEQUAL:
-    ser tosl
+;forthword_ COMPARE, 0, 7, "compare"
+;    movw temp0, tosl
+;    poptos
+;    movw XL, tosl
+;    poptos
+;    movw temp2, tosl
+;    poptos
+;    movw ZL, tosl
+;PFA_COMPARE_LOOP:
+;    ld temp4, X+
+;    ld temp5, Z+
+;    cp temp4, temp5
+;    brne PFA_COMPARE_NOTEQUAL
+;    dec temp0
+;    breq PFA_COMPARE_ENDREACHED2
+;    dec temp2
+;    brne PFA_COMPARE_LOOP
+;    rjmp PFA_COMPARE_ENDREACHED
+;PFA_COMPARE_ENDREACHED2:
+;    dec temp2
+;PFA_COMPARE_ENDREACHED:
+;    or temp0, temp2
+;    brne PFA_COMPARE_CHECKLASTCHAR
+;    clr tosl
+;    rjmp PFA_COMPARE_DONE
+;PFA_COMPARE_CHECKLASTCHAR:
+;PFA_COMPARE_NOTEQUAL:
+;    ser tosl
 
-PFA_COMPARE_DONE:
-    mov tosh, tosl
-    ret
-
-
-
-
-    
+;PFA_COMPARE_DONE:
+;    mov tosh, tosl
+;    ret
 
 
 ; ( "<spaces>name" -- XT XTflags)
@@ -1273,22 +1101,22 @@ forthword_ TICK, 0, 1, "'"
 ; Memory
 ; copy data in RAM, from lower to higher addresses
 
-forthword_ CMOVE, 0, 5, "cmove"
-    ld ZL, Y+
-    ld ZH, Y+ ; addr-to
-    ld XL, Y+
-    ld XH, Y+ ; addr-from
-    mov temp0, tosh
-    or temp0, tosl
-    brbs 1, PFA_CMOVE1
-PFA_CMOVE2:
-    ld temp1, X+
-    st Z+, temp1
-    oneminus_
-    brbc 1, PFA_CMOVE2
-PFA_CMOVE1:
-    poptos
-    ret
+;forthword_ CMOVE, 0, 5, "cmove"
+;    ld ZL, Y+
+;    ld ZH, Y+ ; addr-to
+;    ld XL, Y+
+;    ld XH, Y+ ; addr-from
+;    mov temp0, tosh
+;    or temp0, tosl
+;    brbs 1, PFA_CMOVE1
+;PFA_CMOVE2:
+;    ld temp1, X+
+;    st Z+, temp1
+;    oneminus_
+;    brbc 1, PFA_CMOVE2
+;PFA_CMOVE1:
+;    poptos
+;    ret
 
 
 ; ( -- addr )
@@ -1298,7 +1126,7 @@ forthword_ TIB, 0, 3, "tib"
     doliteral_ ram_tib
     ret
 
-.pushsection .data
+.pushsection .noinit
 ram_tib: .space TIBSIZE
 .popsection
 
