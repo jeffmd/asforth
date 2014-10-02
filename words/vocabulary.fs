@@ -18,7 +18,7 @@
 
 : wordlist ( -- wid )
   edp 0 over !e \ get head address in eeprom and set to zero
-  dup 2+ to edp \ allocate a word in eeprom
+  dup 2+ 2+ to edp \ allocate  2 words in eeprom
 ;
 
 : also ( -- )
@@ -60,24 +60,15 @@
 \ The sequence "cccc DEFINITIONS" will also make cccc the CURRENT
 \ vocabulary into which new definitions are placed.
 
-\ In asforth, cccc will be so chained as to include all definitions
-\ of the vocabulary in which cccc is itself defined. All vocabularys
-\ ultimately chain to Forth. By convention, vocabulary names are to be
-\ declared IMMEDIATE. See VOC-LINK.
+\ By convention, vocabulary names are automaticaly declared IMMEDIATE.
 
 : vocabulary ( -- ) ( C:cccc )
-\ figforth original
-\ <builds
-\ 0A081H lit ,
-\ current @ cfa , \ 
-\ here voc-link @ ,
-\ voc-link !
-\ does> 2+ context ! ;
   create
   [compile] immediate
   \ allocate space in eeprom for head and tail of vocab word list
-  wordlist ,
-
+  wordlist dup ,
+  \ get nfa and store in second field of wordlist record in eeprom
+  current @ @e swap 2+ !e
   does>
    @i \ get eeprom header address
    context!
@@ -87,6 +78,13 @@
   context @ context!
 ; immediate
 
+\ setup forth name pointer in forth wid name field
+\ get forth nfa - its the most recent word created
+current @ @e
+\ get the forth wid and adjust to name field 
+context @ 2+
+\ write forth nfa to name field
+!e 
 
 \ list words starting at a name field address
 : lwords ( nfa -- )
@@ -120,4 +118,26 @@
 : rwords ( -- )
   [ find STARTOVER lit ]
   lwords
+;
+
+\ list active vocabularies
+: vocabs ( -- )
+  \ get context index and use as counter
+  context 1- c@
+  begin
+  \ iterate through vocab array and print out vocab names
+  ?while
+    dup 2* context +
+    \ get context wid
+    @
+    \ if not zero then print vocab name 
+    ?dup if 
+      2+ @e
+      $l $FF and itype space
+    then
+    \ decrement index
+    1-
+  repeat
+  drop
+  ." Forth Root"
 ;

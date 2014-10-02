@@ -25,6 +25,7 @@ EE_UBRRVAL:
 
 EE_FORTHWORDLIST:
     addr_ 0      ; pre-defined (compiled in) top of root forth wordlist
+    addr_ 0      ; VE_FORTH pointer
 
 ; default user area
 EE_INITUSER:
