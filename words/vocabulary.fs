@@ -86,6 +86,12 @@ context @ 2+
 \ write forth nfa to name field
 !e 
 
+\ print name field
+: ?nf ( nfa -- )
+      $l $FF and             ( cnt addr addr n ) \ mask immediate bit
+      itype space            ( cnt addr )
+;
+ 
 \ list words starting at a name field address
 : lwords ( nfa -- )
     0 swap
@@ -93,8 +99,7 @@ context @ 2+
       ?dup                   ( cnt addr addr )
     while                    ( cnt addr ) \ is nfa = counted string
       dup                    ( cnt addr addr )
-      $l $FF and             ( cnt addr addr n ) \ mask immediate bit
-      itype space            ( cnt addr )
+      ?nf                    ( cnt addr )
       nfa>lfa                ( cnt lfa )
       @i                     ( cnt addr )
       swap                   ( addr cnt )
@@ -133,7 +138,7 @@ context @ 2+
     \ if not zero then print vocab name 
     ?dup if 
       2+ @e
-      $l $FF and itype space
+      ?nf
     then
     \ decrement index
     1-
