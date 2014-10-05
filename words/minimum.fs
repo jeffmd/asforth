@@ -89,7 +89,7 @@
 \      1-           ( c u-1 )
 \    repeat
 \    ddrop
-\;
+\ ;
 
 
 

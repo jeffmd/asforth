@@ -51,7 +51,7 @@ forthword_ DOVALUE, DIS_CALL_OPT, 5, "(val)"
 ; ( i*x -- j*x )
 ; System
 ; runtime of defer
-forthword_ DODEFER, 0, 5, "(def)"
+forthword_ DODEFER, DIS_CALL_OPT, 5, "(def)"
     ; top of return stack has return address of caller
     ; return address is data for defer so pop it onto data stack
     ; will not be returning to the caller

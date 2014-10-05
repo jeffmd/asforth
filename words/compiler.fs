@@ -122,7 +122,8 @@
 
 ( cchar -- ) 
 \ Compiler
-\ create a dictionary entry for a character variable and allocate 1 byte RAM
+\ create a dictionary entry for a character variable
+\ and allocate 1 byte RAM
 : cvar
     here
     con
@@ -145,7 +146,7 @@
 \ create a dictionary entry for a value and allocate 1 cell in EEPROM.
 : val
     rword
-    compile (value)
+    compile (val)
     edp                ( n edp )
     dup                ( n edp edp )
     ,                  ( n edp )
@@ -158,7 +159,8 @@
 ;
 
 ( -- c ) ( C: "<space>name" -- )
-\ skip leading space delimites, place the first character of the word on the stack
+\ skip leading space delimites, place the first character
+\ of the word on the stack
 : [char]
     char
     lit
