@@ -1323,36 +1323,3 @@ PFA_DOTS2:
 forthword_ ENVUSERSIZE, 0, 5, "/user"
     doliteral_ (SYSUSERSIZE+APPUSERSIZE)
     ret
-
-
-; ( -- )
-; ISR
-; define the start of an Interrupt Service Routine
-; must be called
-forthword_ ISTART, DIS_CALL_OPT, 4, "(i:)"
-    ; save important registers
-    movw isrZL, ZL
-    movw isrXL, XL
-    movw isrt0, temp0
-    movw isrt2, temp2
-    
-    ; pop return address
-    pop ZH
-    pop ZL
-    
-    ; save status register
-    in temp0, SREG
-    push temp0
-    ijmp
-; ( -- )
-; ISR
-; define the end of an Interupt Service Routine
-forthword_ IEND, 0, 4, "(i;)"
-    movw ZL, isrZL
-    movw XL, isrXL
-    movw temp0, isrt0
-    movw temp2, isrt2
-    
-    pop isrt0
-    out SREG, isrt0    
-    reti
