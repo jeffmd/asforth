@@ -68,19 +68,20 @@
   \ allocate space in eeprom for head and tail of vocab word list
   wordlist dup ,
   \ get nfa and store in second field of wordlist record in eeprom
-  current @ @e swap 2+ !e
+  cur@ @e swap 2+ !e
   does>
    @i \ get eeprom header address
    context!
 ;
 
+\ Set context to Forth vocabulary
 : Forth ( -- )
   context @ context!
 ; immediate
 
 \ setup forth name pointer in forth wid name field
 \ get forth nfa - its the most recent word created
-current @ @e
+cur@ @e
 \ get the forth wid and adjust to name field 
 context @ 2+
 \ write forth nfa to name field
@@ -119,6 +120,7 @@ context @ 2+
     @e                       ( 0 addr )
     lwords
 ;
+
 \ list the root words
 : rwords ( -- )
   [ find STARTOVER lit ]

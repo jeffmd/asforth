@@ -31,6 +31,7 @@ forthword_ PAD, 0, 3, "pad"
     rcall HERE
     doliteral_ 100
     jmp PLUS
+    
 
 ; ( c -- )
 ; Character IO
@@ -94,7 +95,7 @@ forthword_ HERE, 0, 4, "here"
 forthword_ ALLOT, 0, 5, "allot"
     rcall HERE
     call PLUS
-    rcall DOTO
+    call DOTO
     addr_ HERE
     ret
 
@@ -229,7 +230,7 @@ forthword_ L_SHARP, 0, 2, "<#"
 ; pictured numeric output: convert one digit
 forthword_ SHARP, 0, 1, "#"
     rcall BASEFETCH     ; ( u1 base )
-    call USLASHMOD      ; ( rem u2 )
+    rcall USLASHMOD      ; ( rem u2 )
     call SWAP           ; ( u2 rem )
     doliteral_ 9                 ; ( u2 rem 9 )
     call OVER           ; ( u2 rem 9 rem )
@@ -875,7 +876,7 @@ forthword_ WARM, 0, 4, "warm"
     rcall INITUSER
     doliteral_ pm(NOOP)
     doliteral_ pm(PAUSE)
-    rcall DEFERSTORE
+    call DEFERSTORE
     ; init DP in ram from eeprom
     call DPFETCHE
     call ONLY
@@ -947,67 +948,6 @@ PFA_QSTACKERROR:
       rjmp THROW
 
 
-; ( n <name> -- )
-; Tools
-; store the TOS to the named value (eeprom cell)
-forthword_ TO, IMMEDIATE_EN, 2, "to"
-    rcall TICK          ; ( n xt ) get address of next word from input stream
-    call STATE
-    call FETCH
-    zerosense_
-    breq PFA_TO1        ; not in compile state, so jump to runtime operation
-    call DOCOMPILE
-    addr_ VE_DOTO
-    jmp COMMA
-
-; ( n -- ) (R: IP -- IP+2)
-; Tools
-; runtime portion of to
-; must be called
-forthword_ DOTO, DIS_CALL_OPT, 4, "(to)"
-    call R_FETCHPLUS    ; ( n -- n raddr ) (R: raddr -- raddr+1 )
-    ; next cell contains address of deferred word
-    call FETCHI         ; ( n defxt )
-PFA_TO1:
-    rjmp DEFERSTORE
-
-
-
-; ( xt1 xt2 -- )
-; System
-; stores xt1 as the xt to be EXECd when xt2 is called
-forthword_ DEFERSTORE, 0, 6, "defer!"
-    ; skip past call to get to data
-    twoplus_                 ; ( xt1 xt2+2 )
-    call DEFGET              ; ( st1 defaddr xt2+2 )
-    ; skip past data address and deferfetch section to get
-    ; to deferstore section
-    twoplus_                 ; ( xt1 defaddr xt2+4 )
-    ; get defered store xt address
-    call FETCHI              ; ( xt1 defaddr xtstore )
-    jmp EXEC
-
-; ( xt1 -- xt2 )
-; System
-; returns the XT associated with the given XT
-forthword_ DEFERFETCH, 0, 6, "defer@"
-    ; skip passed call to get to data field
-    twoplus_                 ; ( xt1+2 )
-    jmp DEFX
-
-; ( i*x -- j*x )
-; System
-; runtime of defer
-forthword_ DODEFER, 0, 7, "(defer)"
-    ; top of return stack has return address of caller
-    ; return address is data for defer so pop it onto data stack
-    ; will not be returning to the caller
-    call R_FROM         ; ( Raddr ) (R: Raddr -- )
-    call DEFX           ; ( XTdefer )
-    ; EXEC the defer
-    jmp EXEC
-
-
 ; ( r-addr r-len f-addr f-len --  f) 
 ; String
 ; compares two strings in RAM
@@ -1046,27 +986,6 @@ forthword_ DODEFER, 0, 7, "(defer)"
 ;    ret
 
 
-; ( "<spaces>name" -- XT XTflags)
-; Dictionary
-; search dictionary for name, returns XT and its flags or throw an exception -13
-forthword_ TICKF, 0, 2, "'f"
-    call PNAME
-    call FINDW
-    dupzerosense_
-    brne TICKFEXIT
-    doliteral_ -13
-    rjmp THROW
-TICKFEXIT:
-    jmp NFATOXTF
-
-; ( "<spaces>name" -- XT )
-; Dictionary
-; search dictionary for name, returns XT or throw an exception -13
-forthword_ TICK, 0, 1, "'"
-    rcall TICKF
-    drop_
-    ret
-    
 
 
 ; (addr-from addr-to n -- )
@@ -1106,7 +1025,6 @@ ram_tib: .space TIBSIZE
 ; System
 ; refills the input buffer - flag is true if buffer has something
 forthword_ REFILLTIB, 0, 10, "refill-tib"
-REFILLTIB_begin:
     rcall ACCEPT               ; ( f )
     dupzerosense_              ; ( f )
     breq REFILLTIB_exit

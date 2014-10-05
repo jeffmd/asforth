@@ -8,10 +8,6 @@
 
 .equ CELLSIZE,  2
 
-.macro writeflashcell
-	lsl ZL
-	rol ZH
-.endm
 
 .set WANT_USART0,  0
 .set WANT_TWI,  0

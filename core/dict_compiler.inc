@@ -274,7 +274,6 @@ forthword_ COMMA, 0, 1, ","
     rjmp DPPLUSONE
 
 
-
 ; ( --  ) (C: "<spaces>name" -- voc-link )
 ; Compiler
 ; parse the input and create an vocabulary entry without XT and data field (PF)
@@ -372,8 +371,6 @@ forthword_ INLINE, 0, 6, "inline"
     rcall DPPLUS             ; ( start dp count )
     rjmp ITOI
 
-
-
 ; ( i*x x1 -- | i*x ) (R: j*y -- | j*y ) (C: "ccc<quote>" -- )
 ; Exceptions
 ; check flag. If true display the parsed text and throw exception -2 
@@ -407,9 +404,6 @@ forthword_ INLINE, 0, 6, "inline"
 forthword_ ABORT, 0, 5, "abort"
     doliteral_ -1
     jmp THROW
-
-
-
 
 ; ( ee-addr -- itemn .. item0 n) 
 ; Tools
@@ -457,7 +451,6 @@ forthword_ ABORT, 0, 5, "abort"
 ;    ret
 
 
-
 ; ( nfa -- lfa )
 ; System
 ; get the link field address from the name field address
@@ -482,6 +475,24 @@ forthword_ NFATOXTF, 0, 7, "nfa>xtf"
 
 NFATOXTF_EXIT:
     ret
+    
+; ( "<spaces>name" -- XT XTflags)
+; Dictionary
+; search dictionary for name, returns XT or 0
+forthword_ TICKF, 0, 2, "'f"
+    rcall PNAME
+    rcall FINDW
+    rjmp NFATOXTF
+
+; ( "<spaces>name" -- XT )
+; Dictionary
+; search dictionary for name, returns XT or throw an exception -13
+forthword_ TICK, 0, 1, "'"
+    rcall TICKF
+    drop_
+    ret
+    
+
 
 ; ( -- ) 
 ; Dictionary

@@ -1,5 +1,9 @@
+: cur@
+  current @
+;
+
 : widf 
-    current @
+    cur@
     @e
     dup
     @i
@@ -93,7 +97,7 @@
 \ create a dictionary entry and register in word list
 : rword
     (create)      ( voc-link )
-    current @     ( voc-link wid )
+    cur@          ( voc-link wid )
     !e            ( )
 ;
 
@@ -170,8 +174,7 @@
     \ code at XT is 'call POPRET'
     \ want to change POPRET address to return address
     r>
-    current @
-    @e
+    cur@ @e
     nfa>lfa
     2+         \ lfa>xt+1
     !i

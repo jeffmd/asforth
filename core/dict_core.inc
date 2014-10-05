@@ -2,12 +2,6 @@
 ; this part of the dictionay has to fit into the nrww flash
 ; most of these words are assembly and can be inlinned when required.
 
-; ( -- ) (R: nest-sys -- )
-; Compiler
-; exit the word
-;forthword_ EXIT, 0, 4, "exit"
-;    r_drop_
-;    ret
 
 ; ( xt -- ) 
 ; System
@@ -669,55 +663,6 @@ forthword_ UP_STORE, INLINE_OPT, 3, "up!"
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
-; ( -- addr )
-; System
-; runtime part of user
-; get the address of the user var which is located at the return address of the caller
-;forthword_ DOUSER, 0, 6, "(user)"
-DOUSER:
-    pushtos
-    pop ZH
-    pop ZL
-    rcall ZDFETCHI
-    ; calculate user address
-    add tosl, upl
-    adc tosh, uph
-    ret
-
-; ( -- n )
-; System
-; runtime of value
-; must use call
-forthword_ DOVALUE, DIS_CALL_OPT, 7, "(value)"
-; must be called, don't use jmp
-    ; Top of return stack has return address of caller
-    ; return address is actually the address of the value
-    ; won't be returning to this address
-    rcall R_FROM        ; ( raddr ) (R: raddr -- )
-    rjmp DEFX           ; ( n )
-
-
-; ( defaddr -- deferval defaddr )
-; System
-; get defer contents
-forthword_ DEFGET, 0, 4, "def@"
-    dup_                ; ( addr addr )
-    ; get address of defer
-    rcall FETCHI        ; ( addr valaddr )
-    rjmp SWAP          ; ( valaddr addr )
- 
-
-; ( addr -- n )
-; System
-; execute the defer fetch
-forthword_ DEFX, 0, 4, "defx"
-    rcall DEFGET
-    ; get the fetch Xt pointer which is one word after the data
-    oneplus_
-    rcall FETCHI        ; ( valaddr xtfetch )
-    ; EXEC the fetch
-    rjmp EXEC        ; ( n )
 
 
 ; ( n e-addr -- ) 
@@ -898,7 +843,8 @@ dospm_wait_spm:
   rjmp dospm_wait_spm
 
   ; turn the word addres into a byte address
-  writeflashcell
+  lsl ZL
+  rol ZH
 
   ; EXEC spm
   ori temp0, (1<<SPMEN)
@@ -922,9 +868,6 @@ ZFETCHI:
 
     ret
 
-.include "dict_compiler.inc"
-
-
 ; ( u -- ) 
 ; Numeric IO
 ; unsigned PNO with single cell numbers
@@ -933,8 +876,6 @@ forthword_ UDOT, 0, 2, "u."
     rcall TUCK   ; ( 0 n 0 )
     call DOTR
     jmp SPACE
-; : u.        ( us -- )    0 u. ;
-
 
 ; ( a-addr -- n ) 
 ; Memory
@@ -1156,8 +1097,6 @@ forthword_ B_, INLINE_OPT, 1, "b"
     movw tosl, bl
     ret
 
-
-
 ; ( n -- )
 ; Extended VM
 ; Write memory pointed to by register A (Extended VM)
@@ -1225,6 +1164,8 @@ ITOI_END:
     rjmp DDROP
 
 .include "dict_interpret.inc"
+.include "dict_compiler.inc"
+.include "dict_defer.inc"
 
 
 ; must be last word in core    

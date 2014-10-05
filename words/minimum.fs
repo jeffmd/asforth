@@ -17,9 +17,8 @@
 \ creates a defer vector which is kept in eeprom.
 : edefer
     (create)
-    current @
-    !e
-    compile (defer)
+    cur@ !e
+    compile (def)
 
     edp             ( -- EDP )
     dup             ( -- EDP EDP )
@@ -36,10 +35,9 @@
 \ creates a RAM based defer vector
 : rdefer
     (create)
-    current @
-    !e
+    cur@ !e
 
-    compile (defer)
+    compile (def)
 
     here ,
     2 allot
