@@ -586,33 +586,6 @@ forthword_ SP_STORE, INLINE_OPT, 3, "sp!"
     poptos
     ret
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; (addr-from addr-to n -- ) 
-; Memory
-; copy data in RAM from higher to lower addresses.
-
-forthword_ CMOVE_G, 0, 2, "c>"
-    ld ZL, Y+
-    ld ZH, Y+ ; addr-to
-    ld XL, Y+
-    ld XH, Y+ ; addr-from
-    mov temp0, tosh
-    or temp0, tosl
-    brbs 1, PFA_CMOVE_G1
-    add ZL, tosl
-    adc ZH, tosh
-    add XL, tosl
-    adc XH, tosh
-PFA_CMOVE_G2:
-    ld temp1, -X
-    st -Z, temp1
-    oneminus_
-    brbc 1, PFA_CMOVE_G2
-PFA_CMOVE_G1:
-    poptos
-    ret
-
 ; ( n1 -- n2 ) 
 ; Arithmetics
 ; exchange the bytes of the TOS
