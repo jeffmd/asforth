@@ -27,5 +27,4 @@
   .set XT_USART_INIT_TX , NOOP
 .endif
 
-.include "ubrr.S"
 .include "usart.S"

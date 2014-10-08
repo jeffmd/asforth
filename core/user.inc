@@ -3,7 +3,7 @@
 
 ; used by the multitasker
 .set USER_STATE, 0
-.set USER_FOLLOWER, 2
+.set USER_PAUSE, 2
 
 ; stackpointer, used by mulitasker
 .set USER_RP, 4

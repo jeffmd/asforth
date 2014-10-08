@@ -841,15 +841,6 @@ ZFETCHI:
 
     ret
 
-; ( u -- ) 
-; Numeric IO
-; unsigned PNO with single cell numbers
-forthword_ UDOT, 0, 2, "u."
-    rcall ZERO   ; ( n 0 ) want unsigned
-    rcall TUCK   ; ( 0 n 0 )
-    call DOTR
-    jmp SPACE
-
 ; ( a-addr -- n ) 
 ; Memory
 ; read 1 cell from RAM address
@@ -1113,6 +1104,7 @@ forthword_ BTOW, 0, 4, "btow"
     twostar_    ; ( -- len/2 len len'
     rcall MINUS ; ( -- len/2 rem
     ret
+        
     
 ; (start dest count -- )
 ; Memory

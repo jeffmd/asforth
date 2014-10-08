@@ -3,7 +3,6 @@
 .include "device.S"
 
 .equ TIBSIZE, 0x50   ; 80 characters is one line...
-.equ APPUSERSIZE, 10 ; size of application user area
 
 
 ; cpu clock in hertz

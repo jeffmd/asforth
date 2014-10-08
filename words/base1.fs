@@ -1,7 +1,3 @@
-#include words/compiler.fs
-#include words/minimum.fs
-#include words/vocabulary.fs
-#include words/debugtools.fs
 #include words/m328pdef.fs
 #include words/asm.fs
 #include words/time.fs

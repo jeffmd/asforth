@@ -8,7 +8,7 @@
 
 forthword_ BASE, 0, 4, "base"
     call DOUSER
-    addr_ USER_BASE
+    .word USER_BASE
 
 
 
@@ -99,20 +99,6 @@ forthword_ ALLOT, 0, 5, "allot"
     addr_ HERE
     ret
 
-
-; ( distance -- distance flag )
-; Tools
-; Determines if a relative distance is within a relative jmp/call range
-; flag is true if relative distance is between -2048 and 2047
-forthword_ QRDIST, 0, 6, "?rdist"
-    cpi tosh, 0x08
-    brsh QDIST_HTEST
-QDIST_INRANGE:
-    jmp TRUE
-QDIST_HTEST:
-    cpi tosh, 0xf8
-    brsh QDIST_INRANGE
-    jmp ZERO
 
 ; ( n -- )
 ; Numeric IO
@@ -313,6 +299,16 @@ forthword_ DOTR, 0, 2, ".r"
 ; : .r       ( n w -- )
 ;             >r swap over abs <# #s rot sign #> r> over - spaces type ;
 
+; ( u -- ) 
+; Numeric IO
+; unsigned PNO with single cell numbers
+forthword_ UDOT, 0, 2, "u."
+    call ZERO   ; ( n 0 ) want unsigned
+    call TUCK   ; ( 0 n 0 )
+    rcall DOTR
+    rjmp SPACE
+
+
 ; ( c -- (number|) flag )
 ; Numeric IO
 ; tries to convert a character to a number, set flag accordingly
@@ -428,14 +424,6 @@ PFA_ITYPE2:
 PFA_ITYPE3:
     ret
 
-; ( addr -- addr+1 n )
-; Tools
-; get string address and length information out of a counted string in flash
-forthword_ ICOUNT, 0, 2, "$l"
-    dup_
-    oneplus_
-    call SWAP
-    jmp FETCHI
 
 ; ( -- )
 ; Character IO
@@ -866,7 +854,7 @@ forthword_ COLD, 0, 4, "cold"
     rjmp WARM
 
 .pushsection .noinit
-ram_user1: .space SYSUSERSIZE + APPUSERSIZE
+ram_user1: .space SYSUSERSIZE
 .popsection
 
 ; ( nx* -- ) (R: ny* -- )
@@ -1337,7 +1325,7 @@ PFA_DOTS1:
     breq PFA_DOTS2
     dup_                  ; ( limit counter-2 counter-2 )
     call FETCH           ; ( limit counter-2 val )
-    call UDOT            ; ( limit counter-2 )
+    rcall UDOT            ; ( limit counter-2 )
     ; <repeat>
     rjmp PFA_DOTS1
     
@@ -1349,5 +1337,5 @@ PFA_DOTS2:
 ; Environment
 ; size of the USER area in bytes
 forthword_ ENVUSERSIZE, 0, 5, "/user"
-    doliteral_ (SYSUSERSIZE+APPUSERSIZE)
+    doliteral_ (SYSUSERSIZE)
     ret

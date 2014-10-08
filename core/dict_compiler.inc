@@ -1,15 +1,13 @@
 ; dict_compiler.inc
 
-.pushsection .noinit
-ram_state: .space 2
-.popsection
 
 
 ; ( -- addr )
 ; System Variable
 ; system state
 forthword_ STATE, 0, 5, "state"
-    doliteral_ ram_state
+    call DOUSER
+    .word USER_STATE
     ret
 
 ; ( -- a-addr )
@@ -455,7 +453,7 @@ forthword_ ABORT, 0, 5, "abort"
 ; System
 ; get the link field address from the name field address
 forthword_ NFA2LFA, 0, 7, "nfa>lfa"
-    call ICOUNT 
+    rcall ICOUNT 
     zerohigh_
     rcall WALIGN
     rjmp PLUS

@@ -152,6 +152,20 @@ forthword_ RJMPC, 0, 5, "rjmpc"
     call SWAP            ; ( rjmpdist start )
     jmp STOREI           ; ( )
 
+; ( distance -- distance flag )
+; Tools
+; Determines if a relative distance is within a relative jmp/call range
+; flag is true if relative distance is between -2048 and 2047
+forthword_ QRDIST, 0, 6, "?rdist"
+    cpi tosh, 0x08
+    brsh QDIST_HTEST
+QDIST_INRANGE:
+    jmp TRUE
+QDIST_HTEST:
+    cpi tosh, 0xf8
+    brsh QDIST_INRANGE
+    jmp ZERO
+
 ; compile rcall to xt at the current dictionary position (DP) if relative distance is in range
 ; otherwise do long call to xt.  If word flag indicates inlining then the word is inlined.
 ; ( xt flags -- )
@@ -177,7 +191,7 @@ DO_COMPILEXT:
     rcall RELDIST        ; ( xt dp distance )
     nip_                 ; ( xt distance )
     ; is the relative distance in range
-    call QRDIST          ; ( xt distance flag )
+    rcall QRDIST          ; ( xt distance flag )
     zerosense_           ; ( xt distance )
     ; do relative call if flag is true
     brne DO_RCALLC

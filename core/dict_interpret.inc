@@ -153,6 +153,16 @@ forthword_ SLASHSTRING, 0, 2, "/$"
     rcall PLUS    ; ( -- u1 n addr2 )
     rcall RROT    ; ( -- addr2 u1 n )
     rjmp MINUS    ; ( -- addr2 u2)
+    
+; ( addr -- addr+1 n )
+; Tools
+; get string address and length information out of a counted string in flash
+forthword_ ICOUNT, 0, 2, "$l"
+    dup_
+    oneplus_
+    rcall SWAP
+    rjmp FETCHI
+
 
 ; ( -- srcaddr len  )
 ; String
@@ -228,7 +238,7 @@ FINDNFA_CHECK:
     rcall TO_R                  ; ( c-addr len ) (R: nfa )
     rcall TWOOVER               ; ( c-addr len c-addr len )
     rcall R_FETCH               ; ( c-addr len c-addr len nfa )
-    call ICOUNT                 ; ( c-addr len c-addr len f-addr len )
+    rcall ICOUNT                 ; ( c-addr len c-addr len f-addr len )
     zerohigh_                   ; ( c-addr len c-addr len f-addr 0:len )
     call ICOMPARE               ; ( c-addr len flag )
     ; <if>
@@ -629,15 +639,11 @@ forthword_ PROMPTERROR, 0, 4, "p_er"
 	jmp BASESTORE
 
 
-.pushsection .noinit
-ram_pause: .space 2
-.popsection
-
 ; ( -- )
 ; Multitasking
 ; Fetch pause vector and EXEC it. may make a context/task switch
 forthword_ PAUSE, 0, 5, "pause"
     call DODEFER
-    .word ram_pause
-    addr_ FETCH
-    addr_ STORE
+    .word USER_PAUSE
+    addr_ FETCHU
+    addr_ STOREU

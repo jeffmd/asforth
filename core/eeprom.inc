@@ -10,18 +10,6 @@ EE_EDP:
 EE_TURNKEY:
     addr_ NOOP         ; TURNKEY
 
-; calculate baud rate error
-.equ UBRR_VAL,   ((F_CPU+BAUD*8)/(BAUD*16)-1)  ; smart round
-.equ BAUD_REAL,  (F_CPU/(16*(UBRR_VAL+1)))     ; effective baud rate
-.equ BAUD_ERROR, ((BAUD_REAL*1000)/BAUD-1000)  ; error in pro mille
-
-.if ((BAUD_ERROR>10) || (BAUD_ERROR<-10))       ; accept +/-10 error (pro mille)
-  .error "Serial line cannot be set up properly (systematic baud error too high)"
-.endif
-
-EE_UBRRVAL:
-    .word UBRR_VAL     ; BAUDRATE
- ; Forth vocabulary
 
 EE_FORTHWORDLIST:
     addr_ 0      ; pre-defined (compiled in) top of root forth wordlist
@@ -30,7 +18,7 @@ EE_FORTHWORDLIST:
 ; default user area
 EE_INITUSER:
     .word 0  ; USER_STATE
-    .word 0  ; USER_FOLLOWER
+    .word 0  ; USER_PAUSE
     .word rstackstart  ; USER_RP
     .word stackstart   ; USER_SP0
     .word stackstart   ; USER_SP
