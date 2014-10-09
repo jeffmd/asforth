@@ -119,5 +119,20 @@
     ." asforth 1.2 atmega328p" 
 ;
 
+\ numbers that get used a lot
+
+: 3 3 ;
+: 4 4 ;
+: 5 5 ;
+: 6 6 ;
+: 7 7 ;
+: 8 8 ;
+: 9 9 ;
+: $FF $FF ;
+: $F0 $F0 ;
+: $0F $0F ;
+: $FF00 $FF00 ;
+
+
 
 ' ?ver is turnkey

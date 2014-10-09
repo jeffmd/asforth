@@ -71,6 +71,12 @@ $0E con -X
 24 con TOSL
 25 con TOSH
 
+\ hex numbers that get used a lot
+: $FC00 $FC00 ;
+: $FF88 $FF88 ;
+: $F000 $F000 ;
+: $FE0F $FE0F ;
+: $FE08 $FE08 ;
 
 
 : movw,   2/ swap        \ R0:1,R2:3,R4:5,..R30:31

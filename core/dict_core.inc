@@ -322,7 +322,6 @@ PFA_ZERO1:
 ; place a value 1 on TOS
 forthword_ ONE, 0, 1, "1"
     pushtos
-PFA_ONE1:
     ldi tosh, 0
     ldi tosl, 1
     ret
@@ -332,7 +331,6 @@ PFA_ONE1:
 ; place a value 2 on TOS
 forthword_ TWO, 0, 1, "2"
     pushtos
-PFA_TWO1:
     ldi tosh, 0
     ldi tosl, 2
     ret
@@ -342,7 +340,6 @@ PFA_TWO1:
 ; place a value 10 on TOS
 forthword_ TEN, 0, 2, "10"
     pushtos
-PFA_TEN1:
     ldi tosh, 0
     ldi tosl, 10
     ret

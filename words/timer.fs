@@ -61,9 +61,9 @@ OVF0 isr T0ms
 \ timer 0 will generate an overflow event 976.5625 times/sec
   %011 TCCR0B c!
 \ setup timer in normal count mode and normal port mode
-  %0 TCCR0A c!
+  0 TCCR0A c!
 \ clear overflow flag by setting the flag
-  %1 TIFR0 c!
+  1 TIFR0 c!
 \ enable timer overflow interupt
-  %1 TIMSK0 c!
+  1 TIMSK0 c!
 ;

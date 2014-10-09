@@ -71,7 +71,7 @@ cvar line
 \ setup port pins for I/O
 : sio
   \ setup pins 4,5,6,7 on Port D DDR for output
-  %11110000 DDRD rbs
+  $F0 DDRD rbs
   \ setup pins 0,1,2 on Port B DDR for output
   %00000111 DDRB rbs
 ;
@@ -89,7 +89,7 @@ cvar line
 
 \ send high 4 bits of byte to lcd
 : 4bs ( c -- )
-    %11110000 and
+    $F0 and
     $0F PORTD rbm
     pen
 ;
