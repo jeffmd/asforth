@@ -26,9 +26,6 @@
   ]
 ;
 
-( val -- )
-\ output hex value in FFFF format
-: .$ hex <# # # # # #> type space decimal ;
 
 ( addr1 cnt -- addr2)
 : dmp

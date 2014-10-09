@@ -179,6 +179,46 @@ forthword_ MAX, 0, 3, "max"
     call LESS
     rjmp MIN_TEST
 
+
+; ( val -- char )
+; convert low byte of val to a printable hex character    
+forthword_ NHEX, 0, 2, "#h"
+    zerohigh_
+    andi tosl, 0x0F
+    cpi tosl, 10
+    brlo NHEX_NEXT
+    adiw tosl, 7
+    
+    ; <then>
+NHEX_NEXT:
+    adiw tosl, 48  
+    ret            
+
+; ( n -- )
+; simple 4 bit hex print
+forthword_ PNIB, 0, 2, ".h"
+    rcall NHEX
+    rjmp EMIT
+    
+; ( n -- )
+; simple 16 bit hex print    
+forthword_ PHEX, 0, 2, ".$"
+    dup_
+    highbyte_
+    swapnib_
+    rcall PNIB
+    dup_
+    highbyte_
+    rcall PNIB
+    dup_
+    swapnib_
+    rcall PNIB
+    dup_
+    rcall PNIB
+    zerohigh_
+    ldi tosl, 32
+    rjmp EMIT
+
 ;;;;;;;;;;;;;;;;;;;;;;
 ; ( -- addr )
 ; Numeric IO
@@ -211,26 +251,15 @@ forthword_ L_SHARP, 0, 2, "<#"
     rcall HLD
     jmp STORE
 
+
 ; ( u1 -- u2 )
 ; Numeric IO
 ; pictured numeric output: convert one digit
 forthword_ SHARP, 0, 1, "#"
     rcall BASEFETCH     ; ( u1 base )
-    rcall USLASHMOD      ; ( rem u2 )
+    rcall USLASHMOD     ; ( rem u2 )
     call SWAP           ; ( u2 rem )
-    doliteral_ 9                 ; ( u2 rem 9 )
-    call OVER           ; ( u2 rem 9 rem )
-    call LESS           ; ( u2 rem flag )
-    ; <if>
-    zerosense_
-    breq PFA_SHARP1
-    doliteral_ 7        ; ( u2 rem 7 )
-    call PLUS           ; ( u2 char )
-    
-    ; <then>
-PFA_SHARP1:
-    doliteral_ 0x30     ; ( u2 char 0x30 )
-    call PLUS           ; ( u2 char )
+    rcall NHEX
     rjmp HOLD           ; ( u2 )
 
 ; ( u -- 0 )
@@ -269,6 +298,7 @@ forthword_ SIGN, 0, 4, "sign"
     ; <then>
 SIGN_POS:
     ret
+    
 
 ; ( n -- )
 ; Numeric IO
@@ -1377,13 +1407,6 @@ PFA_DOTS1:
 PFA_DOTS2:
     jmp DDROP
 
-
-; ( -- usersize ) 
-; Environment
-; size of the USER area in bytes
-forthword_ ENVUSERSIZE, 0, 5, "/user"
-    doliteral_ (SYSUSERSIZE)
-    ret
     
 ; ( i*x x1 -- | i*x ) (R: j*y -- | j*y ) (C: "ccc<quote>" -- )
 ; Exceptions
