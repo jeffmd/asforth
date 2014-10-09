@@ -243,20 +243,23 @@ cvar line
   a swap data >a ;
 ;
 
-\ print ram string
-: type ( addr len -- )
+: {.
   ['] emit Forth to emit
-  type
+;
+
+: .}
   ['] tx-poll to emit
   LCD
+;
+  
+\ print ram string
+: type ( addr len -- )
+  {. type .}
 ;
 
 \ print flash string
 : itype ( addr len -- )
-  ['] emit Forth to emit
-  itype
-  ['] tx-poll to emit
-  LCD
+  {. itype .}
 ;
 
 \ print a fixed point number
