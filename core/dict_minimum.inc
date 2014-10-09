@@ -23,14 +23,6 @@ forthword_ SHARPTIB, 0, 4, "#tib"
 ram_sharptib: .space 2
 .popsection
 
-; ( -- a-addr )
-; System Variable
-; Address of the temporary scratch buffer.
-
-forthword_ PAD, 0, 3, "pad"
-    rcall HERE
-    doliteral_ 100
-    jmp PLUS
     
 
 ; ( c -- )
@@ -88,16 +80,6 @@ forthword_ HERE, 0, 4, "here"
     addr_ FETCHE
     addr_ STOREE
 
-; ( n -- )
-; System
-; allocate or release memory in RAM
-
-forthword_ ALLOT, 0, 5, "allot"
-    rcall HERE
-    call PLUS
-    call DOTO
-    addr_ HERE
-    ret
 
 
 ; ( n -- )
@@ -218,126 +200,7 @@ forthword_ PHEX, 0, 2, ".$"
     zerohigh_
     ldi tosl, 32
     rjmp EMIT
-
-;;;;;;;;;;;;;;;;;;;;;;
-; ( -- addr )
-; Numeric IO
-; pointer to current write position in the Pictured Numeric Output buffer
-forthword_ HLD, 0, 3, "hld"
-    doliteral_ ram_hld
-    ret
-
-.pushsection .noinit
-ram_hld: .space 2
-.popsection
-
-; ( c -- )
-; Numeric IO
-; prepend character to pictured numeric output buffer
-
-forthword_ HOLD, 0, 4, "hold"
-    doliteral_ -1
-    rcall HLD    
-    call PLUSSTORE
-    rcall HLD
-    call FETCH
-    jmp CSTORE   
-
-; ( -- )
-; Numeric IO
-; initialize the pictured numeric output conversion process
-forthword_ L_SHARP, 0, 2, "<#"
-    rcall PAD
-    rcall HLD
-    jmp STORE
-
-
-; ( u1 -- u2 )
-; Numeric IO
-; pictured numeric output: convert one digit
-forthword_ SHARP, 0, 1, "#"
-    rcall BASEFETCH     ; ( u1 base )
-    rcall USLASHMOD     ; ( rem u2 )
-    call SWAP           ; ( u2 rem )
-    rcall NHEX
-    rjmp HOLD           ; ( u2 )
-
-; ( u -- 0 )
-; Numeric IO
-; pictured numeric output: convert all digits until 0 (zero) is reached
-forthword_ SHARP_S, 0, 2, "#s"
-    ; <begin>
-    rcall SHARP          ; ( u )
-    ; <until>
-    dupzerosense_
-    brne SHARP_S
-    ret
-
-; ( u1 -- addr count )
-; Numeric IO
-; Pictured Numeric Output: convert PNO buffer into an string
-forthword_ SHARP_G, 0, 2, "#>"
-    drop_
-    rcall HLD
-    call FETCH
-    rcall PAD
-    call OVER
-    jmp MINUS
-
-; ( n -- )
-; Numeric IO
-; place a - in HLD if n is negative
-forthword_ SIGN, 0, 4, "sign"
-    call LESSZERO
-    ; <if>
-    zerosense_
-    breq SIGN_POS
-      doliteral_ 0x2d
-      rjmp HOLD
-      
-    ; <then>
-SIGN_POS:
-    ret
     
-
-; ( n -- )
-; Numeric IO
-; singed PNO with single cell numbers
-forthword_ DOT, 0, 1, "."
-    dup_             ; ( n n )
-    rcall ABS        ; ( n n' )
-    call ZERO        ; ( n n' 0 ) not right aligned
-    rcall DOTR
-    rjmp SPACE
-; : .         ( s -- )    .r ;
-
-; ( wantsign n w -- )
-; Numeric IO
-; singed PNO with cell numbers, right aligned in width w
-forthword_ DOTR, 0, 2, ".r"
-    call TO_R        ; ( wantsign n ) (R: w)
-    rcall L_SHARP
-    rcall SHARP_S     ; ( wantsign 0 )
-    call SWAP        ; ( 0 wantsign )
-    rcall SIGN        ; ( 0 )
-    rcall SHARP_G     ; ( addr len )
-    call R_FROM      ; ( addr len w )  ( R: )
-    call OVER        ; ( addr len w len )
-    call MINUS       ; ( addr len spaces )
-    rcall SPACES      ; ( addr len )
-    rjmp TYPE        ; ( )
-; : .r       ( n w -- )
-;             >r swap over abs <# #s rot sign #> r> over - spaces type ;
-
-; ( u -- ) 
-; Numeric IO
-; unsigned PNO with single cell numbers
-forthword_ UDOT, 0, 2, "u."
-    call ZERO   ; ( n 0 ) want unsigned
-    call TUCK   ; ( 0 n 0 )
-    rcall DOTR
-    rjmp SPACE
-
 
 ; ( c -- (number|) flag )
 ; Numeric IO
@@ -464,30 +327,6 @@ forthword_ CR, 0, 2, "cr"
     call TEN
     rjmp EMIT
 
-; ( -- )
-; Character IO
-; emits a space (bl)
-forthword_ SPACE, 0, 5, "space"
-    rcall BL
-    rjmp EMIT
-
-; ( n -- )
-; Character IO
-; emits n space(s) (bl)
-; only accepts positive values
-forthword_ SPACES, 0, 6, "spaces"
-    ; make sure a positive number
-    dup_
-    call GREATERZERO
-    call AND
-PFA_SPACES1:
-    dupzerosense_
-    breq PFA_SPACES2
-    rcall SPACE
-    oneminus_
-    rjmp PFA_SPACES1
-PFA_SPACES2:
-    jmp DROP
 
 ; ( addr n -- )
 ; Character IO
@@ -624,7 +463,8 @@ ACCEPT_checkbackspace:
 ACCEPT_dobackspace:
     dup_                 ; ( k k )
     rcall EMIT           ; ( k )
-    call SPACE           ; ( k )
+    rcall BL             ; ( k bl )
+    rcall EMIT           ; ( k )
     rcall EMIT           ; ( )
     ; decrease cursor position by one
     doliteral_ -1        ; ( -1 )
@@ -687,13 +527,6 @@ forthword_ REFILL, 0, 6, "refill"
     addr_ FETCHU
     addr_ STOREU
 
-; ( "<spaces>name" -- c )
-; Tools
-; copy the first character of the next word onto the stack
-forthword_ CHAR, 0, 4, "char"
-    call PNAME
-    drop_
-    jmp CFETCH
 
 ; (addr len -- [n] f)
 ; Numeric IO
@@ -1382,30 +1215,6 @@ forthword_ ABS, 0, 3 "abs"
 ABS_exit:
     ret
 
-
-; ( -- ) 
-; Tools
-; stack dump
-forthword_ DOTS, 0, 2, ".s"
-    call SP_FETCH        ; ( limit ) setup limit
-    twominus_
-    rcall SP0              ; ( limit counter )
-    ; <begin>
-PFA_DOTS1:
-    twominus_             ; ( limit counter-2 )
-    call TWOOVER            ; ( limit counter-2 limit counter-2 )
-    call NOTEQUAL           ; ( limit counter-2 flag )
-    ; <while>
-    zerosense_
-    breq PFA_DOTS2
-    dup_                  ; ( limit counter-2 counter-2 )
-    call FETCH           ; ( limit counter-2 val )
-    rcall UDOT            ; ( limit counter-2 )
-    ; <repeat>
-    rjmp PFA_DOTS1
-    
-PFA_DOTS2:
-    jmp DDROP
 
     
 ; ( i*x x1 -- | i*x ) (R: j*y -- | j*y ) (C: "ccc<quote>" -- )

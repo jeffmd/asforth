@@ -29,7 +29,7 @@
 : (
     $29
     parse
-    ddrop
+    2drop
 ; immediate
 
 
@@ -86,14 +86,13 @@
 ;
 
 \ compile into pending new word
-: compile
+: compile ( C: x "<spaces>name" -- )
   ['f] (compile) cxt
   find ,
 ; :ic
 
 
 ( -- ) ( C: x "<spaces>name" -- )
-\ compiler
 \ create a dictionary entry and register in word list
 : rword
     (create)      ( voc-link )
@@ -102,7 +101,6 @@
 ;
 
 ( x -- ) ( C: x "<spaces>name" -- )
-\ Compiler
 \ create a constant in the dictionary
 : con
     rword
@@ -110,10 +108,13 @@
     ret,
 ;
 
-( cchar -- ) 
-\ Compiler
+\ allocate or release n bytes of memory in RAM
+: allot ( n -- )
+    here + to here
+;
+
 \ create a dictionary entry for a variable and allocate 1 cell RAM
-: var
+: var ( cchar -- )
     here
     con
     2
@@ -156,6 +157,14 @@
     !e                 ( )
     ['] @e ,
     ['] !e ,
+;
+
+
+\ copy the first character of the next word onto the stack
+: char  ( "<spaces>name" -- c )
+    pname
+    drop
+    c@
 ;
 
 ( -- c ) ( C: "<space>name" -- )
@@ -331,6 +340,7 @@
 ( --  ) ( C: orig dest -- )
 \ Compiler
 \ continue execution at dest, resolve orig
+\ part of: begin...while...repeat
 : repeat
   [compile] again
   >resolve

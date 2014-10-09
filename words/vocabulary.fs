@@ -37,7 +37,7 @@
   0> if
        0 context! swap c!
      else
-       ddrop
+       2drop
      then
 ; immediate
 

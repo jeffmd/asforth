@@ -421,7 +421,6 @@ forthword_ TICK, 0, 1, "'"
     ret
     
 
-
 ; ( -- ) 
 ; Dictionary
 ; set the context and current to root forth vocabulary and remove

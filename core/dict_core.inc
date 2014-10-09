@@ -72,7 +72,7 @@ forthword_ DROP, INLINE_OPT, 4, "drop"
 ; ( n n -- ) 
 ; Stack
 ; drop TOS twice
-forthword_ DDROP, 0, 5, "ddrop"
+forthword_ DDROP, 0, 5, "2drop"
     nip_
     drop_
     ret
