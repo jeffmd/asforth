@@ -476,10 +476,6 @@ PFA_TYPE2:
     jmp DROP
 
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ( -- a-addr )
-; Exceptions
 ; USER variable used by catch/throw
 forthword_ HANDLER, 0, 6, "handle"
     call DOUSER
@@ -529,6 +525,8 @@ PFA_THROW1:
     call STORE         ; ( n )
     call R_FROM        ; ( n SP ) (R: callerret )
     jmp SP_STORE      ; ( n )
+
+
 
 ; ( -- )
 ; send Ctrl-Q (XON) to resume transmission
@@ -1025,6 +1023,53 @@ PFA_QSTACKERROR:
 ;    ret
 
 
+; ( ee-addr -- itemn .. item0 n) 
+; Tools
+; Get an array from EEPROM and put on the stack
+;forthword_ FETCH_EE_ARRAY, 0, 4, "@e[]"
+;    dup_               ; ( ee-addr ee-addr )
+;    rcall FETCHE       ; ( ee-addr len )
+;    rcall _A           ; ( ee-addr len ) A: len
+;    twostar_           ; ( ee-addr blen )
+    ; go from bigger to smaller addresses
+;PFA_FETCH_EE_ARRAY1:
+;    copytob_           ; ( ee-addr2 blen )
+;    dupzerosense_      ; ( ee-addr2 blen)
+;    breq PFA_FETCH_EE_ARRAY2
+;    rcall OVER         ; ( ee-addr2 blen ee-addr2 )
+;    rcall PLUS          ; ( ee-addr2 ee-addr3 )
+;    rcall FETCHE       ; ( ee-addr2 item_i )
+;    rcall SWAP         ; ( item_i ee-addr2 )
+;    rcall B_           ; ( item_i ee-addr2-2 blen)
+;    twominus_          ; ( item_i ee-addr2-2 blen-2)
+;    rjmp PFA_FETCH_EE_ARRAY1
+;PFA_FETCH_EE_ARRAY2:
+;    rcall DDROP       ; ( ... item_i )
+;    rjmp A_            ; ( ... item_i len )
+
+; ( recn .. rec0 n ee-addr -- ) 
+; Tools
+; Write a list to EEPROM
+;forthword_ STORE_EE_ARRAY, 0, 4, "!e[]"
+;    rcall TWOOVER   ; ( recn .. rec0 n ee-addr n ee-addr )
+;    rcall STOREE ; ( recn .. rec0 n e-addr )
+;    rcall SWAP   ; ( recn .. rec0 e-addr n )
+;PFA_STORE_EE_ARRAY1:
+;    copytob_       ; ( recn .. rec0 e-addr n ) B: n
+;    zerosense_
+;    breq PFA_STORE_EE_ARRAY2
+;    twoplus_       ; ( i_x e-addr+2 )
+;    rcall TUCK     ; ( e-addr+2 i_x e-addr+2 )
+;    rcall STOREE   ; ( e-addr+2 )
+;    rcall B_       ; ( e-addr+2 n )
+;    oneminus_      ; ( e-addr+2 n-1 )
+;    rjmp PFA_STORE_EE_ARRAY1
+;PFA_STORE_EE_ARRAY2:
+;    drop_
+;    ret
+
+
+
 
 ; ( -- addr )
 ; System Variable
@@ -1339,3 +1384,29 @@ PFA_DOTS2:
 forthword_ ENVUSERSIZE, 0, 5, "/user"
     doliteral_ (SYSUSERSIZE)
     ret
+    
+; ( i*x x1 -- | i*x ) (R: j*y -- | j*y ) (C: "ccc<quote>" -- )
+; Exceptions
+; check flag. If true display the parsed text and throw exception -2 
+
+;forthword_ ABORTSTRING, DIS_CALL_OPT, 6, "abort\""
+;    ; postpone if
+;    call DOCOMPILE
+;    addr_ 0 ; ******* FIXME
+;    call DP
+;    call DOCOMPILE
+;    .word -1
+    
+;    ;rcall DOTSTRING
+    
+;    call DOCOMPILE
+;    addr_ -1 ; DOLITERAL ******* FIXME
+    
+;    call DOCOMPILE
+;    .word -2
+;    call DOCOMPILE
+;    addr_ THROW
+;    ; then
+;    call DP
+;    rcall SWAP
+;    rjmp STOREI

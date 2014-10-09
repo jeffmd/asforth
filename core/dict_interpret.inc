@@ -1,6 +1,9 @@
 ; dict_interpret.inc
 ; forth words that make up the forth interpreter
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ( -- a-addr )
+; Exceptions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( addr1 n1 c -- addr2 n2 )
 ; String
@@ -480,6 +483,7 @@ REC_WORD_OK:
 ; Interpreter
 ; recognizer for NOT FOUND
 forthword_ REC_UNK, 0, 7, "rec-unk"
+    call CR
     call TYPE
     doliteral_ -13
     jmp THROW
@@ -570,22 +574,18 @@ forthword_ DOINTERPRET, 0, 11, "dointerpret"
   ; <if>
   zerosense_
   breq DOINTERPRET_ok
-    dup_
-	doliteral_ -2
-	rcall LESS
 	; <if>
-	zerosense_
-	breq DOINTERPRET_reset
+;	zerosense_
+;	breq DOINTERPRET_reset
 	  rcall PROMPTERROR
 	
 	; <then>
-DOINTERPRET_reset:
+;DOINTERPRET_reset:
 	rjmp QUIT
 	
   ; <then>
 DOINTERPRET_ok:
   ; make sure in buf pointer is not at zero
-  ;call ONE                ; ( 1 )
   rcall G_IN               ; ( 1 >inaddr )
   rcall ONEPLUSSTORE       ; ( )
   rjmp PROMPTOK
@@ -621,22 +621,22 @@ forthword_ PROMPTOK, 0, 4, "p_ok"
 ; process the error prompt
 forthword_ PROMPTERROR, 0, 4, "p_er"
 	call DOSLITERAL
-	ascii_ 4, " ?? "
-    call ITYPE
+	ascii_ 3, " ??"
+    jmp ITYPE
     ; save base to return stack
-	call BASE
-	rcall FETCH
-	rcall TO_R
+	;call BASE
+	;rcall FETCH
+	;rcall TO_R
 	; make sure in decimal mode
-	call DECIMAL
-	call DOT
+	;call DECIMAL
+	;call DOT
 	; print the offending word
-	rcall G_IN
-	rcall FETCH
-	call DOT
+	;rcall G_IN
+	;rcall FETCH
+	;call DOT
 	; restore base
-	rcall R_FROM
-	jmp BASESTORE
+	;rcall R_FROM
+	;jmp BASESTORE
 
 
 ; ( -- )
