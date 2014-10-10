@@ -9,6 +9,10 @@ forthword_ STATE, 0, 5, "state"
     .word USER_STATE
     ret
 
+forthword_ STATEFETCH, 0, 6, "state@"
+    rcall STATE
+    rjmp FETCH
+
 .pushsection .noinit
 ram_CURRENT: .space 2
 .popsection

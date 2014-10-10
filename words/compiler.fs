@@ -345,7 +345,7 @@
 \ store the TOS to the named defer
 : to ( n <name> -- )
     '  \ get address of next word from input stream
-    state @
+    state@
     if 
       compile (to)
       ,
@@ -428,7 +428,7 @@
 : s"
     $22
     parse        ( -- addr n)
-    state @
+    state@
     if  \ skip if not in compile mode
       [compile] slit
     then 
@@ -439,7 +439,7 @@
 \ compiles string into dictionary to be printed at runtime
 : ."
      [compile] s"             \ "
-     state @
+     state@
      if
        compile itype
      else

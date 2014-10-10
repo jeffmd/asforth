@@ -498,8 +498,7 @@ forthword_ REC_NUM, 0, 4, "rec#"
     zerosense_
     breq PFA_REC_NONUMBER
 
-    rcall STATE
-    rcall FETCH              ; ( n state )
+    rcall STATEFETCH         ; ( n state )
     zerosense_
     breq PFA_REC_NUMBER_OK
     call LIT
@@ -527,8 +526,7 @@ REC_WORD_FOUND:
         rjmp CHECK_IMMEDIATE
         
 CHECK_COMPILE_ONLY:
-    rcall STATE
-    rcall FETCH
+    rcall STATEFETCH
     zerosense_
     brne CHECK_IMMEDIATE
         ; word can only be used in compile state
@@ -545,8 +543,7 @@ CHECK_IMMEDIATE:
 
 REC_WORD_CHECKSTATE:
         ; check state
-	    rcall STATE
-	    rcall FETCH
+	    rcall STATEFETCH
 	    zerosense_
 	    breq REC_WORD_EXECUTE
         ; in compile mode so compile xt
@@ -572,8 +569,7 @@ forthword_ REC_UNK, 0, 4, "rec?"
 ; System
 ; check if a ready prompt is required
 forthword_ QP_RD, 0, 4, "?prd"
-    rcall STATE
-    rcall FETCH
+    rcall STATEFETCH
     ; output ready prompt if in interpret mode
     ; <-if>
     zerosense_
