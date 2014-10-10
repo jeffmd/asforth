@@ -118,7 +118,7 @@ PFA_CSCAN3:
 ; ( r-addr r-len f-addr f-len --  f)
 ; Memory
 ; compares string in RAM with string in flash
-forthword_ ICOMPARE, 0, 8, "icompare"
+forthword_ ICOMPARE, 0, 4, "icmp"
     rcall TO_B               ; ( r-addr r-len f-addr)  B: f-len
     rcall OVER               ; ( r-addr r-len f-addr r-len)
     rcall B_                 ; ( r-addr r-len f-addr r-len f-len )
@@ -318,7 +318,7 @@ FINDNFA_NEXT:
 ; search root wordlists for the name from string addr/len
 forthword_ FINDROOT, 0, 5, "froot"
     ; put root wid on stack
-    doliteral_  pm(VE_STARTOVER) 
+    doliteral_  pm(VE_WIPE) 
     ; search root
     rjmp FINDNFA_BEGIN
 
@@ -401,7 +401,7 @@ forthword_ DOSLIT, 0, 6, "(slit)"
 ; ( -- ) (R: i*x - j*x )
 ; System
 ; interpret input word by word.
-forthword_ INTERPRET, 0, 9, "interpret"
+forthword_ INTERPRET, 0, 6, "interp"
     ; begin
     rcall PNAME          ; ( -- addr len )
 
@@ -492,7 +492,7 @@ PFA_RECFETCH_ZERO:
 ; ( addr len -- n f )
 ; Interpreter
 ; recognizer for integer numbers
-forthword_ REC_NUM, 0, 7, "rec-num"
+forthword_ REC_NUM, 0, 4, "rec#"
     ; try converting to a number
     call NUMBER              ; ( [n] f )
     zerosense_
@@ -513,7 +513,7 @@ PFA_REC_NONUMBER:
 ; Interpreter
 ; recognize a word in the dictionary
 ; will 
-forthword_ REC_WORD, 0, 8, "rec-word"
+forthword_ REC_WORD, 0, 4, "recw"
 
     rcall FINDW
     dupzerosense_
@@ -562,7 +562,7 @@ REC_WORD_OK:
 ; ( addr len --  )
 ; Interpreter
 ; recognizer for NOT FOUND
-forthword_ REC_UNK, 0, 7, "rec-unk"
+forthword_ REC_UNK, 0, 4, "rec?"
     rcall CR
     call TYPE
     rcall TRUE
@@ -571,7 +571,7 @@ forthword_ REC_UNK, 0, 7, "rec-unk"
 ; ( -- )
 ; System
 ; check if a ready prompt is required
-forthword_ QP_RD, 0, 5, "?p_rd"
+forthword_ QP_RD, 0, 4, "?prd"
     rcall STATE
     rcall FETCH
     ; output ready prompt if in interpret mode
@@ -588,7 +588,7 @@ QP_RD_exit:
 ; ( -- )
 ; System
 ; main loop - iterate through scheduled tasks 
-forthword_ DOTASKS, 0, 7, "dotasks"
+forthword_ DOTASKS, 0, 7, "(tasks)"
     ; <begin>
       rcall DOREFILL
       rcall PAUSE
@@ -613,7 +613,7 @@ forthword_ QUIT, 0, 4, "quit"
 ; ( -- )
 ; System
 ; wait for the input buffer to be refilled then interpret
-forthword_ DOREFILL, 0, 8, "dorefill"
+forthword_ DOREFILL, 0, 8, "(refill)"
   ; if just starting new input line then check prompt and reset input position
   rcall G_IN               ; ( >inaddr )
   rcall FETCH              ; ( >in )
@@ -644,7 +644,7 @@ DOREFILL_end:
 ; ( -- )
 ; System
 ; interpret what is in the input buffer
-forthword_ DOINTERPRET, 0, 11, "dointerpret"
+forthword_ DOINTERPRET, 0, 8, "(interp)"
       ; input buffer has something so try to interpret it
       ; setup exception handling in case of error
   doliteral_ pm(INTERPRET)
@@ -795,7 +795,7 @@ ACCEPT_atmaxinput:
 ; ( -- f )
 ; System
 ; refills the input buffer - flag is true if buffer has something
-forthword_ REFILLTIB, 0, 10, "refill-tib"
+forthword_ REFILLTIB, 0, 6, "reftib"
     rcall ACCEPT               ; ( f )
     dupzerosense_              ; ( f )
     breq REFILLTIB_exit

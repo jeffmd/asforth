@@ -12,7 +12,7 @@
 \ - vector of labels, 20 bytes in RAM, example
 
 \ V.1.0, 07.02.2008, tested on atmega168, amforth 2.6
-\ Size 3554B (opcode: 2980B, labels: 158B, constants Rx: 416B)
+
 only
 vocabulary ASM
 ASM definitions

@@ -88,7 +88,7 @@ forthword_ NIP, INLINE_OPT, 3, "nip"
 ; ( n1 n2 n3 -- n3) 
 ; Stack
 ; drop NOS twice, two cells before TOS.
-forthword_ DNIP, INLINE_OPT, 4, "dnip"
+forthword_ DNIP, INLINE_OPT, 4, "2nip"
     dnip_
     ret
 
@@ -1131,7 +1131,7 @@ ITOI_END:
 
 
 ; must be last word in core    
-forthword_ STARTOVER, 0, 9, "STARTOVER"
+forthword_ WIPE, 0, 4, "WIPE"
     ; reset forth dictionary, here, edp, dp to original burn state
     ; set EE_DP to DPSTART
     doliteral_ pm(DPSTART)

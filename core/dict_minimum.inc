@@ -753,7 +753,7 @@ PFA_EE2RAM_2:
 ; ( -- )
 ; Tools
 ; setup the default user area from eeprom
-forthword_ INITUSER, 0, 9, "init-user"
+forthword_ INITUSER, 0, 6, "i-user"
     rcall EEUSER
     call UP_FETCH
     doliteral_ SYSUSERSIZE

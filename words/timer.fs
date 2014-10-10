@@ -1,5 +1,5 @@
 \ words for timer 
-\ GTCCR – General Timer/Counter Control Register
+\ GTCCR - General Timer/Counter Control Register
 \ Timer/counter 0 : 8 bit
 \ TCCR0A  $24 ($44) Timer/Counter Control Register A
 \ TCCR0B  $25 ($45) Timer/Counter Control Register B

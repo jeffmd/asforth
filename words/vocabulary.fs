@@ -123,7 +123,7 @@ context @ 2+
 
 \ list the root words
 : rwords ( -- )
-  [ find STARTOVER lit ]
+  [ find WIPE lit ]
   lwords
 ;
 
