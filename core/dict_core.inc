@@ -1145,7 +1145,10 @@ forthword_ STARTOVER, 0, 9, "STARTOVER"
     doliteral_ EDPSTART
     doliteral_ EE_EDP
     rcall STOREE
-    ; set EE_TURNKEY to APPLTURNKEY
+    ; set EE_TURNKEY to NOOP
+    doliteral_ pm(NOOP)
+    doliteral_ EE_TURNKEY
+    rcall STOREE
     ; set EE_FORTHWORDLIST to 0
     rcall ZERO
     doliteral_ EE_FORTHWORDLIST

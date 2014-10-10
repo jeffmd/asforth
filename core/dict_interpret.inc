@@ -565,7 +565,7 @@ REC_WORD_OK:
 forthword_ REC_UNK, 0, 7, "rec-unk"
     rcall CR
     call TYPE
-    doliteral_ -13
+    rcall TRUE
     jmp THROW
     
 ; ( -- )
@@ -654,13 +654,9 @@ forthword_ DOINTERPRET, 0, 11, "dointerpret"
   ; <if>
   zerosense_
   breq DOINTERPRET_ok
-	; <if>
-;	zerosense_
-;	breq DOINTERPRET_reset
-	  rcall PROMPTERROR
+    rcall PROMPTERROR
 	
 	; <then>
-;DOINTERPRET_reset:
 	rjmp QUIT
 	
   ; <then>
@@ -673,7 +669,7 @@ DOINTERPRET_ok:
 ; ( -- )
 ; System
 ; send the READY prompt to the command line
-forthword_ PROMPTRDY, 0, 4, "p_rd"
+forthword_ PROMPTRDY, 0, 2, ".>"
     rcall CR
     rcall DOSLIT
     ascii_ 2, "> "
@@ -682,7 +678,7 @@ forthword_ PROMPTRDY, 0, 4, "p_rd"
 ; ( -- )
 ; System
 ; send the READY prompt to the command line
-forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
+forthword_ PROMPTCOMPILE, 0, 2, ".:"
     rcall CR
     rcall DOSLIT
     ascii_ 2, ": "
@@ -691,7 +687,7 @@ forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
 ; ( -- )
 ; System
 ; send the OK prompt to the command line
-forthword_ PROMPTOK, 0, 4, "p_ok"
+forthword_ PROMPTOK, 0, 3, ".ok"
     rcall DOSLIT
     ascii_ 3, " ok"
     jmp ITYPE
@@ -699,7 +695,7 @@ forthword_ PROMPTOK, 0, 4, "p_ok"
 ; ( n -- )
 ; System
 ; process the error prompt
-forthword_ PROMPTERROR, 0, 4, "p_er"
+forthword_ PROMPTERROR, 0, 3, ".??"
 	rcall DOSLIT
 	ascii_ 3, " ??"
     jmp ITYPE
@@ -778,7 +774,6 @@ ACCEPT_echo:
     rcall PLUS           ; ( k tibaddr+#tib ) 
     rcall CSTORE         ; ( )
 
-    ;call ONE            ; ( 1 ) 
     rcall SHARPTIB       ; ( 1 #tibaddr )
     rcall ONEPLUSSTORE   ; ( )
 
