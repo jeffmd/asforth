@@ -1,5 +1,4 @@
-; dict_compiler.inc
-
+; dict_compiler.inc - basic compiler words
 
 
 ; ( -- addr )
@@ -9,13 +8,6 @@ forthword_ STATE, 0, 5, "state"
     call DOUSER
     .word USER_STATE
     ret
-
-; ( -- a-addr )
-; System Variable
-; pointer to current read position in input buffer
-forthword_ G_IN, 0, 3, ">in"
-    call DOUSER
-    .word USER_G_IN
 
 .pushsection .noinit
 ram_CURRENT: .space 2
@@ -103,7 +95,7 @@ forthword_ DPFETCHE, 0, 4, "dp@e"
 forthword_ DPPLUS, 0, 3, "dp+"
     rcall DP
     rcall PLUS
-    call DOTO
+    rcall DOTO
     addr_ DP
     ret
 
@@ -115,22 +107,10 @@ forthword_ DPPLUSONE, 0, 4, "dp+1"
     rjmp DPPLUS
 
 
-; ( -- ) (C: "<spaces>name" -- )
-; Compiler
-; create a named entry in the dictionary, XT is DO_COLON
-forthword_ COLON, 0, 1, ":"
-
-    rcall DOCREATE
-    rcall SMUDGE
-    rcall STORE
-    rcall DP
-    rcall LATEST
-    rcall STORE
-    rjmp RBRACKET
 
 ; ( -- )
 ; tail call optimize: change last rcall/call into rjmp/jmp
-forthword_ TAILOPT, IMMEDIATE_EN, 4, ";opt"
+forthword_ TAILOPT, 0, 4, ";opt"
     ; check fflags to see if tail call optimization can be done
     sbrc fflags, DIS_CALL_OPT_FB
     ; don't optimize tail call, just compile a ret.
@@ -175,7 +155,7 @@ TAILOPT_CALL:
 ; ( -- )
 ; Compiler
 ; update wid from smudge if valid 
-forthword_ UWID, IMMEDIATE_EN, 4, "uwid"
+forthword_ UWID, 0, 4, "uwid"
     rcall SMUDGE
     rcall FETCH
     rcall QDUP
@@ -192,13 +172,6 @@ UWID_end:
     ret
 
 
-; ( -- )
-; Compiler
-; finish colon defintion, compiles (exit) and returns to interpret state 
-forthword_ SEMICOLON, IMMEDIATE_EN, 1, ";"
-    rcall TAILOPT
-    rcall LBRACKET
-    rjmp UWID
     
 ; ( --  ) 
 ; Compiler
@@ -220,6 +193,14 @@ forthword_ LBRACKET, IMMEDIATE_EN, 1, "["
     rcall STATE
     rjmp STORE
 
+
+; ( n -- )
+; Dictionary
+; compile 16 bit into flash at (dictionary pointer) DP
+forthword_ COMMA, 0, 1, ","
+    rcall DP
+    rcall STOREI
+    rjmp DPPLUSONE
 
 ; ( addr len len' -- )
 ; Compiler
@@ -255,32 +236,7 @@ PFA_SCOMMA2:
 PFA_SCOMMA3:
     ret
 
-; ( addr len -- )
-; Compiler
-; compiles a string from RAM to Flash
-forthword_ SCOMMA, 0, 2, "s,"
-    dup_
-    ; fall thru into DOSCOMMA
-    rjmp DOSCOMMA
 
-; ( n -- )
-; Dictionary
-; compile 16 bit into flash at (dictionary pointer) DP
-forthword_ COMMA, 0, 1, ","
-    rcall DP
-    rcall STOREI
-    rjmp DPPLUSONE
-
-
-; ( --  ) (C: "<spaces>name" -- voc-link )
-; Compiler
-; parse the input and create an vocabulary entry without XT and data field (PF)
-forthword_ DOCREATE, 0, 8, "(create)"
-    rcall PNAME
-    rcall CURRENT
-    rcall FETCH
-    ; fall thru into HEADER
-    rjmp HEADER
 
 ; ( addr len wid -- voc-link )
 ; Compiler
@@ -307,19 +263,7 @@ HEADER_error:
     ; -16: attempted to use zero length string as a name
     doliteral_ -16
     jmp THROW
-
-
-; ( -- )
-; Dictionary
-; read the following cell from the dictionary and append it to the current dictionary position.
-; must use call/rcall
-
-forthword_ DOCOMPILE, DIS_CALL_OPT, 9, "(compile)"
-    rcall R_FETCHPLUS    ; ( raddr ) (R: raddr+1)
-    rcall FETCHI         ; ( nfa )
-    rcall NFATOXTF       ; ( xt xtflags )
-    jmp COMPILEXT
-    
+   
     
 ; ( start match -- start count )
 ; match is the word value to search for in the flash
@@ -370,15 +314,6 @@ forthword_ INLINE, 0, 6, "inline"
     rjmp ITOI
 
 
-; ( i*x -- ) (R: j*y -- )
-; Exceptions
-; send an exception -1
-
-forthword_ ABORT, 0, 5, "abort"
-    doliteral_ -1
-    jmp THROW
-
-
 ; ( nfa -- lfa )
 ; System
 ; get the link field address from the name field address
@@ -404,23 +339,7 @@ forthword_ NFATOXTF, 0, 7, "nfa>xtf"
 NFATOXTF_EXIT:
     ret
     
-; ( "<spaces>name" -- XT XTflags)
-; Dictionary
-; search dictionary for name, returns XT or 0
-forthword_ TICKF, 0, 2, "'f"
-    rcall PNAME
-    rcall FINDW
-    rjmp NFATOXTF
-
-; ( "<spaces>name" -- XT )
-; Dictionary
-; search dictionary for name, returns XT or throw an exception -13
-forthword_ TICK, 0, 1, "'"
-    rcall TICKF
-    drop_
-    ret
     
-
 ; ( -- ) 
 ; Dictionary
 ; set the context and current to root forth vocabulary and remove
@@ -444,3 +363,35 @@ forthword_ ONLY, IMMEDIATE_EN, 4, "only"
     rcall CONTEXT
     twoplus_
     rjmp STORE
+
+; ( --  ) (C: "<spaces>name" -- voc-link )
+; Compiler
+; parse the input and create an vocabulary entry without XT and data field (PF)
+;forthword_ DOCREATE, 0, 8, "(create)"
+;    rcall PNAME
+;    rcall CURRENT
+;    rcall FETCH
+;    ; fall thru into HEADER
+;    rjmp HEADER
+
+
+; ( -- ) (C: "<spaces>name" -- )
+; Compiler
+; create a named entry in the dictionary, XT is DO_COLON
+;forthword_ COLON, 0, 1, ":"
+
+;    rcall DOCREATE
+;    rcall SMUDGE
+;    rcall STORE
+;    rcall DP
+;    rcall LATEST
+;    rcall STORE
+;    rjmp RBRACKET
+
+; ( -- )
+; Compiler
+; finish colon defintion, compiles (exit) and returns to interpret state 
+;forthword_ SEMICOLON, IMMEDIATE_EN, 1, ";"
+;    rcall LBRACKET
+;    rcall TAILOPT
+;    rjmp UWID

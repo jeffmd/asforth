@@ -11,57 +11,6 @@ forthword_ BASE, 0, 4, "base"
     .word USER_BASE
 
 
-
-; ( -- addr )
-; System Variable
-; variable holding the number of characters in TIB
-forthword_ SHARPTIB, 0, 4, "#tib"
-    doliteral_ ram_sharptib
-    ret
-
-.pushsection .noinit
-ram_sharptib: .space 2
-.popsection
-
-    
-
-; ( c -- )
-; Character IO
-; fetch the emit vector and EXEC it. should emit a character from TOS
-forthword_ EMIT, 0, 4, "emit"
-    call DODEFER
-    .word USER_EMIT
-    addr_ FETCHU
-    addr_ STOREU
-
-; ( -- f )
-; Character IO
-; fetch emit? vector and EXEC it. should return the ready-to-send condition
-forthword_ EMITQ, 0, 5, "emit?"
-    call DODEFER
-    .word USER_EMITQ
-    addr_ FETCHU
-    addr_ STOREU
-
-; ( -- c )
-; Character IO
-; fetch key vector and EXEC it, should leave a single character on TOS
-forthword_ KEY, 0, 3, "key"
-    call DODEFER
-    .word USER_KEY
-    addr_ FETCHU
-    addr_ STOREU
-
-; ( -- f)
-; Character IO
-; fetch key? vector and EXEC it. should turn on key sender, if it is disabled/stopped
-forthword_ KEYQ, 0, 4, "key?"
-    call DODEFER
-    .word USER_KEYQ
-    addr_ FETCHU
-    addr_ STOREU
-
-
 ; ( -- e-addr )
 ; System Value
 ; address of the next free address in eeprom
@@ -118,13 +67,6 @@ forthword_ HEX, 0, 3, "hex"
     doliteral_ 16
     rjmp BASESTORE
     
-; ( -- 32 )
-; Character IO
-; put ascii code of the blank/space character to the stack
-
-forthword_ BL, 0, 2, "bl"
-    doliteral_ 32
-    ret
 
 ; ( -- n*y )
 ; System Value
@@ -180,7 +122,7 @@ NHEX_NEXT:
 ; simple 4 bit hex print
 forthword_ PNIB, 0, 2, ".h"
     rcall NHEX
-    rjmp EMIT
+    jmp EMIT
     
 ; ( n -- )
 ; simple 16 bit hex print    
@@ -199,27 +141,19 @@ forthword_ PHEX, 0, 2, ".$"
     rcall PNIB
     zerohigh_
     ldi tosl, 32
-    rjmp EMIT
+    jmp EMIT
     
 
 ; ( c -- (number|) flag )
 ; Numeric IO
 ; tries to convert a character to a number, set flag accordingly
 forthword_ DIGITQ, 0, 6, "digit?"
-    doliteral_ 0x30
-    call MINUS
-    dup_
-    doliteral_ 0x09
-    call UGREATER
-    zerosense_
-    breq PFA_DIGITQ0
-    doliteral_ 0x07
-    call MINUS
-    dup_
-    doliteral_ 0x09
-    call ULESSEQUAL
-    zerosense_
-    breq PFA_DIGITQ0
+    sbiw tosl, 0x30
+    cpi tosl, 10
+    brlo PFA_DIGITQ0
+    sbiw tosl, 7
+    cpi tosl, 10
+    brge PFA_DIGITQ0
     drop_
     jmp ZERO
 
@@ -252,34 +186,6 @@ forthword_ UGREATEREQUAL, 0, 3, "u>="
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ( -- addr len )
-; String
-; runtime portion of sliteral
-; string literal is located starting at return cell
-; return cell is string length
-; string then occupies the following cells: c2c1 c4c3 ...
-
-forthword_ DOSLITERAL, 0, 10, "(sliteral)"
-
-  ; get return address to get string length, calculate string address start,
-  ; and calculate return address
-  call R_FROM   ; ( -- raddr )  (R: raddr -- )
-  dup_          ; ( -- raddr raddr )
-  dup_          ; ( -- raddr raddr raddr )
-  ; get the string length
-  call FETCHI   ; ( -- raddr raddr slength )
-  call SWAP     ; ( -- raddr slength raddr )
-  ; calculate string address
-  oneplus_      ; ( -- raddr slength straddr )
-  ; calculate the number of words to skip over for return address
-  call FLIP     ; ( -- straddr slength raddr )
-  call OVER     ; ( -- straddr slength raddr slength)
-  call WALIGN   ; ( -- straddr slength raddr k/2 )
-  call PLUS     ; ( -- straddr slength raddr+k/2 )
-  ; also skip string length
-  oneplus_      ; ( -- straddr slength raddr+k/2+1 )
-  call TO_R     ; ( -- )
-  ret
 
 
 ; ( addr n --  )
@@ -296,36 +202,26 @@ PFA_ITYPE1:
     ; ?while
     dupzerosense_
     breq PFA_ITYPE2
-    call AFETCHI          ; ( len c1c2 )
-    aplus_                ; a+
-    dup_                  ; ( len c1c2 c1c2 )
-    rcall EMIT            ; ( len c1c2 )
-    highbyte_             ; ( len c2c1 )
-    rcall EMIT            ; ( len )
-    oneminus_             ; ( len-1 )
+    call AFETCHI     ; ( len c1c2 )
+    aplus_           ; a+
+    dup_             ; ( len c1c2 c1c2 )
+    call EMIT        ; ( len c1c2 )
+    highbyte_        ; ( len c2c1 )
+    call EMIT        ; ( len )
+    oneminus_        ; ( len-1 )
     ; repeat
     rjmp PFA_ITYPE1
 
 PFA_ITYPE2:
-    call DROP             ; ( )
-    call B_               ; ( rem )
-    call GREATERZERO      ; ( flag )
+    call DROP        ; ( )
+    call B_          ; ( rem )
+    call GREATERZERO ; ( flag )
     zerosense_
     breq PFA_ITYPE3
       call AFETCHI
-      rcall EMIT
+      call EMIT
 PFA_ITYPE3:
     ret
-
-
-; ( -- )
-; Character IO
-; cause subsequent output appear at the beginning of the next line
-forthword_ CR, 0, 2, "cr"
-    doliteral_ 13
-    rcall EMIT
-    call TEN
-    rjmp EMIT
 
 
 ; ( addr n -- )
@@ -338,7 +234,7 @@ PFA_TYPE1:
     breq PFA_TYPE2
     call ACFETCH     ; ( n c )
     aplus_           ; a+
-    rcall EMIT       ; ( n )
+    call EMIT       ; ( n )
     oneminus_        ; ( n-1 )
     rjmp PFA_TYPE1
 PFA_TYPE2:
@@ -408,166 +304,8 @@ PFA_THROW1:
 ;    doliteral_ 19
 ;    rjmp EMIT
 
-; ( -- flag )
-; System
-; receive a string of at most tibsize characters or cr/lf detected.
-; flag will be true if input buffer needs to be processed ie interpreted
-; flag will be false if more input needed
-
-forthword_ ACCEPT, 0, 6, "accept"
-    ; <begin>
-    rcall KEY        ; ( k )
-    dupzerosense_    ; ( k )
-    brne ACCEPT_haskey
-    rjmp ACCEPT_END
-
-ACCEPT_haskey:
-    dup_             ; ( k k )
-    ; check for EOL
-    call TEN         ; ( k k 10 )
-    call NOTEQUAL    ; ( k flag )
-    ; <if>
-    zerosense_       ; ( k )
-    brne ACCEPT_checkreturn
-    rjmp ACCEPT_END
-
-ACCEPT_checkreturn:
-    dup_             ; ( k k )
-    doliteral_ 13    ; ( k k 13 )
-    call NOTEQUAL    ; ( k flag )
-    ; <if>
-    zerosense_       ; ( k )
-    brne ACCEPT_checkbackspace
-    rjmp ACCEPT_END
-
-ACCEPT_checkbackspace:
-    ; check backspace
-    dup_             ; ( k k )
-    doliteral_ 8     ; ( k k 8 )
-    call EQUAL       ; ( k f )
-    ; <if>
-    zerosense_       ; ( k )
-    breq ACCEPT_checkcontrol
-    ; delete previous character
-    ; check beginning of line
-    ; if cursor is 0 then at begining of input
-    rcall SHARPTIB
-    call FETCH               ; ( k #tib )
-    ; <if>
-    zerosense_               ; ( k )
-    brne ACCEPT_dobackspace
-    ; at the beginning of the line, ignore this character
-    drop_
-    jmp ZERO
-
-ACCEPT_dobackspace:
-    dup_                 ; ( k k )
-    rcall EMIT           ; ( k )
-    rcall BL             ; ( k bl )
-    rcall EMIT           ; ( k )
-    rcall EMIT           ; ( )
-    ; decrease cursor position by one
-    doliteral_ -1        ; ( -1 )
-    rcall SHARPTIB       ; ( -1 #tibaddr )
-    call PLUSSTORE       ; ( )
-    rjmp ACCEPT_checkmaxinput
-
-ACCEPT_checkcontrol:
-    ; check for remaining control characters, replace them with blank
-    dup_                 ; ( k k )
-    rcall BL             ; ( k k bl )
-    call LESS            ; ( k f )
-    zerosense_           ; ( k )
-    breq ACCEPT_echo
-    drop_
-    ; replace control key with a space
-    rcall BL
-
-ACCEPT_echo:
-    ; emit the key
-    dup_                 ; ( k k)
-    rcall EMIT           ; ( k)
-    ; now store the key in the input buffer
-    rcall TIB             ; ( k tibaddr )
-    rcall SHARPTIB        ; ( k tibaddr #tibaddr )
-    call FETCH           ; ( k tibaddr #tib )
-    call PLUS             ; ( k tibaddr+#tib ) 
-    call CSTORE           ; ( )
-
-    ;call ONE              ; ( 1 ) 
-    rcall SHARPTIB        ; ( 1 #tibaddr )
-    call ONEPLUSSTORE        ; ( )
-
-ACCEPT_checkmaxinput:
-    ; check if max number of char input
-    doliteral_ TIBSIZE    ; ( tibsize )
-    rcall SHARPTIB        ; ( tibsize #tibaddr )
-    call FETCH            ; ( tibsize #tib)
-    call MINUS            ; ( tibsize-#tib)
-    ; <if>
-    zerosense_            ; ( )
-    breq ACCEPT_atmaxinput
-    jmp ZERO
-    
-ACCEPT_atmaxinput:
-    ; max number of characters in input buffer so have it processed
-    jmp TRUE
     
 
-    ; <then>
-ACCEPT_END:
-    ret
-
-; ( -- f )
-; System
-; refills the input buffer
-forthword_ REFILL, 0, 6, "refill"
-    call DODEFER
-    .word USER_REFILL
-    addr_ FETCHU
-    addr_ STOREU
-
-
-; (addr len -- [n] f)
-; Numeric IO
-; convert a string at addr to a number
-forthword_ NUMBER, 0, 6, "number"
-    rcall BASEFETCH
-    call TO_R               ; ( addr len ) (R: base)
-    rcall NUMBERSIGN
-    call TO_R               ; ( addr len ) (R: base flagsign)
-    rcall PRAEFIX
-    rcall NUMBERSIGN         ; ( addr len flagsign2 )
-    call R_FROM             ; ( addr len flagsign2 flagsign ) (R: base )
-    call OR                 ; ( addr len flagsign' )
-    call TO_R               ; ( addr len ) (R: base flagsign')
-    call ZERO               ; ( addr len 0 ) starting value
-    call RROT               ; ( 0 addr len )
-    rcall TO_NUMBER          ; ( n addr' len' )
-    ; check length of the remaining string.
-    ; if zero: a single cell number is entered
-    zerosense_
-	breq PFA_NUMBER1
-
-    ; error in string to number conversion
-PFA_NUMBER2:
-	nip_                      ; ( addr' )  (R: base flagsign' )
-	r_drop_                   ; ( addr' ) (R: base )
-	zerotos_                  ; ( 0 ) (R: base )
-    rjmp PFA_NUMBER5
-
-PFA_NUMBER1:
-    drop_              ; ( n )  (R: base flagsign' )
-    ; incorporate sign into number
-    call R_FROM            ; ( n flagsign' ) (R: base )
-    zerosense_
-    breq PFA_NUMBER4
-    call NEGATE
-PFA_NUMBER4:
-    call TRUE              ; ( n true ) (R: base )
-PFA_NUMBER5:
-    call R_FROM            ; ( n true base ) (R: )
-    rjmp BASESTORE         ; ( n true )
 
 ; ( addr len -- addr' len' )
 ; Numeric IO
@@ -576,7 +314,7 @@ PFA_NUMBER5:
 PRAEFIX:        ; ( adr1 len1 -- adr2 len2 )
     call OVER
     call CFETCH
-    doliteral_ 0x29
+    doliteral_ 0x2F
     call GREATER
     zerosense_
     breq PFA_PRAEFIX0
@@ -594,37 +332,23 @@ PFA_PRAEFIX0:
 ; set the BASE value depending on the character
 ;forthword_ SETBASE, 0, 7, "setbase"
 SETBASE:        ; ( c -- )
-    dup_
-    doliteral_ '$
-    call EQUAL
-    zerosense_
-    breq PFA_SETBASE0
+    mov temp0, tosl
     drop_
+    cpi temp0, '$
+    brne PFA_SETBASE0
     rjmp HEX
 
 PFA_SETBASE0:
-    dup_
-    doliteral_ '%
-    call EQUAL
-    zerosense_
-    breq PFA_SETBASE1
-    drop_
+    cpi temp0, '%
+    brne PFA_SETBASE1
     rjmp BIN
 
 PFA_SETBASE1:
-    dup_
-    doliteral_ '&
-    call EQUAL
-    zerosense_
-    breq PFA_SETBASE2
-    drop_
+    cpi temp0, '&
+    brne PFA_SETBASE2
     rjmp DECIMAL
 
 PFA_SETBASE2:        ; ( error)
-    ;doliteral_ '#
-    ;call EQUAL
-    ;zerosense_
-    ;ret
     rjmp DECIMAL
 
 ; (addr len -- addr len flag) Numeric IO
@@ -683,6 +407,46 @@ PFA_TO_NUMBER2:
 PFA_TO_NUMBER1:
     ret
     
+; (addr len -- [n] f)
+; Numeric IO
+; convert a string at addr to a number
+forthword_ NUMBER, 0, 6, "number"
+    rcall BASEFETCH
+    call TO_R               ; ( addr len ) (R: base)
+    rcall NUMBERSIGN
+    call TO_R               ; ( addr len ) (R: base flagsign)
+    rcall PRAEFIX
+    rcall NUMBERSIGN        ; ( addr len flagsign2 )
+    call R_FROM             ; ( addr len flagsign2 flagsign ) (R: base )
+    call OR                 ; ( addr len flagsign' )
+    call TO_R               ; ( addr len ) (R: base flagsign')
+    call ZERO               ; ( addr len 0 ) starting value
+    call RROT               ; ( 0 addr len )
+    rcall TO_NUMBER         ; ( n addr' len' )
+    ; check length of the remaining string.
+    ; if zero: a single cell number is entered
+    zerosense_
+	breq PFA_NUMBER1
+
+    ; error in string to number conversion
+PFA_NUMBER2:
+	nip_                    ; ( addr' )  (R: base flagsign' )
+	r_drop_                 ; ( addr' ) (R: base )
+	zerotos_                ; ( 0 ) (R: base )
+    rjmp PFA_NUMBER5
+
+PFA_NUMBER1:
+    drop_                   ; ( n )  (R: base flagsign' )
+    ; incorporate sign into number
+    call R_FROM             ; ( n flagsign' ) (R: base )
+    zerosense_
+    breq PFA_NUMBER4
+    call NEGATE
+PFA_NUMBER4:
+    call TRUE               ; ( n true ) (R: base )
+PFA_NUMBER5:
+    call R_FROM             ; ( n true base ) (R: )
+    rjmp BASESTORE          ; ( n true )
 
 ; ( -- )
 ; System
@@ -945,17 +709,6 @@ forthword_ TIB, 0, 3, "tib"
 ram_tib: .space TIBSIZE
 .popsection
 
-; ( -- f )
-; System
-; refills the input buffer - flag is true if buffer has something
-forthword_ REFILLTIB, 0, 10, "refill-tib"
-    rcall ACCEPT               ; ( f )
-    dupzerosense_              ; ( f )
-    breq REFILLTIB_exit
-    jmp CR
-    
-REFILLTIB_exit:
-    ret
 
 ; ( -- addr n )
 ; System

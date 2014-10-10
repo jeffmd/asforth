@@ -91,16 +91,3 @@ forthword_ DOTO, DIS_CALL_OPT, 4, "(to)"
     ; next cell contains address of deferred word
     rcall FETCHI         ; ( n defxt )
     rjmp DEFERSTORE
-
-; ( n <name> -- )
-; Tools
-; store the TOS to the named defer
-forthword_ TO, IMMEDIATE_EN, 2, "to"
-    rcall TICK          ; ( n xt ) get address of next word from input stream
-    rcall STATE
-    rcall FETCH
-    zerosense_
-    breq DEFERSTORE        ; not in compile state, so jump to runtime operation
-    rcall DOCOMPILE
-    addr_ VE_DOTO
-    rjmp COMMA

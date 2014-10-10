@@ -1,34 +1,9 @@
-: cur@
-  current @
-;
-
-: widf 
-    cur@
-    @e
-    dup
-    @i
-    rot and
-    swap
-    !i
-;
-
-: immediate
-    $7FFF widf
-; immediate
-
-: \
-    source
-    nip
-    >in
-    !
-; immediate
 
 \ ( "ccc<paren>" -- )
 \ Compiler
 \ skip everything up to the closing bracket on the same line
 : (
-    $29
-    parse
+    $29 parse
     2drop
 ; immediate
 
@@ -48,9 +23,28 @@
 ( -- )
 \ make most current word immediate and compile only
 : :ic
-    $77FF
-    widf
+    $77FF widf
 ; immediate
+
+\ make most current word call only
+: call
+  $FBFF widf
+; immediate
+
+
+\ search dictionary for name, returns XT or 0
+: 'f  ( "<spaces>name" -- XT XTflags )
+    pname 
+    findw
+    nfa>xtf
+;
+
+
+\ search dictionary for name, returns XT
+: '  ( "<spaces>name" -- XT )
+    'f
+    drop
+;
 
 \ force compile any word including immediate words
 : [compile]
@@ -85,6 +79,18 @@
     pname findw
 ;
 
+
+\ read the following cell from the dictionary and append it
+\ to the current dictionary position.
+\ must use call/rcall
+
+: (compile)  ( -- )
+    r>r+     ( raddr ) ( R: raddr+1 )
+    @i       ( nfa )
+    nfa>xtf  ( xt xtflags )
+    cxt
+; call
+
 \ compile into pending new word
 : compile ( C: x "<spaces>name" -- )
   ['f] (compile) cxt
@@ -100,38 +106,6 @@
     !e            ( )
 ;
 
-( x -- ) ( C: x "<spaces>name" -- )
-\ create a constant in the dictionary
-: con
-    rword
-    lit  
-    ret,
-;
-
-\ allocate or release n bytes of memory in RAM
-: allot ( n -- )
-    here + to here
-;
-
-\ create a dictionary entry for a variable and allocate 1 cell RAM
-: var ( cchar -- )
-    here
-    con
-    2
-    allot
-;
-
-( cchar -- ) 
-\ Compiler
-\ create a dictionary entry for a character variable
-\ and allocate 1 byte RAM
-: cvar
-    here
-    con
-    1
-    allot
-;
-
 ( -- a-addr ) ( C: "<spaces>name" -- )
 \ Dictionary
 \ create a dictionary header. XT is (constant),
@@ -140,23 +114,6 @@
     rword
     \ leave address after call on tos
     compile popret
-;
-
-( n -- )  ( C: x "<spaces>name" -- )
-\ Compiler
-\ create a dictionary entry for a value and allocate 1 cell in EEPROM.
-: val
-    rword
-    compile (val)
-    edp                ( n edp )
-    dup                ( n edp edp )
-    ,                  ( n edp )
-    dup                ( n edp edp )
-    2+                 ( n edp edp+2)
-    to edp             ( n edp )
-    !e                 ( )
-    ['] @e ,
-    ['] !e ,
 ;
 
 
@@ -379,17 +336,87 @@
 ( n cchar -- ) 
 \ Compiler
 \ create a dictionary entry for a user variable at offset n
-: user
+\ : user
+\    rword
+\    compile douser
+\    ,
+\ ;
+
+\ store the TOS to the named defer
+: to ( n <name> -- )
+    '  \ get address of next word from input stream
+    state @
+    if 
+      compile (to)
+      ,
+    else
+      def! \ not in compile state, so do runtime operation
+    then
+
+; immediate
+
+\ allocate or release n bytes of memory in RAM
+: allot ( n -- )
+    here + to here
+;
+
+( x -- ) ( C: x "<spaces>name" -- )
+\ create a constant in the dictionary
+: con
     rword
-    compile douser
-    ,
+    lit  
+    ret,
+;
+
+
+\ create a dictionary entry for a variable and allocate 1 cell RAM
+: var ( cchar -- )
+    here
+    con
+    2
+    allot
+;
+
+( cchar -- ) 
+\ Compiler
+\ create a dictionary entry for a character variable
+\ and allocate 1 byte RAM
+: cvar
+    here
+    con
+    1
+    allot
+;
+
+( n -- )  ( C: x "<spaces>name" -- )
+\ Compiler
+\ create a dictionary entry for a value and allocate 1 cell in EEPROM.
+: val
+    rword
+    compile (val)
+    edp                ( n edp )
+    dup                ( n edp edp )
+    ,                  ( n edp )
+    dup                ( n edp edp )
+    2+                 ( n edp edp+2)
+    to edp             ( n edp )
+    !e                 ( )
+    ['] @e ,
+    ['] !e ,
+;
+
+
+\ compiles a string from RAM to Flash
+: s, ( addr len -- )
+    dup
+    (s,)
 ;
 
 ( C: addr len -- ) 
 \ String
 \ compiles a string to flash
-: sliteral
-    compile (sliteral)     ( -- addr n)
+: slit
+    compile (slit)     ( -- addr n)
     s,
 ; immediate
 
@@ -403,7 +430,7 @@
     parse        ( -- addr n)
     state @
     if  \ skip if not in compile mode
-      [compile] sliteral
+      [compile] slit
     then 
 ; immediate
 

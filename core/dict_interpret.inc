@@ -1,9 +1,61 @@
 ; dict_interpret.inc
 ; forth words that make up the forth interpreter
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.pushsection .noinit
+ram_sharptib: .space 2
+.popsection
+
+; ( -- addr )
+; variable holding the number of characters in TIB
+forthword_ SHARPTIB, 0, 4, "#tib"
+    doliteral_ ram_sharptib
+    ret
+
 ; ( -- a-addr )
-; Exceptions
+; pointer to current read position in input buffer
+forthword_ G_IN, 0, 3, ">in"
+    call DOUSER
+    .word USER_G_IN
+
+; ( c -- )
+; fetch the emit vector and EXEC it. should emit a character from TOS
+forthword_ EMIT, 0, 4, "emit"
+    call DODEFER
+    .word USER_EMIT
+    addr_ FETCHU
+    addr_ STOREU
+
+; ( -- c )
+; fetch key vector and EXEC it, should leave a single character on TOS
+forthword_ KEY, 0, 3, "key"
+    call DODEFER
+    .word USER_KEY
+    addr_ FETCHU
+    addr_ STOREU
+
+; ( -- )
+; cause subsequent output appear at the beginning of the next line
+forthword_ CR, 0, 2, "cr"
+    doliteral_ 13
+    rcall EMIT
+    rcall TEN
+    rjmp EMIT
+    
+; ( -- 32 )
+; put ascii code of the blank/space character to the stack
+
+forthword_ BL, 0, 2, "bl"
+    doliteral_ 32
+    ret
+    
+; ( -- f )
+; refills the input buffer
+forthword_ REFILL, 0, 6, "refill"
+    call DODEFER
+    .word USER_REFILL
+    addr_ FETCHU
+    addr_ STOREU
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ( addr1 n1 c -- addr2 n2 )
 ; String
@@ -21,7 +73,7 @@ PFA_CSKIP1:
     zerosense_          ; ( -- addr' n')
     breq PFA_CSKIP2
     rcall ONE
-    call SLASHSTRING
+    rcall SLASHSTRING
     rjmp PFA_CSKIP1
 
 PFA_CSKIP2:
@@ -181,7 +233,7 @@ forthword_ SRCIN, 0, 5, "srcin"
 ; skip space in input source.
 forthword_ SKIPBL, 0, 6, "skipbl"
     rcall SRCIN          ; ( srcaddr len )
-    call BL              ; ( srcaddr' len' c )
+    rcall BL              ; ( srcaddr' len' c )
     rcall CSKIP          ; ( addr2 n2 )
 
     ; adjust >IN
@@ -212,7 +264,7 @@ forthword_ PARSE, 0, 5, "parse"
 ; In the SOURCE buffer parse whitespace delimited string. Returns string address within SOURCE.
 forthword_ PNAME, 0, 5, "pname"   
     rcall SKIPBL
-    call BL
+    rcall BL
     rjmp PARSE
             
             
@@ -243,13 +295,13 @@ FINDNFA_CHECK:
     rcall R_FETCH               ; ( c-addr len c-addr len nfa )
     rcall ICOUNT                 ; ( c-addr len c-addr len f-addr len )
     zerohigh_                   ; ( c-addr len c-addr len f-addr 0:len )
-    call ICOMPARE               ; ( c-addr len flag )
+    rcall ICOMPARE               ; ( c-addr len flag )
     ; <if>
     zerosense_
     breq FINDNFA_NEXT
       ; we found the string
-      call DDROP               ; ( )
-      call R_FROM              ; ( nfa )
+      rcall DDROP               ; ( )
+      rcall R_FROM              ; ( nfa )
       ret
     ; <then>
 FINDNFA_NEXT:
@@ -316,6 +368,34 @@ FINDW_NEXT:
       oneminus_         ; ( addr len idx-1 )
       rjmp FINDW_BEGIN
 
+; ( -- addr len )
+; String
+; runtime portion of sliteral
+; string literal is located starting at return cell
+; return cell is string length
+; string then occupies the following cells: c2c1 c4c3 ...
+
+forthword_ DOSLIT, 0, 6, "(slit)"
+
+  ; get return address to get string length, calculate string address start,
+  ; and calculate return address
+  rcall R_FROM   ; ( -- raddr )  (R: raddr -- )
+  dup_          ; ( -- raddr raddr )
+  dup_          ; ( -- raddr raddr raddr )
+  ; get the string length
+  rcall FETCHI   ; ( -- raddr raddr slength )
+  rcall SWAP     ; ( -- raddr slength raddr )
+  ; calculate string address
+  oneplus_      ; ( -- raddr slength straddr )
+  ; calculate the number of words to skip over for return address
+  rcall FLIP     ; ( -- straddr slength raddr )
+  rcall OVER     ; ( -- straddr slength raddr slength)
+  rcall WALIGN   ; ( -- straddr slength raddr k/2 )
+  rcall PLUS     ; ( -- straddr slength raddr+k/2 )
+  ; also skip string length
+  oneplus_      ; ( -- straddr slength raddr+k/2+1 )
+  rcall TO_R     ; ( -- )
+  ret
 
 
 ; ( -- ) (R: i*x - j*x )
@@ -323,7 +403,7 @@ FINDW_NEXT:
 ; interpret input word by word.
 forthword_ INTERPRET, 0, 9, "interpret"
     ; begin
-    call PNAME          ; ( -- addr len )
+    rcall PNAME          ; ( -- addr len )
 
     ; ?while
     dupzerosense_       ; ( -- addr len )
@@ -418,7 +498,7 @@ forthword_ REC_NUM, 0, 7, "rec-num"
     zerosense_
     breq PFA_REC_NONUMBER
 
-    call STATE
+    rcall STATE
     rcall FETCH              ; ( n state )
     zerosense_
     breq PFA_REC_NUMBER_OK
@@ -447,7 +527,7 @@ REC_WORD_FOUND:
         rjmp CHECK_IMMEDIATE
         
 CHECK_COMPILE_ONLY:
-    call STATE
+    rcall STATE
     rcall FETCH
     zerosense_
     brne CHECK_IMMEDIATE
@@ -465,7 +545,7 @@ CHECK_IMMEDIATE:
 
 REC_WORD_CHECKSTATE:
         ; check state
-	    call STATE
+	    rcall STATE
 	    rcall FETCH
 	    zerosense_
 	    breq REC_WORD_EXECUTE
@@ -483,7 +563,7 @@ REC_WORD_OK:
 ; Interpreter
 ; recognizer for NOT FOUND
 forthword_ REC_UNK, 0, 7, "rec-unk"
-    call CR
+    rcall CR
     call TYPE
     doliteral_ -13
     jmp THROW
@@ -550,7 +630,7 @@ forthword_ DOREFILL, 0, 8, "dorefill"
     
 DOREFILL_do:
   ; refill the input buffer
-  call REFILL              ; ( f )
+  rcall REFILL              ; ( f )
   ; <if>
   zerosense_
   breq DOREFILL_end
@@ -594,8 +674,8 @@ DOINTERPRET_ok:
 ; System
 ; send the READY prompt to the command line
 forthword_ PROMPTRDY, 0, 4, "p_rd"
-    call CR
-    call DOSLITERAL
+    rcall CR
+    rcall DOSLIT
     ascii_ 2, "> "
     jmp ITYPE
 
@@ -603,8 +683,8 @@ forthword_ PROMPTRDY, 0, 4, "p_rd"
 ; System
 ; send the READY prompt to the command line
 forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
-    call CR
-    call DOSLITERAL
+    rcall CR
+    rcall DOSLIT
     ascii_ 2, ": "
     jmp ITYPE
 
@@ -612,7 +692,7 @@ forthword_ PROMPTCOMPILE, 0, 4, "p_cp"
 ; System
 ; send the OK prompt to the command line
 forthword_ PROMPTOK, 0, 4, "p_ok"
-    call DOSLITERAL
+    rcall DOSLIT
     ascii_ 3, " ok"
     jmp ITYPE
 
@@ -620,23 +700,114 @@ forthword_ PROMPTOK, 0, 4, "p_ok"
 ; System
 ; process the error prompt
 forthword_ PROMPTERROR, 0, 4, "p_er"
-	call DOSLITERAL
+	rcall DOSLIT
 	ascii_ 3, " ??"
     jmp ITYPE
-    ; save base to return stack
-	;call BASE
-	;rcall FETCH
-	;rcall TO_R
-	; make sure in decimal mode
-	;call DECIMAL
-	;call DOT
-	; print the offending word
-	;rcall G_IN
-	;rcall FETCH
-	;call DOT
-	; restore base
-	;rcall R_FROM
-	;jmp BASESTORE
+
+; ( -- flag )
+; System
+; receive a string of at most tibsize characters or cr/lf detected.
+; flag will be true if input buffer needs to be processed ie interpreted
+; flag will be false if more input needed
+
+forthword_ ACCEPT, 0, 6, "accept"
+    ; <begin>
+    rcall KEY        ; ( k )
+    dupzerosense_    ; ( k )
+    brne ACCEPT_haskey
+    ret
+
+ACCEPT_haskey:
+    ; check for EOL
+    cpi tosl, 10
+    ; <if>
+    brne ACCEPT_checkreturn
+    ret
+
+ACCEPT_checkreturn:
+    cpi tosl, 13     ; ( k k 13 )
+    ; <if>
+    brne ACCEPT_checkbackspace
+    ret
+
+ACCEPT_checkbackspace:
+    ; check backspace
+    cpi tosl, 8      ; ( k k 8 )
+    ; <if>
+    brne ACCEPT_checkcontrol
+    ; delete previous character
+    ; check beginning of line
+    ; if cursor is 0 then at begining of input
+    rcall SHARPTIB
+    rcall FETCH               ; ( k #tib )
+    ; <if>
+    zerosense_               ; ( k )
+    brne ACCEPT_dobackspace
+    ; at the beginning of the line, ignore this character
+    drop_
+    rjmp ZERO
+
+ACCEPT_dobackspace:
+    dup_                 ; ( k k )
+    rcall EMIT           ; ( k )
+    rcall BL             ; ( k bl )
+    rcall EMIT           ; ( k )
+    rcall EMIT           ; ( )
+    ; decrease cursor position by one
+    doliteral_ -1        ; ( -1 )
+    rcall SHARPTIB       ; ( -1 #tibaddr )
+    rcall PLUSSTORE       ; ( )
+    rjmp ACCEPT_checkmaxinput
+
+ACCEPT_checkcontrol:
+    ; check for remaining control characters, replace them with blank
+    cpi tosl, 32         ; ( k k bl )
+    brge ACCEPT_echo
+    drop_
+    ; replace control key with a space
+    rcall BL
+
+ACCEPT_echo:
+    ; emit the key
+    dup_                 ; ( k k)
+    rcall EMIT           ; ( k)
+    ; now store the key in the input buffer
+    call TIB             ; ( k tibaddr )
+    rcall SHARPTIB       ; ( k tibaddr #tibaddr )
+    rcall FETCH          ; ( k tibaddr #tib )
+    rcall PLUS           ; ( k tibaddr+#tib ) 
+    rcall CSTORE         ; ( )
+
+    ;call ONE            ; ( 1 ) 
+    rcall SHARPTIB       ; ( 1 #tibaddr )
+    rcall ONEPLUSSTORE   ; ( )
+
+ACCEPT_checkmaxinput:
+    ; check if max number of char input
+    doliteral_ TIBSIZE   ; ( tibsize )
+    rcall SHARPTIB       ; ( tibsize #tibaddr )
+    rcall FETCH          ; ( tibsize #tib)
+    rcall MINUS          ; ( tibsize-#tib)
+    ; <if>
+    zerosense_           ; ( )
+    breq ACCEPT_atmaxinput
+    rjmp ZERO
+    
+ACCEPT_atmaxinput:
+    ; max number of characters in input buffer so have it processed
+    rjmp TRUE
+
+; ( -- f )
+; System
+; refills the input buffer - flag is true if buffer has something
+forthword_ REFILLTIB, 0, 10, "refill-tib"
+    rcall ACCEPT               ; ( f )
+    dupzerosense_              ; ( f )
+    breq REFILLTIB_exit
+    rjmp CR
+    
+REFILLTIB_exit:
+    ret
 
 
 ; ( -- )
