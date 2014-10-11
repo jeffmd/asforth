@@ -180,7 +180,7 @@ forthword_ POPRET, DIS_CALL_OPT, 6 , "popret"
 ; ( n -- n ) (R: -- n )
 ; Stack
 ; copy TOS to TOR
-forthword_ DUP_R, INLINE_OPT, 5, "dup>r"
+forthword_ DUP_R, INLINE_OPT, 3, "r>r"
     dup_r_
     ret
 
@@ -197,8 +197,8 @@ forthword_ TO_R, DIS_CALL_OPT, 2 , ">r"
 
 ; ( -- n) (R: n -- n )
 ; Stack
-; use TOR as address to fetch content from ram
-forthword_ R_FETCH, 0, 2, "r@"
+; put a copy of TOR on TOS
+forthword_ R_FETCH, DIS_CALL_OPT, 2, "r@"
     in ZL, SPL
     in ZH, SPH
     pushtos
