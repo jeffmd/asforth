@@ -367,35 +367,3 @@ forthword_ ONLY, IMMEDIATE_EN, 4, "only"
     rcall CONTEXT
     twoplus_
     rjmp STORE
-
-; ( --  ) (C: "<spaces>name" -- voc-link )
-; Compiler
-; parse the input and create an vocabulary entry without XT and data field (PF)
-;forthword_ DOCREATE, 0, 8, "(create)"
-;    rcall PNAME
-;    rcall CURRENT
-;    rcall FETCH
-;    ; fall thru into HEADER
-;    rjmp HEADER
-
-
-; ( -- ) (C: "<spaces>name" -- )
-; Compiler
-; create a named entry in the dictionary, XT is DO_COLON
-;forthword_ COLON, 0, 1, ":"
-
-;    rcall DOCREATE
-;    rcall SMUDGE
-;    rcall STORE
-;    rcall DP
-;    rcall LATEST
-;    rcall STORE
-;    rjmp RBRACKET
-
-; ( -- )
-; Compiler
-; finish colon defintion, compiles (exit) and returns to interpret state 
-;forthword_ SEMICOLON, IMMEDIATE_EN, 1, ";"
-;    rcall LBRACKET
-;    rcall TAILOPT
-;    rjmp UWID

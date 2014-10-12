@@ -1,6 +1,18 @@
 ; dict_interpret.inc
 ; forth words that make up the forth interpreter
 
+
+.pushsection .noinit
+ram_tib: .space TIBSIZE
+.popsection
+
+; ( -- addr )
+; System Variable
+; terminal input buffer address
+forthword_ TIB, 0, 3, "tib"
+    doliteral_ ram_tib
+    ret
+
 .pushsection .noinit
 ram_sharptib: .space 2
 .popsection
@@ -57,6 +69,8 @@ forthword_ REFILL, 0, 6, "refill"
     addr_ STOREU
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ; ( addr1 n1 c -- addr2 n2 )
 ; String
 ; skips leading occurances in string at addr1/n1 leaving addr2/n2 pointing to the 1st non-c character
@@ -111,7 +125,7 @@ PFA_CSCAN2:
 
 PFA_CSCAN3:
     rcall DDROP       ; ( -- addr1)
-    jmp B_            ; ( -- addr1 n1)
+    rjmp B_            ; ( -- addr1 n1)
 
 
 
@@ -188,15 +202,6 @@ PFA_ICOMPARE_DONE:
     doliteral_ -1
     ret
     
-; ( -- addr n )
-; System
-; address and current length of the input buffer
-forthword_ SOURCE, 0, 6, "source"
-    call DODEFER
-    .word USER_SOURCE
-    addr_ FETCHU
-    addr_ STOREU
-
 ; ( addr1 u1 n -- addr2 u2 )
 ; String
 ; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
@@ -219,14 +224,23 @@ forthword_ ICOUNT, 0, 2, "$l"
     rjmp FETCHI
 
 
+; ( -- addr len )
+; System
+; address and current length of the input buffer
+forthword_ STIB, 0, 4, "stib"
+    rcall TIB
+    rcall SHARPTIB
+    rjmp FETCH
+
 ; ( -- srcaddr len  )
 ; String
 ; Adjust the source addr using >in.
 forthword_ SRCIN, 0, 5, "srcin"
-    rcall SOURCE         ; ( srcaddr len )
+    rcall STIB         ; ( srcaddr len )
     rcall G_IN           ; ( srcaddr len ginaddr )
     rcall FETCH          ; ( srcaddr len gin)
     rjmp SLASHSTRING     ; ( srcaddr' len' )
+    
 
 ; ( -- )
 ; Input
@@ -238,7 +252,7 @@ forthword_ SKIPBL, 0, 6, "skipbl"
 
     ; adjust >IN
     drop_                ; ( addr2 )
-    rcall SOURCE         ; ( addr2 srcaddr len )
+    rcall STIB           ; ( addr2 srcaddr len )
     drop_                ; ( addr2 srcaddr )
     rcall MINUS          ; ( gpos )
     rcall G_IN           ; ( gpos ginaddr )
@@ -380,20 +394,20 @@ forthword_ DOSLIT, 0, 6, "(slit)"
   ; get return address to get string length, calculate string address start,
   ; and calculate return address
   rcall R_FROM   ; ( -- raddr )  (R: raddr -- )
-  dup_          ; ( -- raddr raddr )
-  dup_          ; ( -- raddr raddr raddr )
+  dup_           ; ( -- raddr raddr )
+  dup_           ; ( -- raddr raddr raddr )
   ; get the string length
   rcall FETCHI   ; ( -- raddr raddr slength )
   rcall SWAP     ; ( -- raddr slength raddr )
   ; calculate string address
-  oneplus_      ; ( -- raddr slength straddr )
+  oneplus_       ; ( -- raddr slength straddr )
   ; calculate the number of words to skip over for return address
   rcall FLIP     ; ( -- straddr slength raddr )
   rcall OVER     ; ( -- straddr slength raddr slength)
   rcall WALIGN   ; ( -- straddr slength raddr k/2 )
   rcall PLUS     ; ( -- straddr slength raddr+k/2 )
   ; also skip string length
-  oneplus_      ; ( -- straddr slength raddr+k/2+1 )
+  oneplus_       ; ( -- straddr slength raddr+k/2+1 )
   rcall TO_R     ; ( -- )
   ret
 
@@ -403,7 +417,7 @@ forthword_ DOSLIT, 0, 6, "(slit)"
 ; interpret input word by word.
 forthword_ INTERPRET, 0, 6, "interp"
     ; begin
-    rcall PNAME          ; ( -- addr len )
+    rcall PNAME         ; ( -- addr len )
 
     ; ?while
     dupzerosense_       ; ( -- addr len )
@@ -422,72 +436,76 @@ INTERPRET_END:
 ; System
 ; recognize and execute name of word in ram using recognizer list.
 forthword_ RECX, 0, 4, "recx"
-    rcall ZERO            ; ( addr len n )
-    rcall TO_R            ; ( addr len ) (R: n )
+;    rcall ZERO            ; ( addr len n )
+;    rcall TO_R            ; ( addr len ) (R: n )
 
     ; begin
-RECX_BEGIN:
-    rcall R_FETCHPLUS     ; ( addr len n ) (R: n+1 )
-    rcall RECFETCH        ; ( addr len recxt )
+;RECX_BEGIN:
+;    rcall R_FETCHPLUS     ; ( addr len n ) (R: n+1 )
+;    rcall RECFETCH        ; ( addr len recxt )
 
     ; ?while
-    dupzerosense_         ; ( addr len recxt )
-    breq RECX_DONE
+;    dupzerosense_         ; ( addr len recxt )
+;    breq RECX_DONE
 
-    rcall TO_A            ; ( addr len ) A: recxt
+;    rcall TO_A            ; ( addr len ) A: recxt
+;    rcall TWOOVER         ; ( addr len addr len  )
+    ; put addr and len on return stack so that
+    ; stack can be manipulated by interpreted word
+;    rcall TO_R            ; ( addr len addr ) (R: n len )
+;    rcall TO_R            ; ( addr len ) (R: n len addr )
+;    rcall A_              ; ( addr len recxt ) A:
+;    rcall EXEC            ; ( [...] flag )
+    ; restore data stack to known state
+;    rcall TO_A            ; ( ) A: flag
+;    rcall R_FROM          ; ( addr ) (R: n len )
+;    rcall R_FROM          ; ( addr len ) (R: n )
+;    rcall A_              ; ( addr len flag ) A:  
+
+    ; <if>
+;    zerosense_            ; ( addr len )
+;    breq RECX_BEGIN
+
+;    rcall DDROP           ; ( ) (R: n)
+;    r_drop_               ; ( ) (R: )
+;    ret
+    
+; new recognizer
     rcall TWOOVER         ; ( addr len addr len  )
     ; put addr and len on return stack so that
     ; stack can be manipulated by interpreted word
-    rcall TO_R            ; ( addr len addr ) (R: n len )
-    rcall TO_R            ; ( addr len ) (R: n len addr )
-    rcall A_              ; ( addr len recxt ) A:
-    rcall EXEC            ; ( [...] flag )
-    ; restore data stack to known state
+    rcall TO_R            ; ( addr len addr ) (R: len )
+    rcall TO_R            ; ( addr len ) (R: len addr )
+    ; test if its a word
+    rcall REC_WORD        ; ( flag ) ( R: len addr )
     rcall TO_A            ; ( ) A: flag
     rcall R_FROM          ; ( addr ) (R: n len )
     rcall R_FROM          ; ( addr len ) (R: n )
     rcall A_              ; ( addr len flag ) A:  
-
     ; <if>
     zerosense_            ; ( addr len )
-    breq RECX_NEXT
-
-    rcall DDROP           ; ( ) (R: n)
-    r_drop_               ; ( ) (R: )
-    ret
-
-    ; <then>
-    ; <repeat>
-RECX_NEXT:
-    rjmp RECX_BEGIN
-
+    brne RECX_DONE
+    rcall TWOOVER         ; ( addr len addr len  )
+    rcall TO_R            ; ( addr len addr ) (R: len )
+    rcall TO_R            ; ( addr len ) (R: len addr )
+    ; test if its a number
+    rcall REC_NUM         ; ( flag ) ( R: len addr )
+    rcall TO_A            ; ( ) A: flag
+    rcall R_FROM          ; ( addr ) (R: n len )
+    rcall R_FROM          ; ( addr len ) (R: n )
+    rcall A_              ; ( addr len flag ) A:  
+    zerosense_            ; ( addr len )
+    brne RECX_DONE
+    ; not recognized so throw
+    rcall CR
+    ; print unrecognized word
+    call TYPE
+    rcall TRUE
+    jmp THROW
+    
 RECX_DONE:
-    dnip_
-    drop_
-    r_drop_
-    ret
+    rjmp DDROP           ; ( )
 
-; ( n -- recxt )
-; Interpreter
-; get a recognizer from the recognizer list
-; recxt is zero if at end of list
-forthword_ RECFETCH, 0, 4, "rec@"
-    dup_                               ; ( n n )
-    doliteral_ EE_RECOGNIZERLISTLEN    ; ( n n ee-reclen )
-    rcall FETCHE                       ; ( n n len )
-    rcall LESS                         ; ( n flag )
-    ; <if>
-    zerosense_                         ; ( n )
-    breq PFA_RECFETCH_ZERO
-      twostar_                         ; ( 2*n )
-      doliteral_ EE_RECOGNIZERLIST     ; ( 2*n listaddr )
-      rcall PLUS                       ; ( listaddr' )
-      rjmp FETCHE                      ; ( recxt )
-
-    ; <then>
-PFA_RECFETCH_ZERO:
-    zerotos_
-    ret
 
 ; ( addr len -- n f )
 ; Interpreter
@@ -548,7 +566,7 @@ REC_WORD_CHECKSTATE:
 	    breq REC_WORD_EXECUTE
         ; in compile mode so compile xt
  	    call COMPILEXT
-	    rjmp REC_WORD_OK
+	    rjmp TRUE
 REC_WORD_EXECUTE:
     drop_
     ; state is zero, EXEC xt
@@ -556,14 +574,6 @@ REC_WORD_EXECUTE:
 REC_WORD_OK:
     rjmp TRUE
 
-; ( addr len --  )
-; Interpreter
-; recognizer for NOT FOUND
-forthword_ REC_UNK, 0, 4, "rec?"
-    rcall CR
-    call TYPE
-    rcall TRUE
-    jmp THROW
     
 ; ( -- )
 ; System
@@ -620,7 +630,7 @@ forthword_ DOREFILL, 0, 8, "(refill)"
     rcall G_IN             ; ( 0 0 >inaddr )
     rcall STORE            ; ( 0 )
     ; reset input buffer cursor position
-    call SHARPTIB          ; ( 0 #tibaddr )
+    rcall SHARPTIB         ; ( 0 #tibaddr )
     rcall STORE            ; ( )
     rjmp QP_RD
     
@@ -731,7 +741,7 @@ ACCEPT_checkbackspace:
     ; check beginning of line
     ; if cursor is 0 then at begining of input
     rcall SHARPTIB
-    rcall FETCH               ; ( k #tib )
+    rcall FETCH              ; ( k #tib )
     ; <if>
     zerosense_               ; ( k )
     brne ACCEPT_dobackspace
@@ -764,9 +774,7 @@ ACCEPT_echo:
     dup_                 ; ( k k)
     rcall EMIT           ; ( k)
     ; now store the key in the input buffer
-    call TIB             ; ( k tibaddr )
-    rcall SHARPTIB       ; ( k tibaddr #tibaddr )
-    rcall FETCH          ; ( k tibaddr #tib )
+    rcall STIB      ; ( k tibaddr #tib)
     rcall PLUS           ; ( k tibaddr+#tib ) 
     rcall CSTORE         ; ( )
 

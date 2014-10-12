@@ -495,6 +495,11 @@ forthword_ WARM, 0, 4, "warm"
     call ONLY
     rcall USART
     rcall INTON
+    call DOSLIT
+    ascii_ 11, "asforth 1.2"
+    rcall ITYPE
+    call CR
+    
     rcall TURNKEY
     jmp QUIT
 
@@ -531,34 +536,6 @@ DORP0:
     call DOUSER
     .word USER_RP
 
-
-
-; ( -- n )
-; Stack
-; number of single-cell values contained in the data stack before n was placed on the stack.
-forthword_ DEPTH, 0, 5, "depth"
-    rcall SP0
-    call SP_FETCH
-    call MINUS
-    twoslash_
-    oneminus_
-    ret
-
-; ( --  )
-; Tools
-; check stack underflow, throw exception -4
-forthword_ QSTACK, 0, 6, "?stack"
-; : ?stack ( -- )
-;    depth 0< if -&4 throw then
-; 
-    rcall DEPTH
-    call LESSZERO
-    zerosense_
-    brne PFA_QSTACKERROR
-    ret
-PFA_QSTACKERROR:
-      doliteral_ -4
-      rjmp THROW
 
 
 ; ( r-addr r-len f-addr f-len --  f) 
@@ -695,28 +672,32 @@ PFA_QSTACKERROR:
 ;    drop_
 ;    ret
 
-
-
-
-; ( -- addr )
-; System Variable
-; terminal input buffer address
-forthword_ TIB, 0, 3, "tib"
-    doliteral_ ram_tib
+; ( -- n )
+; Stack
+; number of single-cell values contained in the data stack before n was placed on the stack.
+forthword_ DEPTH, 0, 5, "depth"
+    rcall SP0
+    call SP_FETCH
+    call MINUS
+    twoslash_
+    oneminus_
     ret
 
-.pushsection .noinit
-ram_tib: .space TIBSIZE
-.popsection
-
-
-; ( -- addr n )
-; System
-; address and current length of the input buffer
-forthword_ SOURCETIB, 0, 10, "source-tib"
-    rcall TIB
-    call SHARPTIB
-    jmp FETCH
+; ( --  )
+; Tools
+; check stack underflow, throw exception -4
+forthword_ QSTACK, 0, 6, "?stack"
+; : ?stack ( -- )
+;    depth 0< if -&4 throw then
+; 
+    rcall DEPTH
+    call LESSZERO
+    zerosense_
+    brne PFA_QSTACKERROR
+    ret
+PFA_QSTACKERROR:
+      call TRUE
+      jmp THROW
 
 ; ( -- v)
 ; System Value

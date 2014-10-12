@@ -28,7 +28,7 @@ smudge ! dp latest ! ]
 [ ;opt uwid immediate
 
 : \
-    source
+    stib
     nip
     >in
     !
