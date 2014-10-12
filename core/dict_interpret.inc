@@ -29,6 +29,14 @@ forthword_ G_IN, 0, 3, ">in"
     call DOUSER
     .word USER_G_IN
 
+; ( -- addr len )
+; System
+; address and current length of the input buffer
+forthword_ STIB, 0, 4, "stib"
+    rcall TIB
+    rcall SHARPTIB
+    rjmp FETCH
+
 ; ( c -- )
 ; fetch the emit vector and EXEC it. should emit a character from TOS
 forthword_ EMIT, 0, 4, "emit"
@@ -68,6 +76,56 @@ forthword_ REFILL, 0, 6, "refill"
     addr_ FETCHU
     addr_ STOREU
 
+; ( addr n --  )
+; reads string from flash and prints it
+forthword_ ITYPE, 0, 5, "itype"
+    rcall BTOW        ; ( addr len/2 rem )
+    rcall TO_B        ; ( addr len/2 ) B: rem
+    rcall SWAP        ; ( len/2 addr )
+    twostar_         ; ( len/2 addr*2 )
+    rcall TO_A        ; ( len/2 ) A: addr*2
+    ; begin
+PFA_ITYPE1:
+    ; ?while
+    dupzerosense_
+    breq PFA_ITYPE2
+    rcall AFETCHI     ; ( len c1c2 )
+    aplus_           ; a+
+    dup_             ; ( len c1c2 c1c2 )
+    rcall EMIT        ; ( len c1c2 )
+    highbyte_        ; ( len c2c1 )
+    rcall EMIT        ; ( len )
+    oneminus_        ; ( len-1 )
+    ; repeat
+    rjmp PFA_ITYPE1
+
+PFA_ITYPE2:
+    rcall DROP        ; ( )
+    rcall B_          ; ( rem )
+    rcall GREATERZERO ; ( flag )
+    zerosense_
+    breq PFA_ITYPE3
+      rcall AFETCHI
+      rcall EMIT
+PFA_ITYPE3:
+    ret
+    
+; ( addr n -- )
+; print a RAM based string
+forthword_ TYPE, 0, 4, "type"
+    niptoa_         ; ( n ) A: addr
+PFA_TYPE1:
+    dupzerosense_
+    breq PFA_TYPE2
+    rcall ACFETCH    ; ( n c )
+    aplus_           ; a+
+    rcall EMIT       ; ( n )
+    oneminus_        ; ( n-1 )
+    rjmp PFA_TYPE1
+PFA_TYPE2:
+    rjmp DROP
+    
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -78,13 +136,13 @@ forthword_ REFILL, 0, 6, "refill"
 forthword_ CSKIP, 0, 5, "cskip"
     rcall TO_B           ; ( -- addr1 n1 ) B: c
 PFA_CSKIP1:
-    dupzerosense_       ; ( -- addr' n')
+    dupzerosense_        ; ( -- addr' n')
     breq PFA_CSKIP2
     rcall OVER           ; ( -- addr' n' addr' )
     rcall CFETCH         ; ( -- addr' n' c' )
     rcall B_             ; ( -- addr' n' c' c )
     rcall EQUAL          ; ( -- addr' n' f )
-    zerosense_          ; ( -- addr' n')
+    zerosense_           ; ( -- addr' n')
     breq PFA_CSKIP2
     rcall ONE
     rcall SLASHSTRING
@@ -223,14 +281,6 @@ forthword_ ICOUNT, 0, 2, "$l"
     rcall SWAP
     rjmp FETCHI
 
-
-; ( -- addr len )
-; System
-; address and current length of the input buffer
-forthword_ STIB, 0, 4, "stib"
-    rcall TIB
-    rcall SHARPTIB
-    rjmp FETCH
 
 ; ( -- srcaddr len  )
 ; String
@@ -436,41 +486,6 @@ INTERPRET_END:
 ; System
 ; recognize and execute name of word in ram using recognizer list.
 forthword_ RECX, 0, 4, "recx"
-;    rcall ZERO            ; ( addr len n )
-;    rcall TO_R            ; ( addr len ) (R: n )
-
-    ; begin
-;RECX_BEGIN:
-;    rcall R_FETCHPLUS     ; ( addr len n ) (R: n+1 )
-;    rcall RECFETCH        ; ( addr len recxt )
-
-    ; ?while
-;    dupzerosense_         ; ( addr len recxt )
-;    breq RECX_DONE
-
-;    rcall TO_A            ; ( addr len ) A: recxt
-;    rcall TWOOVER         ; ( addr len addr len  )
-    ; put addr and len on return stack so that
-    ; stack can be manipulated by interpreted word
-;    rcall TO_R            ; ( addr len addr ) (R: n len )
-;    rcall TO_R            ; ( addr len ) (R: n len addr )
-;    rcall A_              ; ( addr len recxt ) A:
-;    rcall EXEC            ; ( [...] flag )
-    ; restore data stack to known state
-;    rcall TO_A            ; ( ) A: flag
-;    rcall R_FROM          ; ( addr ) (R: n len )
-;    rcall R_FROM          ; ( addr len ) (R: n )
-;    rcall A_              ; ( addr len flag ) A:  
-
-    ; <if>
-;    zerosense_            ; ( addr len )
-;    breq RECX_BEGIN
-
-;    rcall DDROP           ; ( ) (R: n)
-;    r_drop_               ; ( ) (R: )
-;    ret
-    
-; new recognizer
     rcall TWOOVER         ; ( addr len addr len  )
     ; put addr and len on return stack so that
     ; stack can be manipulated by interpreted word
@@ -499,7 +514,7 @@ forthword_ RECX, 0, 4, "recx"
     ; not recognized so throw
     rcall CR
     ; print unrecognized word
-    call TYPE
+    rcall TYPE
     rcall TRUE
     jmp THROW
     
@@ -589,33 +604,6 @@ QP_RD_exit:
     ; <then>
       rjmp PROMPTCOMPILE
 
-    
-
-; ( -- )
-; System
-; main loop - iterate through scheduled tasks 
-forthword_ DOTASKS, 0, 7, "(tasks)"
-    ; <begin>
-      rcall DOREFILL
-      rcall PAUSE
-    ; <again>
-    rjmp DOTASKS
-
-; ( -- )
-; System
-; reset stacks and start over again
-forthword_ QUIT, 0, 4, "quit"
-    ; reset data stack
-    call SP0
-    rcall SP_STORE
-    ; reset return stack pointers
-    call RP0
-    rcall RP_STORE
-    ; switch to interpret mode
-    rcall LBRACKET
-    
-    rjmp DOTASKS
-    
 ; ( -- )
 ; System
 ; wait for the input buffer to be refilled then interpret
@@ -646,6 +634,41 @@ DOREFILL_do:
 DOREFILL_end:
   ; <then>
   ret      
+    
+; ( -- )
+; Multitasking
+; Fetch pause vector and EXEC it. may make a context/task switch
+forthword_ PAUSE, 0, 5, "pause"
+    call DODEFER
+    .word USER_PAUSE
+    addr_ FETCHU
+    addr_ STOREU
+
+; ( -- )
+; System
+; main loop - iterate through scheduled tasks 
+forthword_ DOTASKS, 0, 7, "(tasks)"
+    ; <begin>
+      rcall DOREFILL
+      rcall PAUSE
+    ; <again>
+    rjmp DOTASKS
+
+; ( -- )
+; System
+; reset stacks and start over again
+forthword_ QUIT, 0, 4, "quit"
+    ; reset data stack
+    call SP0
+    rcall SP_STORE
+    ; reset return stack pointers
+    call RP0
+    rcall RP_STORE
+    ; switch to interpret mode
+    rcall LBRACKET
+    
+    rjmp DOTASKS
+    
         
 ; ( -- )
 ; System
@@ -679,7 +702,7 @@ forthword_ PROMPTRDY, 0, 2, ".>"
     rcall CR
     rcall DOSLIT
     ascii_ 2, "> "
-    jmp ITYPE
+    rjmp ITYPE
 
 ; ( -- )
 ; System
@@ -688,7 +711,7 @@ forthword_ PROMPTCOMPILE, 0, 2, ".:"
     rcall CR
     rcall DOSLIT
     ascii_ 2, ": "
-    jmp ITYPE
+    rjmp ITYPE
 
 ; ( -- )
 ; System
@@ -696,7 +719,7 @@ forthword_ PROMPTCOMPILE, 0, 2, ".:"
 forthword_ PROMPTOK, 0, 3, ".ok"
     rcall DOSLIT
     ascii_ 3, " ok"
-    jmp ITYPE
+    rjmp ITYPE
 
 ; ( n -- )
 ; System
@@ -704,7 +727,7 @@ forthword_ PROMPTOK, 0, 3, ".ok"
 forthword_ PROMPTERROR, 0, 3, ".??"
 	rcall DOSLIT
 	ascii_ 3, " ??"
-    jmp ITYPE
+    rjmp ITYPE
 
 ; ( -- flag )
 ; System
@@ -807,13 +830,3 @@ forthword_ REFILLTIB, 0, 6, "reftib"
     
 REFILLTIB_exit:
     ret
-
-
-; ( -- )
-; Multitasking
-; Fetch pause vector and EXEC it. may make a context/task switch
-forthword_ PAUSE, 0, 5, "pause"
-    call DODEFER
-    .word USER_PAUSE
-    addr_ FETCHU
-    addr_ STOREU

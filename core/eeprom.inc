@@ -19,9 +19,9 @@ EE_FORTHWORDLIST:
 EE_INITUSER:
     .word 0  ; USER_STATE
     .word 0  ; USER_PAUSE
-    .word rstackstart  ; USER_RP
-    .word stackstart   ; USER_SP0
-    .word stackstart   ; USER_SP
+    .word rstackstart  ; USER_RP - not used
+    .word stackstart   ; USER_SP0 - not used
+    .word stackstart   ; USER_SP - not used
     
     .word 0  ; USER_HANDLER
     .word 10 ; USER_BASE

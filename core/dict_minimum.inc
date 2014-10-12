@@ -29,8 +29,6 @@ forthword_ HERE, 0, 4, "here"
     addr_ FETCHE
     addr_ STOREE
 
-
-
 ; ( n -- )
 ; Numeric IO
 ; save base
@@ -186,59 +184,6 @@ forthword_ UGREATEREQUAL, 0, 3, "u>="
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-; ( addr n --  )
-; Tools
-; reads string from flash and prints it
-forthword_ ITYPE, 0, 5, "itype"
-    call BTOW        ; ( addr len/2 rem )
-    call TO_B        ; ( addr len/2 ) B: rem
-    call SWAP        ; ( len/2 addr )
-    twostar_         ; ( len/2 addr*2 )
-    call TO_A        ; ( len/2 ) A: addr*2
-    ; begin
-PFA_ITYPE1:
-    ; ?while
-    dupzerosense_
-    breq PFA_ITYPE2
-    call AFETCHI     ; ( len c1c2 )
-    aplus_           ; a+
-    dup_             ; ( len c1c2 c1c2 )
-    call EMIT        ; ( len c1c2 )
-    highbyte_        ; ( len c2c1 )
-    call EMIT        ; ( len )
-    oneminus_        ; ( len-1 )
-    ; repeat
-    rjmp PFA_ITYPE1
-
-PFA_ITYPE2:
-    call DROP        ; ( )
-    call B_          ; ( rem )
-    call GREATERZERO ; ( flag )
-    zerosense_
-    breq PFA_ITYPE3
-      call AFETCHI
-      call EMIT
-PFA_ITYPE3:
-    ret
-
-
-; ( addr n -- )
-; Character IO
-; print a RAM based string
-forthword_ TYPE, 0, 4, "type"
-    niptoa_         ; ( n ) A: addr
-PFA_TYPE1:
-    dupzerosense_
-    breq PFA_TYPE2
-    call ACFETCH     ; ( n c )
-    aplus_           ; a+
-    call EMIT       ; ( n )
-    oneminus_        ; ( n-1 )
-    rjmp PFA_TYPE1
-PFA_TYPE2:
-    jmp DROP
 
 
 ; USER variable used by catch/throw
@@ -448,6 +393,12 @@ PFA_NUMBER5:
     call R_FROM             ; ( n true base ) (R: )
     rjmp BASESTORE          ; ( n true )
 
+
+; allocate space for User Area
+.pushsection .noinit
+ram_user1: .space SYSUSERSIZE
+.popsection
+
 ; ( -- )
 ; System
 ; start up asforth.
@@ -458,7 +409,6 @@ forthword_ COLD, 0, 4, "cold"
     clr zerol
     out_ MCUSR, zerol
     ; init first user data area
-    ; allocate space for User Area
     ldi ZL, lo8(ram_user1)
     ldi ZH, hi8(ram_user1)
     movw upl, ZL
@@ -466,21 +416,14 @@ forthword_ COLD, 0, 4, "cold"
 	; using the MCU SP registers
     ldi temp0, lo8(rstackstart)
     out_ SPL,temp0
-    std Z+USER_RP, temp0
     ldi temp1, hi8(rstackstart)
     out_ SPH,temp1
-    std Z+USER_RP+1, temp1
 
     ; init parameter stack pointer
     ldi YL, lo8(stackstart)
-    std Z+USER_SP0, YL
     ldi YH, hi8(stackstart)
-    std Z+USER_SP0+1, YH
     rjmp WARM
 
-.pushsection .noinit
-ram_user1: .space SYSUSERSIZE
-.popsection
 
 ; ( nx* -- ) (R: ny* -- )
 ; System
@@ -497,7 +440,7 @@ forthword_ WARM, 0, 4, "warm"
     rcall INTON
     call DOSLIT
     ascii_ 11, "asforth 1.2"
-    rcall ITYPE
+    call ITYPE
     call CR
     
     rcall TURNKEY
@@ -509,32 +452,15 @@ forthword_ WARM, 0, 4, "warm"
 ; Stack
 ; start address of the data stack
 forthword_ SP0, 0, 3, "sp0"
-    call DOVALUE
-    .word USER_SP0
-    addr_ FETCHU
-    addr_ STOREU
-
-; ( -- addr)
-; Stack
-; address of user variable to store top-of-stack for inactive tasks
-forthword_ SP, 0, 2, "sp"
-    call DOUSER
-    .word USER_SP
-
+    doliteral_ stackstart
+    ret
+    
 ; ( -- addr)
 ; Stack
 ; start address of return stack
 forthword_ RP0, 0, 3, "rp0"
-    rcall DORP0
-    jmp FETCH
-
-; ( -- addr)
-; Stack
-; user variable of the address of the initial return stack
-;forthword_ DORP0, 0, 5, "(rp0)"
-DORP0:
-    call DOUSER
-    .word USER_RP
+    doliteral_ rstackstart
+    ret
 
 
 
