@@ -168,6 +168,7 @@ PFA_CSCAN1:
     rcall LESS        ; ( -- addr1 c n2 flag )
     zerosense_        ; ( -- addr1 c n2 )
     breq PFA_CSCAN3
+    
     rcall OVER        ; ( -- addr1 c n2 c )
     rcall ACFETCH     ; ( -- addr1 c n2 c c')
     aplus_
@@ -183,7 +184,7 @@ PFA_CSCAN2:
 
 PFA_CSCAN3:
     rcall DDROP       ; ( -- addr1)
-    rjmp B_            ; ( -- addr1 n1)
+    rjmp B_           ; ( -- addr1 n1)
 
 
 
@@ -563,7 +564,7 @@ CHECK_COMPILE_ONLY:
     zerosense_
     brne CHECK_IMMEDIATE
         ; word can only be used in compile state
-        doliteral_ -14
+        rcall TRUE
         jmp THROW
     
 

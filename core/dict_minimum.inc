@@ -237,7 +237,6 @@ PFA_THROW1:
     jmp SP_STORE      ; ( n )
 
 
-
 ; ( -- )
 ; send Ctrl-Q (XON) to resume transmission
 ;forthword_ XON, 0, 3, "XON"
@@ -250,27 +249,6 @@ PFA_THROW1:
 ;    rjmp EMIT
 
     
-
-
-; ( addr len -- addr' len' )
-; Numeric IO
-; skip a numeric prefix character
-;forthword_ PRAEFIX, 0, 7, "praefix"
-PRAEFIX:        ; ( adr1 len1 -- adr2 len2 )
-    call OVER
-    call CFETCH
-    doliteral_ 0x2F
-    call GREATER
-    zerosense_
-    breq PFA_PRAEFIX0
-    ret
-
-PFA_PRAEFIX0:
-    call OVER
-    call CFETCH
-    rcall SETBASE
-    doliteral_ 0x1
-    jmp SLASHSTRING
 
 ; (c -- ) Numeric IO
 ; R( -- )
@@ -296,33 +274,40 @@ PFA_SETBASE1:
 PFA_SETBASE2:        ; ( error)
     rjmp DECIMAL
 
+; ( addr len -- addr' len' )
+; Numeric IO
+; skip a numeric prefix character
+;forthword_ PRAEFIX, 0, 7, "praefix"
+PRAEFIX:        ; ( adr1 len1 -- adr2 len2 )
+    call OVER
+    call CFETCH
+    cpi tosl, 0x30 
+    brlo PFA_PRAEFIX0
+    ; no praefix
+    drop_
+    ret
+
+PFA_PRAEFIX0:
+    rcall SETBASE
+    call ONE
+    jmp SLASHSTRING
+
 ; (addr len -- addr len flag) Numeric IO
-; R( -- )
-; check for + - sign
-;forthword_ SETBASE, 0, A, "numbersign"
+; check for - sign
+; forthword_ NUMBERSIGN, 0, A, "numbersign"
 NUMBERSIGN:        ; ( addr len -- )
     call OVER      ; ( addr len addr )
     call CFETCH    ; ( addr len char )
-    doliteral_ '+  ; ( addr len char '+' )
-    call EQUAL     ; ( addr len flag )
-    zerosense_
-    breq PFA_NUMBERSIGN_MINUS
+    cpi tosl, '-
+    breq NUMBERSIGN_HASSIGN
+      zerotos_
+      ret
+NUMBERSIGN_HASSIGN:
+      call TO_R
       call ONE
       call SLASHSTRING
-PFA_NUMBERSIGN_MINUS:
-    call OVER          ; ( -- addr len addr )
-    call CFETCH
-    doliteral_ '-
-    call EQUAL         ; ( -- addr len flag )
-    dup_               ; ( addr len flag flag )
-    call TO_R          ; ( addr len flag ) ( R: flag )
-    zerosense_
-    breq PFA_NUMBERSIGN_PLUS
-    call ONE      ; skip sign character
-    call SLASHSTRING
-PFA_NUMBERSIGN_PLUS:
-    call R_FROM        ; ( addr len flag )
-    ret
+      call R_FROM
+      ret
 
 ; ( u1 c-addr1 len1 -- u2 c-addr2 len2 )
 ; Numeric IO
