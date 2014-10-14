@@ -237,15 +237,22 @@ forthword_ EQUALZERO, 0, 2, "0="
     or tosh, tosl
     rjmp PFA_EQUALDONE
 
+
+; ( n t -- t )
+; compare top of stack and next on top of stack 
+forthword_ NTCP, 0, 4, "ntcp"
+    ld temp0, Y+
+    ld temp1, Y+
+    cp temp0, tosl
+    cpc temp1, tosh
+    ret
+
 ; ( n1 n2 -- flag ) 
 ; Compare
 ; compares two values for equality
 
 forthword_ EQUAL, 0, 1, "="
-    ld temp2, Y+
-    ld temp3, Y+
-    cp tosl, temp2
-    cpc tosh, temp3
+    rcall NTCP
 PFA_EQUALDONE:
     brne PFA_ZERO1
     rjmp PFA_TRUE1
@@ -254,10 +261,7 @@ PFA_EQUALDONE:
 ; Compare
 ; true if n1 is less than n2
 forthword_ LESS, 0, 1, "<"
-    ld temp2, Y+
-    ld temp3, Y+
-    cp temp2, tosl
-    cpc temp3, tosh
+    rcall NTCP
 PFA_LESSDONE:
     brge PFA_ZERO1
     rjmp PFA_TRUE1
@@ -266,14 +270,28 @@ PFA_LESSDONE:
 ; Compare
 ; flag is true if n1 is greater than n2
 forthword_ GREATER, 0, 1, ">"
-    ld temp2, Y+
-    ld temp3, Y+
-    cp temp2, tosl
-    cpc temp3, tosh
+    rcall NTCP
 PFA_GREATERDONE:
     brlt PFA_ZERO1
-    brbs 1, PFA_ZERO1
+    breq PFA_ZERO1
     rjmp PFA_TRUE1
+
+; ( u1 u2 -- flag ) 
+; Compare
+; true if u1 > u2 (unsigned)
+forthword_ UGREATER, 0, 2, "u>"
+    rcall NTCP
+    brlo PFA_ZERO1
+    breq PFA_ZERO1
+    rjmp PFA_TRUE1
+
+; ( u1 u2 -- flag) 
+; Compare
+; true if u1 < u2 (unsigned)
+forthword_ ULESS, 0, 2, "u<"
+    rcall NTCP
+    brlo PFA_TRUE1
+    rjmp PFA_ZERO1
 
 ; ( n1 -- flag) 
 ; Compare
@@ -281,18 +299,6 @@ PFA_GREATERDONE:
 forthword_ LESSZERO, 0, 2, "0<"
     sbiw tosl, 0
     rjmp PFA_LESSDONE
-
-; ( u1 u2 -- flag ) 
-; Compare
-; true if u1 > u2 (unsigned)
-forthword_ UGREATER, 0, 2, "u>"
-    ld temp2, Y+
-    ld temp3, Y+
-    cp temp2, tosl
-    cpc temp3, tosh
-    brlo PFA_ZERO1
-    brbs 1, PFA_ZERO1
-    rjmp PFA_TRUE1
 
 ; ( n1 -- flag ) 
 ; Compare
@@ -367,18 +373,6 @@ forthword_ ZEROSENSE, INLINE_OPT, 2, "0?"
 forthword_ QZEROSENSE, INLINE_OPT, 3, "?0?"
     dupzerosense_
     ret
-
-; ( u1 u2 -- flag) 
-; Compare
-; true if u1 < u2 (unsigned)
-forthword_ ULESS, 0, 2, "u<"
-    ld temp2, Y+
-    ld temp3, Y+
-    cp tosl, temp2
-    cpc tosh, temp3
-    brlo PFA_ZERO1
-    brbs 1, PFA_ZERO1
-    rjmp PFA_TRUE1
 
 
 ; ( n1|u1 n2|u2 -- n3|u3 ) 
