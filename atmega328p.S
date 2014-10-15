@@ -12,6 +12,6 @@
 .include "drivers/usart_0.S"
 
 .Set rstackstart, RAMEND
-.Set stackstart, RAMEND - 80
+.Set stackstart, RAMEND - 50
 
 .include "asforth.S"

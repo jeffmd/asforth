@@ -387,7 +387,6 @@ ram_user1: .space SYSUSERSIZE
 ; ( -- )
 ; System
 ; start up asforth.
-
 forthword_ COLD, 0, 4, "cold"
     in_ r10, MCUSR
     clr r11

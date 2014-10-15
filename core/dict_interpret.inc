@@ -685,8 +685,6 @@ forthword_ DOINTERPRET, 0, 8, "(interp)"
   zerosense_
   breq DOINTERPRET_ok
     rcall PROMPTERROR
-	
-	; <then>
 	rjmp QUIT
 	
   ; <then>
