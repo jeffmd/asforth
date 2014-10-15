@@ -19,29 +19,11 @@ EE_FORTHWORDLIST:
 EE_INITUSER:
     .word 0  ; USER_STATE
     .word 0  ; USER_PAUSE
-    .word rstackstart  ; USER_RP - not used
-    .word stackstart   ; USER_SP0 - not used
-    .word stackstart   ; USER_SP - not used
     
     .word 0  ; USER_HANDLER
     .word 10 ; USER_BASE
     
     addr_ XT_TX  ; USER_EMIT
-    addr_ XT_TXQ ; USER_EMITQ
     addr_ XT_RX  ; USER_KEY
-    addr_ XT_RXQ ; USER_KEYQ
-    addr_ 0      ; USER_SKEY - not used
     .word 1      ; USER_G_IN
     addr_ REFILLTIB ; USER_REFILL  
-
-
-;EE_RECOGNIZERS:
-;EE_RECOGNIZERLISTLEN:
-;    .word 3
-;EE_RECOGNIZERLIST:
-;    addr_ REC_WORD
-;    addr_ REC_NUM
-;    addr_ REC_UNK
-;    .word -1
-;    .word -1
-;    .word -1

@@ -238,7 +238,7 @@ forthword_ EQUALZERO, 0, 2, "0="
     rjmp PFA_EQUALDONE
 
 
-; ( n t -- t )
+; ( n2 n1 -- n1 )
 ; compare top of stack and next on top of stack 
 forthword_ NTCP, 0, 4, "ntcp"
     ld temp0, Y+
