@@ -22,6 +22,7 @@ forthword_ USART, 0, 6, "+usart"
   call CSTORE
 
   doliteral_ UBRR_VAL
+  doliteral_ BAUDRATE_HIGH
   call HSTORE
 
   call XT_USART_INIT_RX

@@ -22,19 +22,19 @@ ASM definitions
     >r >r                              \ -- Rd Rr | -- mask opcode 
     $1F and dup 5 << or $20F and       \ -- Rd r00000rrrr
     swap 4 << $1F0 and                 \ -- rr 0ddddd0000
-    or r> r>  mask!                  \ -- ddrr opcode mask mask!
+    or r> r>  mask!                    \ -- ddrr opcode mask mask!
     dup $FC07 and $9000 = if $EFFF and then , ; \ if Z or Y then z=0 
 
 
   \ Operand Rd
 : Rd,       ( Rd opcode mask -- xxxx.xxxd.dddd.xxxx )
-    >r >r                             \ -- Rd | -- mask opcode 
-    4 << $1F0 and                 \ -- 0ddddd0000
-    r> r> mask! , ;                   \ dd opcode mask mask! to flash
+    >r >r                          \ -- Rd | -- mask opcode 
+    4 << $1F0 and                  \ -- 0ddddd0000
+    r> r> mask! , ;                \ dd opcode mask mask! to flash
     
   \ Operands Rd,Rr,constant 6bit
 : Rd,Rr+q,  ( Rd Rr k6 opcode mask -- xxkx.kkxd.dddd.rkkk )
-    >r >r                              \ -- Rd Rr k6 | -- mask opcode
+    >r >r                           \ -- Rd Rr k6 | -- mask opcode
     $3F and dup 7 <<                \ -- Rd Rr k6 xkkkkkkxxxxxxx
     dup $1000 and 1 << or or $2C07 and  \ -- Rd Rr kxkkxxxxxxxkkk
     rot 4 << $1F0 and               \ -- Rr kk ddddd0000
@@ -52,10 +52,10 @@ ASM definitions
     
   \ Operands Rd,P-port
 : Rd,P,     ( Rd P opcode mask -- xxxx.xPPd.dddd.PPPP )
-    >r >r                              \ -- Rd P | -- mask opcode 
-    $3F and dup 5 << or $60F and     \ -- Rd PP00000PPPP
+    >r >r                           \ -- Rd P | -- mask opcode 
+    $3F and dup 5 << or $60F and    \ -- Rd PP00000PPPP
     swap 4 << $1F0 and              \ -- PP 00ddddd0000
-    or r> r> mask! , ;                 \ ddPP opcode mask mask! to flash
+    or r> r> mask! , ;              \ ddPP opcode mask mask! to flash
 
 
 $00 con Z

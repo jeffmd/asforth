@@ -213,7 +213,7 @@ forthword_ CATCH, 0, 5, "catch"
     call R_FROM         ; ( hxt ) (R: callerret SP )
     rcall HANDLER       ; ( hxt haddr )
     call STORE          ; ( )
-    r_drop_         ; ( ) (R: callerret)
+    r_drop_             ; ( ) (R: callerret)
     jmp ZERO
 
 ; ( n -- )
@@ -234,7 +234,11 @@ PFA_THROW1:
     rcall HANDLER      ; ( n hxt haddr )
     call STORE         ; ( n )
     call R_FROM        ; ( n SP ) (R: callerret )
-    jmp SP_STORE      ; ( n )
+    call SWAP          ; ( SP n ) (R: callerret )
+    call TO_R          ; ( SP ) (R: callerret n )
+    call SP_STORE      ; ( ... )
+    call R_FROM        ; ( ... n )
+    ret
 
 
 ; ( -- )
@@ -272,7 +276,11 @@ PFA_SETBASE1:
     rjmp DECIMAL
 
 PFA_SETBASE2:        ; ( error)
-    rjmp DECIMAL
+    dup_
+    movw tosl, temp0
+    call EMIT
+    doliteral_ 0xBD
+    rjmp THROW
 
 ; ( addr len -- addr' len' )
 ; Numeric IO
@@ -606,8 +614,9 @@ forthword_ QSTACK, 0, 6, "?stack"
     brne PFA_QSTACKERROR
     ret
 PFA_QSTACKERROR:
-      call TRUE
-      jmp THROW
+      
+      doliteral_ 0xBEF
+      rjmp THROW
 
 ; ( -- v)
 ; System Value

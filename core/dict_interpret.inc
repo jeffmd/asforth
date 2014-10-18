@@ -516,7 +516,7 @@ forthword_ RECX, 0, 4, "recx"
     rcall CR
     ; print unrecognized word
     rcall TYPE
-    rcall TRUE
+    doliteral_ 0xBAD
     jmp THROW
     
 RECX_DONE:
@@ -564,7 +564,7 @@ CHECK_COMPILE_ONLY:
     zerosense_
     brne CHECK_IMMEDIATE
         ; word can only be used in compile state
-        rcall TRUE
+        doliteral_ 0xBC
         jmp THROW
     
 
@@ -679,7 +679,7 @@ forthword_ DOINTERPRET, 0, 8, "(interp)"
       ; setup exception handling in case of error
   doliteral_ pm(INTERPRET)
   call CATCH
-  ; check to make sure data stack is ok
+  ; check to make sure no throws
   rcall QDUP
   ; <if>
   zerosense_
@@ -725,8 +725,10 @@ forthword_ PROMPTOK, 0, 3, ".ok"
 ; process the error prompt
 forthword_ PROMPTERROR, 0, 3, ".??"
 	rcall DOSLIT
-	ascii_ 3, " ??"
-    rjmp ITYPE
+	ascii_ 4, " ?? "
+    rcall ITYPE
+    jmp PHEX 
+
 
 ; ( -- flag )
 ; System
@@ -751,12 +753,12 @@ ACCEPT_haskey:
 ACCEPT_checkreturn:
     cpi tosl, 13     ; ( k k 13 )
     ; <if>
-    brne ACCEPT_checkbackspace
+    brne ACCEPT_checkdelete
     ret
 
-ACCEPT_checkbackspace:
-    ; check backspace
-    cpi tosl, 8      ; ( k k 8 )
+ACCEPT_checkdelete:
+    ; check delete
+    cpi tosl, 127      ; ( k k 8 )
     ; <if>
     brne ACCEPT_checkcontrol
     ; delete previous character
@@ -766,19 +768,20 @@ ACCEPT_checkbackspace:
     rcall FETCH              ; ( k #tib )
     ; <if>
     zerosense_               ; ( k )
-    brne ACCEPT_dobackspace
+    brne ACCEPT_dodelete
     ; at the beginning of the line, ignore this character
     drop_
     rjmp ZERO
 
-ACCEPT_dobackspace:
+ACCEPT_dodelete:
+    andi tosl, 8
     dup_                 ; ( k k )
     rcall EMIT           ; ( k )
     rcall BL             ; ( k bl )
     rcall EMIT           ; ( k )
     rcall EMIT           ; ( )
     ; decrease cursor position by one
-    doliteral_ -1        ; ( -1 )
+    rcall TRUE           ; ( -1 )
     rcall SHARPTIB       ; ( -1 #tibaddr )
     rcall PLUSSTORE       ; ( )
     rjmp ACCEPT_checkmaxinput

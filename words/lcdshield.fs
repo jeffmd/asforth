@@ -74,6 +74,17 @@ cvar line
   $F0 DDRD rbs
   \ setup pins 0,1,2 on Port B DDR for output
   %00000111 DDRB rbs
+  \ setup Timer1 for fast PWM using ICR1 as TOP
+  \ use inverting output on OC1B (D10 port B 2) so brightness goes
+  \ all the way off
+  $1B32 TCCR1A !
+  1000 ICR1H h!
+  1000 OCR1BH h!
+;
+
+\ dim the light
+: dim ( n -- )
+  OCR1BH h!
 ;
 
 \ pulse enable line of lcd
@@ -227,7 +238,7 @@ cvar line
   $80 or cmd
 ;
 
-\ turn backlight on
+\ turn backlight all the way on
 : light
   [ PORTB DIO 2 sbi, ]
 ;
