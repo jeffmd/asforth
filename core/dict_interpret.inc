@@ -314,9 +314,8 @@ forthword_ SKIPBL, 0, 6, "skipbl"
 ; String
 ; in input buffer parse ccc delimited string by the delimiter char.
 forthword_ PARSE, 0, 5, "parse"
-    rcall TO_R       ; ( -- ) (R: c )
-    rcall SRCIN      ; ( -- addr len)
-    rcall R_FROM     ; ( -- addr' len' c)
+    rcall SRCIN      ; ( -- c addr len)
+    rcall ROT        ; ( -- addr' len' c)
     rcall CSCAN      ; ( -- addr' len'')
     dup_             ; ( -- addr' len'' len'')
     oneplus_         ; ( -- addr' len'' len''+1 )
