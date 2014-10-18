@@ -82,7 +82,7 @@ forthword_ ITYPE, 0, 5, "itype"
     rcall BTOW        ; ( addr len/2 rem )
     rcall TO_B        ; ( addr len/2 ) B: rem
     rcall SWAP        ; ( len/2 addr )
-    twostar_         ; ( len/2 addr*2 )
+    twostar_          ; ( len/2 addr*2 )
     rcall TO_A        ; ( len/2 ) A: addr*2
     ; begin
 PFA_ITYPE1:
@@ -90,12 +90,12 @@ PFA_ITYPE1:
     dupzerosense_
     breq PFA_ITYPE2
     rcall AFETCHI     ; ( len c1c2 )
-    aplus_           ; a+
-    dup_             ; ( len c1c2 c1c2 )
+    aplus_            ; a+
+    dup_              ; ( len c1c2 c1c2 )
     rcall EMIT        ; ( len c1c2 )
-    highbyte_        ; ( len c2c1 )
+    highbyte_         ; ( len c2c1 )
     rcall EMIT        ; ( len )
-    oneminus_        ; ( len-1 )
+    oneminus_         ; ( len-1 )
     ; repeat
     rjmp PFA_ITYPE1
 
@@ -113,7 +113,7 @@ PFA_ITYPE3:
 ; ( addr n -- )
 ; print a RAM based string
 forthword_ TYPE, 0, 4, "type"
-    niptoa_         ; ( n ) A: addr
+    niptoa_          ; ( n ) A: addr
 PFA_TYPE1:
     dupzerosense_
     breq PFA_TYPE2
@@ -198,59 +198,59 @@ forthword_ ICOMPARE, 0, 4, "icmp"
     ; check if strings are same length
     rcall NOTEQUAL           ; ( r-addr r-len f-addr flag )
     ; if
-    zerosense_              ; ( r-addr r-len f-addr )
+    zerosense_               ; ( r-addr r-len f-addr )
     breq PFA_ICOMPARE_SAMELEN
 
     ; strings are not the same length
     dnip_
-    zerotos_                ; ( 0 )
+    zerotos_                 ; ( 0 )
     ret
 
     ; then
 PFA_ICOMPARE_SAMELEN:
-    twostar_                ; ( r-addr len f-addr*2 )
+    twostar_                 ; ( r-addr len f-addr*2 )
     rcall TO_A               ; ( r-addr len ) A: f-addr
-    oneplus_                ; ( r-addr len+1 )
-    twoslash_               ; ( r-addr (len+1)/2 )
+    oneplus_                 ; ( r-addr len+1 )
+    twoslash_                ; ( r-addr (len+1)/2 )
 
     ; begin
 PFA_ICOMPARE_LOOP:
-    copytob_                ; ( r-addr len ) B: len
+    copytob_                 ; ( r-addr len ) B: len
     ; while
-    zerosense_              ; ( r-addr )
+    zerosense_               ; ( r-addr )
     breq PFA_ICOMPARE_DONE
 
-    dup_                    ; ( r-addr r-addr )
+    dup_                     ; ( r-addr r-addr )
     rcall FETCH              ; ( r-addr r-cc )
     rcall AFETCHI            ; ( r-addr r-cc f-cc )
     aplus_
     ; flash strings are zero-padded at the last cell
     ; that means: if the flash cell is less $0100, than mask the
     ; high byte in the ram cell
-    dup_                    ; ( r-addr r-cc f-cc f-cc )
-    doliteral_ 0x100        ; ( r-addr r-cc f-cc f-cc 0x100 )
-    rcall ULESS               ; ( r-addr r-cc f-cc flag)
+    dup_                     ; ( r-addr r-cc f-cc f-cc )
+    doliteral_ 0x100         ; ( r-addr r-cc f-cc f-cc 0x100 )
+    rcall ULESS              ; ( r-addr r-cc f-cc flag)
     ; if
     zerosense_
     breq PFA_ICOMPARE_LASTCELL
     rcall SWAP               ; ( r-addr f-cc r-cc)
-    zerohigh_               ; ( r-addr f-cc 0:r-cc)
+    zerohigh_                ; ( r-addr f-cc 0:r-cc)
     ; then
 PFA_ICOMPARE_LASTCELL:
     rcall NOTEQUAL           ; ( r-addr flag)
     ; if
-    zerosense_              ; ( r-addr )
+    zerosense_               ; ( r-addr )
     breq PFA_ICOMPARE_NEXTLOOP
 
     ; strings don't match
-    zerotos_                ; ( 0 )
+    zerotos_                 ; ( 0 )
     ret
 
     ; then
 PFA_ICOMPARE_NEXTLOOP:
-    twoplus_              ; ( r-addr+2 )
-    rcall B_               ; ( r-addr+2 len )
-    oneminus_             ; ( r-addr+2 len-1 )
+    twoplus_                 ; ( r-addr+2 )
+    rcall B_                 ; ( r-addr+2 len )
+    oneminus_                ; ( r-addr+2 len-1 )
 
     ; repeat
     rjmp PFA_ICOMPARE_LOOP
@@ -258,7 +258,7 @@ PFA_ICOMPARE_NEXTLOOP:
 PFA_ICOMPARE_DONE:
     ; strings are the same
     drop_
-    doliteral_ -1
+    rcall TRUE
     ret
     
 ; ( addr1 u1 n -- addr2 u2 )
@@ -357,9 +357,9 @@ FINDNFA_CHECK:
     rcall TO_R                  ; ( c-addr len ) (R: nfa )
     rcall TWOOVER               ; ( c-addr len c-addr len )
     rcall R_FETCH               ; ( c-addr len c-addr len nfa )
-    rcall ICOUNT                 ; ( c-addr len c-addr len f-addr len )
+    rcall ICOUNT                ; ( c-addr len c-addr len f-addr len )
     zerohigh_                   ; ( c-addr len c-addr len f-addr 0:len )
-    rcall ICOMPARE               ; ( c-addr len flag )
+    rcall ICOMPARE              ; ( c-addr len flag )
     ; <if>
     zerosense_
     breq FINDNFA_NEXT
