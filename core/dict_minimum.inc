@@ -392,6 +392,7 @@ PFA_NUMBER5:
 ram_user1: .space SYSUSERSIZE
 .popsection
 
+
 ; ( -- )
 ; System
 ; start up asforth.

@@ -127,64 +127,67 @@ PFA_TYPE2:
     
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-; ( addr1 n1 c -- addr2 n2 )
+; ( addr1 u1 n -- addr2 u2 )
 ; String
-; skips leading occurances in string at addr1/n1 leaving addr2/n2 pointing to the 1st non-c character
+; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
+forthword_ SLASHSTRING, 0, 2, "/$"
+    rcall OVER    ; ( -- addr1 u1 n u1 )
+    call MIN      ; ( -- addr1 u1 n|u1 )
+    rcall ROT     ; ( -- u1 n addr1 )
+    rcall OVER    ; ( -- u1 n addr1 n )
+    rcall PLUS    ; ( -- u1 n addr2 )
+    rcall RROT    ; ( -- addr2 u1 n )
+    rjmp MINUS    ; ( -- addr2 u2)
+
+
+
+; ( addr1 n1 c -- n2 )
+; String
+; skips leading occurances in string at addr1/n1 leaving n2 as an index pointing to the 1st non-c character
 
 forthword_ CSKIP, 0, 5, "cskip"
-    rcall TO_B           ; ( -- addr1 n1 ) B: c
+    rcall TO_B           ; ( addr1 n1 ) B: c
+    niptoa_              ; ( n1 ) A: addr1
+    dup_                 ; ( n1 n1 )
 PFA_CSKIP1:
-    dupzerosense_        ; ( -- addr' n')
+    dupzerosense_        ; ( n1 n')
     breq PFA_CSKIP2
-    rcall OVER           ; ( -- addr' n' addr' )
-    rcall CFETCH         ; ( -- addr' n' c' )
-    rcall B_             ; ( -- addr' n' c' c )
-    rcall EQUAL          ; ( -- addr' n' f )
-    zerosense_           ; ( -- addr' n')
-    breq PFA_CSKIP2
-    rcall ONE
-    rcall SLASHSTRING
+    rcall ACFETCH        ; ( n1 n' c' )
+    aplus_
+    cp tosl, bl          ; ( n1 n' c' )
+    drop_                ; ( n1 n' )
+    brne PFA_CSKIP2
+    oneminus_
     rjmp PFA_CSKIP1
 
 PFA_CSKIP2:
-    ret
+    rjmp MINUS           ; ( n1-n' )
     
 
 ; ( addr1 n1 c -- addr1 n2 )
 ; String
 ; Scan string at addr1/n1 for the first occurance of c, leaving addr1 n2,
-; char at n2 is first non-c character
+; char at n2 is first c character
 
 forthword_ CSCAN, 0, 5, "cscan"
-    niptob_           ; ( -- addr1 c ) B: n1
-    rcall OVER        ; ( -- addr1 c addr1 )
-    copytoa_          ; ( -- addr1 c addr1 ) A: addr1
-    zerotos_          ; ( -- addr1 c 0 )
+    rcall TO_B           ; ( addr1 n1 ) B: c
+    rcall OVER           ; ( addr1 n1 addr1 )
+    rcall TO_A           ; ( addr1 n1 ) A: addr1
+    dup_                 ; ( addr1 n1 n1 )
 PFA_CSCAN1:
-    dup_              ; ( -- addr1 c n2 n2 )
-    rcall B_          ; ( -- addr1 c n2 n2 n1 )
-    rcall LESS        ; ( -- addr1 c n2 flag )
-    zerosense_        ; ( -- addr1 c n2 )
-    breq PFA_CSCAN3
-    
-    rcall OVER        ; ( -- addr1 c n2 c )
-    rcall ACFETCH     ; ( -- addr1 c n2 c c')
-    aplus_
-    rcall EQUAL       ; ( -- addr1 c n2 f)
-    zerosense_        ; ( -- addr1 c n2 )
+    dupzerosense_        ; ( addr1 n1 n')
     breq PFA_CSCAN2
-    nip_              ; ( -- addr1 n2 )
-    ret
+    rcall ACFETCH        ; ( addr1 n1 n' c' )
+    aplus_
+    cp tosl, bl          ; ( addr1 n1 n' c' )
+    drop_                ; ( addr1 n1 n' )
+    breq PFA_CSCAN2
+    oneminus_
+    rjmp PFA_CSCAN1
 
 PFA_CSCAN2:
-    oneplus_          ; ( -- addr1 c n2+1 )
-    rjmp PFA_CSCAN1   ; ( -- addr1 c n2+1 )
-
-PFA_CSCAN3:
-    rcall DDROP       ; ( -- addr1)
-    rjmp B_           ; ( -- addr1 n1)
+    rjmp MINUS           ; ( addr1 n1-n' )
+    
 
 
 
@@ -261,17 +264,6 @@ PFA_ICOMPARE_DONE:
     rcall TRUE
     ret
     
-; ( addr1 u1 n -- addr2 u2 )
-; String
-; adjust string from addr1 to addr1+n, reduce length from u1 to u2 by n
-forthword_ SLASHSTRING, 0, 2, "/$"
-    rcall OVER    ; ( -- addr1 u1 n u1)
-    call MIN      ; ( -- addr1 u1 n|u1)
-    rcall ROT     ; ( -- u1 n addr1 )
-    rcall OVER    ; ( -- u1 n addr1 n)
-    rcall PLUS    ; ( -- u1 n addr2 )
-    rcall RROT    ; ( -- addr2 u1 n )
-    rjmp MINUS    ; ( -- addr2 u2)
     
 ; ( addr -- addr+1 n )
 ; Tools
@@ -298,16 +290,12 @@ forthword_ SRCIN, 0, 5, "srcin"
 ; skip space in input source.
 forthword_ SKIPBL, 0, 6, "skipbl"
     rcall SRCIN          ; ( srcaddr len )
-    rcall BL              ; ( srcaddr' len' c )
-    rcall CSKIP          ; ( addr2 n2 )
+    rcall BL             ; ( srcaddr' len' c )
+    rcall CSKIP          ; ( n2 )
 
     ; adjust >IN
-    drop_                ; ( addr2 )
-    rcall STIB           ; ( addr2 srcaddr len )
-    drop_                ; ( addr2 srcaddr )
-    rcall MINUS          ; ( gpos )
-    rcall G_IN           ; ( gpos ginaddr )
-    rjmp STORE           ; (  )
+    rcall G_IN           ; ( n2 ginaddr )
+    rjmp PLUSSTORE       ; (  )
 
 
 ; ( char "ccc<char>" -- c-addr u )
@@ -316,7 +304,7 @@ forthword_ SKIPBL, 0, 6, "skipbl"
 forthword_ PARSE, 0, 5, "parse"
     rcall SRCIN      ; ( -- c addr len)
     rcall ROT        ; ( -- addr' len' c)
-    rcall CSCAN      ; ( -- addr' len'')
+    rcall CSCAN      ; ( -- len'')
     dup_             ; ( -- addr' len'' len'')
     oneplus_         ; ( -- addr' len'' len''+1 )
     rcall G_IN       ; ( -- addr' len'' len''+1 >in)
