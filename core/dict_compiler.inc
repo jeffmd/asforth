@@ -234,7 +234,7 @@ PFA_SCOMMA2:
     zerosense_         ; ( )
     breq PFA_SCOMMA3
       rcall ACFETCH    ; ( c1 )
-      rcall COMMA      ; ( )
+      rjmp COMMA      ; ( )
 
     ; then
 PFA_SCOMMA3:

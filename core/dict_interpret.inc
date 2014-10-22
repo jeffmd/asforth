@@ -100,13 +100,11 @@ PFA_ITYPE1:
     rjmp PFA_ITYPE1
 
 PFA_ITYPE2:
-    rcall DROP        ; ( )
-    rcall B_          ; ( rem )
-    rcall GREATERZERO ; ( flag )
-    zerosense_
+    drop_             ; ( )
+    cp bl, zerol      ; ( )
     breq PFA_ITYPE3
       rcall AFETCHI
-      rcall EMIT
+      rjmp EMIT
 PFA_ITYPE3:
     ret
     
@@ -261,8 +259,7 @@ PFA_ICOMPARE_NEXTLOOP:
 PFA_ICOMPARE_DONE:
     ; strings are the same
     drop_
-    rcall TRUE
-    ret
+    rjmp TRUE
     
     
 ; ( addr -- addr+1 n )

@@ -252,7 +252,7 @@ PFA_THROW1:
 ;    doliteral_ 19
 ;    rjmp EMIT
 
-    
+
 
 ; (c -- ) Numeric IO
 ; R( -- )
