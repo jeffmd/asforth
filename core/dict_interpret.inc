@@ -428,23 +428,21 @@ forthword_ DOSLIT, 0, 6, "(slit)"
 
   ; get return address to get string length, calculate string address start,
   ; and calculate return address
-  rcall R_FROM   ; ( -- raddr )  (R: raddr -- )
-  dup_           ; ( -- raddr raddr )
-  dup_           ; ( -- raddr raddr raddr )
+  rcall R_FROM   ; ( raddr )  (R: raddr -- )
+  dup_           ; ( raddr raddr )
   ; get the string length
-  rcall FETCHI   ; ( -- raddr raddr slength )
-  rcall SWAP     ; ( -- raddr slength raddr )
+  rcall FETCHI   ; ( raddr slength )
+  rcall OVER     ; ( raddr slength raddr )
   ; calculate string address
-  oneplus_       ; ( -- raddr slength straddr )
+  oneplus_       ; ( raddr slength straddr )
   ; calculate the number of words to skip over for return address
-  rcall FLIP     ; ( -- straddr slength raddr )
-  rcall OVER     ; ( -- straddr slength raddr slength)
-  rcall WALIGN   ; ( -- straddr slength raddr k/2 )
-  rcall PLUS     ; ( -- straddr slength raddr+k/2 )
+  rcall FLIP     ; ( straddr slength raddr )
+  rcall OVER     ; ( straddr slength raddr slength)
+  rcall WALIGN   ; ( straddr slength raddr k/2 )
+  rcall PLUS     ; ( straddr slength raddr+k/2 )
   ; also skip string length
-  oneplus_       ; ( -- straddr slength raddr+k/2+1 )
-  rcall TO_R     ; ( -- )
-  ret
+  oneplus_       ; ( straddr slength raddr+k/2+1 )
+  rjmp EXEC
 
 
 ; ( -- ) (R: i*x - j*x )
