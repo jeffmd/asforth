@@ -70,17 +70,14 @@ ram_dp: .space 2
 ; System Value
 ; address of the next free dictionary cell
 forthword_ DP, 0, 2, "dp"
-    call DOVALUE
-    .word ram_dp
-    addr_ FETCH
-    addr_ STORE
+  doliteral_ ram_dp
+  rjmp FETCH
 
 ; ( -- )
 ; Compiler
 ; backup DP to eeprom
 forthword_ DPSTOREE, 0, 4, "dp!e"
-  doliteral_ ram_dp
-  rcall FETCH
+  rcall DP
   doliteral_ EE_DP
   rjmp STOREE 
 
@@ -97,11 +94,8 @@ forthword_ DPFETCHE, 0, 4, "dp@e"
 ; Dictionary
 ; add offset to 16 bit (dictionary pointer) DP
 forthword_ DPPLUS, 0, 3, "dp+"
-    rcall DP
-    rcall PLUS
-    rcall DOTO
-    addr_ DP
-    ret
+  doliteral_ ram_dp
+  rjmp PLUSSTORE
 
 ; ( -- )
 ; Dictionary
