@@ -89,7 +89,7 @@
 
 
   ; XL (26), XH (27) general purpose addressing
-  ; YL (28), YH (29) is to hold the Forth VM Parameter/Data stack pointer
+  ; YL (28), YH (29) holds the Forth VM Parameter/Data stack pointer
   ; ZL (30), ZH (31) are used as memory pointer
   ; SP is used to hold the Forth VM return stack pointer and is the hardware stack pointer for the MCU
 

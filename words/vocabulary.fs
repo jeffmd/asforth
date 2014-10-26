@@ -138,7 +138,8 @@ context @ 2+
     \ get context wid
     @
     \ if not zero then print vocab name 
-    ?dup if 
+    ?dup if
+      \ next cell in eeprom has name field address 
       2+ @e
       ?nf
     then
