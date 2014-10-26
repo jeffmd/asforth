@@ -121,8 +121,8 @@ cvar exms
 : allclr
   \ iterate 0 to 30 and clear tcnt[] and set tasks[] to noop
   0
+  dup tidx c!
   begin
-    0 tidx c!
     0 over cnt!
     dup taskclr 
     1+ 
