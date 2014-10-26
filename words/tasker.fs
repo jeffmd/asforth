@@ -81,12 +81,18 @@ edp 62 + to edp
   !e
 ;
 
+\ store a task in a slot
+: task ( idx C: name -- )
+  ' swap task!
+;
+
 ( idx -- )
 \ clear task at idx slot
 \ replaces task with noop
 : taskclr 
   ['] noop swap task!
 ;
+
 
 ( -- )
 \ execute active task and step to next task
