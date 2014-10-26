@@ -389,9 +389,16 @@ PFA_NUMBER5:
 
 ; allocate space for User Area
 .pushsection .noinit
+; MCUSR from last cold execution
+ram_mcusro: .space 2
 ram_user1: .space SYSUSERSIZE
 .popsection
 
+; ( -- ram_mcusr )
+; get mcusro addr. this is the mcusr read and stored when cold executes.
+forthword_ RAM_MCUSRO, 0, 6, "mcusro"
+    doliteral_ ram_mcusro
+    ret
 
 ; ( -- )
 ; System
@@ -415,6 +422,10 @@ forthword_ COLD, 0, 4, "cold"
     ; init parameter stack pointer
     ldi YL, lo8(stackstart)
     ldi YH, hi8(stackstart)
+    pushtos
+    movw tosl, r10
+    rcall RAM_MCUSRO
+    call STORE
     rjmp WARM
 
 
