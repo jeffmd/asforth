@@ -178,9 +178,9 @@
 
 ( start -- ) 
 \ Compiler
-\ resolve forward jump
-: >resolve
-    ?stack           ( start ) \ check stack integrety
+\ do forward jump
+: >jmp
+    ?sp              ( start ) \ check stack integrety
     dp               ( start dest )
     rjmpc            ( )
 ;
@@ -194,9 +194,9 @@
 
 ( dest -- ) 
 \ Compiler
-\ resolve backward branch
-: <resolve
-    ?stack         \ make sure there is something on the stack
+\ do backward jump
+: <jmp
+    ?sp            \ make sure there is something on the stack
     \ compile a rjmp at current DP that jumps back to mark
     dp             \ ( dest start )
     swap           \ ( start dest )
@@ -246,7 +246,7 @@
 : else
     >mark         \ mark forward rjmp at end of true code
     swap          \ swap new mark with previouse mark
-    >resolve      \ rjmp from previous mark to false code starting here
+    >jmp          \ rjmp from previous mark to false code starting here
 ; :ic
 
 ( -- ) ( C: orig -- ) 
@@ -254,7 +254,7 @@
 \ finish if
 \ part of: if...[else]...then
 : then
-    >resolve
+    >jmp
 ; :ic
 
 
@@ -273,7 +273,7 @@
 \ part of: begin...again
 
 : again
-    <resolve
+    <jmp
 ; :ic
 
 ( f -- ) ( C: dest -- orig dest ) 
@@ -300,7 +300,7 @@
 \ part of: begin...while...repeat
 : repeat
   [compile] again
-  >resolve
+  >jmp
 ; :ic
 
 
@@ -311,7 +311,7 @@
 \ part of: begin...until
 : until
     ?brc
-    <resolve
+    <jmp
 ; :ic
 
 ( f -- ) ( C: dest -- ) 
@@ -321,7 +321,7 @@
 \ part of: begin...?until
 : ?until
     ??brc
-    <resolve
+    <jmp
 ; :ic
 
 ( -- ) 

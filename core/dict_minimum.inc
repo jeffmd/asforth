@@ -320,7 +320,7 @@ NUMBERSIGN_HASSIGN:
 ; ( u1 c-addr1 len1 -- u2 c-addr2 len2 )
 ; Numeric IO
 ; convert a string to a number  c-addr2/u2 is the unconverted string
-forthword_ TO_NUMBER, 0, 7, ">number"
+forthword_ TO_NUMBER, 0, 4, ">num"
     dupzerosense_
     breq PFA_TO_NUMBER1
         call OVER            ; ( u adr len adr)
@@ -348,7 +348,7 @@ PFA_TO_NUMBER1:
 ; (addr len -- [n] f)
 ; Numeric IO
 ; convert a string at addr to a number
-forthword_ NUMBER, 0, 6, "number"
+forthword_ NUMBER, 0, 3, "num"
     rcall BASEFETCH
     call TO_R               ; ( addr len ) (R: base)
     rcall NUMBERSIGN
@@ -616,10 +616,7 @@ forthword_ DEPTH, 0, 5, "depth"
 ; ( --  )
 ; Tools
 ; check stack underflow, throw exception -4
-forthword_ QSTACK, 0, 6, "?stack"
-; : ?stack ( -- )
-;    depth 0< if -&4 throw then
-; 
+forthword_ QSTACK, 0, 3, "?sp"
     rcall DEPTH
     call LESSZERO
     zerosense_
@@ -633,14 +630,14 @@ PFA_QSTACKERROR:
 ; ( -- v)
 ; System Value
 ; address of the default user area content in eeprom
-forthword_ EEUSER, 0, 7, "ee-user"
+forthword_ EEUSER, 0, 4, "ee-u"
   doliteral_ EE_INITUSER
   ret
 
 ; ( e-addr r-addr len -- )
 ; Memory
 ; copy len cells from eeprom to ram
-forthword_ EE2RAM, 0, 6, "ee>ram"
+forthword_ EE2RAM, 0, 4, "ee>r"
     niptoa_              ; ( e-addr len ) A: r-addr
     niptob_              ; ( len ) B: e-addr
 PFA_EE2RAM_1:
@@ -665,7 +662,7 @@ PFA_EE2RAM_2:
 ; ( -- )
 ; Tools
 ; setup the default user area from eeprom
-forthword_ INITUSER, 0, 6, "i-user"
+forthword_ INITUSER, 0, 3, "i-u"
     rcall EEUSER
     call UP_FETCH
     doliteral_ SYSUSERSIZE
@@ -773,7 +770,7 @@ PFA_UMSLASHMODmod_done:
 ; ( n1 -- n2 )
 ; Logic
 ; 2-complement
-forthword_ NEGATE, INLINE_OPT, 6, "negate"
+forthword_ NEGATE, INLINE_OPT, 3, "neg"
     not_
     oneplus_
     ret
