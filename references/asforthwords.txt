@@ -1,14 +1,6 @@
 COMPILER: (54 words)
 ---------
 
-Defined in assembly core:
-
-."
-
-s"
-
-s,      ( addr len -- ) compiles a string from RAM to Flash
-
 Edefer
 
 Rdefer
@@ -27,7 +19,7 @@ findnxt
 
 :       ( -- ) (C: "<spaces>name" -- ) create a named entry in the dictionary. Terminated with ;
 
-;       ( -- ) Immediate: finish colon defintion, compiles a RET(exit) and returns to interpret state 
+;       ( -- ) Immediate: finish colon defintion, compiles a RET(exit) or jmp and returns to interpret state 
 
 :noname
 
@@ -54,6 +46,9 @@ nfa>lfa ( nfa -- lfa ) get the link field address from the name field address
 nfa>xtf ( nfa -- [ 0 ] | [ xt xtflags] ) convert name field address to xt and xtflags. 0 if not found.
 
 wid     ( -- wid) get the wid of the current compilation word list
+
+state
+
 
 Defined in Forth Source:
 
@@ -135,19 +130,6 @@ up@  ( -- addr ) get user area pointer
 
 up!  ( addr -- ) set user area pointer
 
-defx ( addr -- n ) execute the defer fetch
-
-state
-
->in
-
-#tib
-
-tib
-
-refill-tib
-
-source-tib
 
 pad
 
@@ -169,21 +151,25 @@ cold ( -- ) start up amforth.
 
 warm ( nx* -- ) (R: ny* -- ) initialize asforth further. EXECs turnkey operation and go to quit
 
-defer!
-
-defer@
 
 ee-user
+
+Defer:
+------
+def!
+
+def@
+
+defx ( addr -- n ) execute the defer fetch
 
 Interpreter: (6 words)
 ------------
 
-interpret
+interp
 recx
-rec@
-rec-num
-rec-word
-rec-unk
+rec#
+recw
+recu
 
 
 
@@ -191,21 +177,23 @@ Parameter Stack: (17 words)
 ----------------
 Defined in assembly core:
 
-dup ( n -- n n ) inline: duplicate top of stack 
+dup ( n -- n n ) duplicate top of stack : inlined 
 
-?dup ( n1 -- [ n1 n1 ] | 0) duplicate top of stack if non-zero
+?dup ( n1 -- [ n1 n1 ] | 0 ) duplicate top of stack if non-zero
 
 swap ( n1 n2 -- n2 n1) swaps the two top level stack cells
 
-over ( x1 x2 -- x1 x2 x1 ) Place a copy of x1 on top of the stack
+over ( x1 x2 -- x1 x2 x1 ) Place a copy of next on stack (x1) on top of the stack
 
 2over ( x1 x2 -- x1 x2 x1 x2 ) Place a copy of x1 and x2 on top of the stack
 
-drop ( n -- ) drop the top of stack : inline
+drop ( n -- ) remove the top of stack : inlined
 
 2drop ( n n -- ) drop top of stack and next on stack
 
-nip ( n1 n2 -- n2) drop next on stack, one before top of stack
+nip ( n1 n2 -- n2) drop next on stack, one before top of stack : inlinned
+
+2nip ( n1 n2 n3 -- n3 ) remove next on stack two times : inlinned
 
 tuck ( n1 n2 -- n2 n1 n2) tuck TOS before NOS, same as SWAP OVER
 
@@ -221,14 +209,11 @@ sp! ( addr -- i*x) set data stack pointer to addr
 
 sp0 ( -- addr) start address of the data stack
 
-sp ( -- addr) address of user variable to store top-of-stack for inactive tasks
-
 depth ( -- n ) number of single-cell values contained in the data stack before n was placed on the stack.
 
 
 Return Stack: (9 words)
 -------------
-Defined in assembly core:
 
 r>     ( -- n ) (R: n -- ) move top of return stack to top of parameter stack
 
@@ -251,10 +236,9 @@ rp0    ( -- addr) start address of return stack in ram
 
 Operators: (50 words)
 ----------
-Defined in assembly core:
 
-compare:
-
+Compare:
+--------
 <>
 0=
 =
@@ -271,7 +255,9 @@ max
 within
 
 
-arithmetics:
+Arithmetics:
+------------
+
 0: ( n -- 0 ) replaces TOS with 0
 0
 1
@@ -308,8 +294,9 @@ btow
 negate
 abs
 
-logic:
 
+logic:
+------
 and
 or
 xor
@@ -317,8 +304,6 @@ xor
 Memory: (34 words)
 -------
 
-cmove
-c>
 c!   ( c a-addr -- ) store a single byte to RAM address
 c@   ( a-addr - c1 ) fetch a single byte from RAM address
 +c!  ( n a-addr -- ) add n to content of byte RAM address a-addr
@@ -348,23 +333,18 @@ nip>a ( n1 n2 -- n2 ) A: n1 Remove next on stack and write to A register
 nip>b ( n1 n2 -- n2 ) B: n1 Remove next on stack and write to B register
 a    ( -- n ) put the A register on TOS
 b    ( -- n ) put the B register on TOS
-fill
 itoi
 @e[]
 !e[]
-ee>ram
+ee>r
 compare
-icompare
+icmp
 
 Environment: (7 words)
 ------------
 
 /pad
 /hold
-fname
-version
-cpu
-mcu-info
 /user
 
 
@@ -378,9 +358,7 @@ decimal
 hex
 bl
 emit
-emit?
 key
-key?
 hld
 hold
 <#
@@ -388,6 +366,7 @@ hold
 #>
 #s
 sign
+.$
 .
 .r
 digit?
@@ -404,6 +383,15 @@ number
 praefix
 >number
 
+>in
+
+#tib
+
+tib
+
+refill-tib
+
+source-tib
 
 
 String: (7 words)
@@ -415,15 +403,19 @@ parse
 /$
 $l
 srcin
-parse-name
+pname
+."
+
+s"
+
+s,      ( addr len -- ) compiles a string from RAM to Flash
 
 
-Exceptions: (4 words)
+Exceptions: (3 words)
 -----------
 
 handle
 catch
-abort
 throw
 
 ASM: (13 words)
@@ -440,22 +432,31 @@ sbic,
 sbis,
 rjmp
 rjmpc
+
+
+Interrupts:
+-----------
+
 int+
 int-
+
+word management:
+----------------
+
+.s ( -- )  stack dump - prints contents of stack to output device
+words ( -- ) prints a list of all (visible) words in the dictionary
+
 
 Tools: (14 words)
 ------
 
-.s ( -- )  stack dump - prints contents of stack to output device
-words ( -- ) prints a list of all (visible) words in the dictionary
 find-name ( addr len --  0 | xt -1 | xt 1 ) search wordlists for the name from string addr/len
-?stack
+?sp
 ver
 unused
 dbg-
 dbg+
-init-user
-.hex4
+i-u
 dmp
 rbs
 rbc
