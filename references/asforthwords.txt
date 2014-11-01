@@ -1,12 +1,6 @@
 COMPILER: (54 words)
 ---------
 
-Edefer
-
-Rdefer
-
-is
-
 sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
 
 does>
@@ -151,26 +145,32 @@ cold ( -- ) start up amforth.
 
 warm ( nx* -- ) (R: ny* -- ) initialize asforth further. EXECs turnkey operation and go to quit
 
-
 ee-user
 
 Defer:
 ------
-def!
+(user) ( -- addr ) runtime part of user. Get the address of the user var which is located at the return address of the caller.
 
-def@
+defg ( defaddr -- deferval defaddr ) Get the defer contents at defaddr
+
+def! ( xt1 xt2 -- ) stores xt1 as the xt to be EXECd when xt2 is called
+
+def@ ( xt1 -- xt2 ) returns the XT associated with the given XT
 
 defx ( addr -- n ) execute the defer fetch
 
-Interpreter: (6 words)
-------------
+(val) ( -- n )
 
-interp
-recx
-rec#
-recw
-recu
+(to) ( n -- ) (R: IP -- IP+2) runtime portion of to. Takes TOS and
+stores it in the defer storage location.
 
+edefer ( c<name> -- ) creates a defer vector which is kept in eeprom.
+
+rdefer ( c<name> -- ) creates a RAM based defer vector.
+
+is ( xt1 c<name> -- ) stores xt into defer or compiles code to do so at runtime, same as to
+
+to ( xt1 c<name> -- ) alias for is
 
 
 Parameter Stack: (17 words)
@@ -383,15 +383,14 @@ number
 praefix
 >number
 
->in
+Interpreter: (6 words)
+------------
 
-#tib
-
-tib
-
-refill-tib
-
-source-tib
+interp
+recx
+rec#
+recw
+recu
 
 
 String: (7 words)

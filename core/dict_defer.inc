@@ -38,7 +38,7 @@ forthword_ DEFX, 0, 4, "defx"
 
 ; ( -- n )
 ; System
-; runtime of value
+; runtime of val
 ; must use call
 forthword_ DOVALUE, DIS_CALL_OPT, 5, "(val)"
 ; must be called, don't use jmp
