@@ -5,11 +5,6 @@ sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- fl
 
 does>
 
-find
-
-findnfa
-
-findnxt
 
 :       ( -- ) (C: "<spaces>name" -- ) create a named entry in the dictionary. Terminated with ;
 
@@ -168,9 +163,10 @@ edefer ( c<name> -- ) creates a defer vector which is kept in eeprom.
 
 rdefer ( c<name> -- ) creates a RAM based defer vector.
 
-is ( xt1 c<name> -- ) stores xt into defer or compiles code to do so at runtime, same as to
+is ( xt1 c<name> -- ) alias for is
 
-to ( xt1 c<name> -- ) alias for is
+to ( xt1 c<name> -- ) stores xt into defer or compiles code to do so at runtime, same as to
+can be used on any defer
 
 
 Parameter Stack: (17 words)
@@ -383,10 +379,23 @@ number
 praefix
 >number
 
-Interpreter: (6 words)
+Interpreter: (8 words)
 ------------
 
+find    ( C:"<spaces>name" -- 0 | nfa ) search dictionary for name, returns nfa if found or 0 if not found
+
+findnfa ( c-addr len wid -- [ 0 | nfa ] ) find a word in the dictionary. 0 if word not found in dictionary. nfa if word is found
+
+findnxt
+froot
+findw
 interp
+pname
+cskip
+cscan
+parse
+srcin
+skipbl
 recx
 rec#
 recw
@@ -396,13 +405,8 @@ recu
 String: (7 words)
 -------
 
-cskip
-cscan
-parse
 /$
 $l
-srcin
-pname
 ."
 
 s"
