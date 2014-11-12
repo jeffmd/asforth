@@ -77,13 +77,11 @@ var      ( cchar -- ) create a dictionary entry for a variable and allocate 1 ce
 con      ( x -- ) (C: x "<spaces>name" -- ) create a constant in the dictionary
 	example: 10 con myconstant -> create a word called "myconstant" that will put the value 10 on the top of the stack
 
-user
-
-recurse
+recurse   ( -- ) compile the XT of the word currently being defined into the dictionary
 
 immediate ( -- ) makes most recently defined word immediate : it will execute when in compile mode
 
-create
+create    ( -- a-addr ) ( C: "<spaces>name" -- ) creates a dictionary header and when executed will leave the address of the data/code field on TOS
 
 \         ( -- ) start a comment. Text until end of line is ignored
 
@@ -91,9 +89,12 @@ create
 
 )         ( -- ) marks end of comment
 
-compile
+(compile) ( -- ) read the following cell from the executing word and append it to the current dictionary position.
 
-cxt
+compile   ( C: x "<spaces>name" -- ) compile word into pending new word.  Immediate compile time only.
+
+cxt       ( xt flags -- ) compile rcall to xt at the current dictionary position (DP) if relative distance is in range
+                          otherwise do long call to xt.  If word flag indicates inlining then the word is inlined.
 
 [']
 
@@ -400,7 +401,9 @@ recx
 rec#
 recw
 recu
-
+tib 
+#tib
+stib
 
 String: (7 words)
 -------
@@ -448,12 +451,12 @@ word management:
 
 .s ( -- )  stack dump - prints contents of stack to output device
 words ( -- ) prints a list of all (visible) words in the dictionary
-
+vocabs
+vocabulary
 
 Tools: (14 words)
 ------
 
-find-name ( addr len --  0 | xt -1 | xt 1 ) search wordlists for the name from string addr/len
 ?sp
 ver
 unused
