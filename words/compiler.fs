@@ -80,7 +80,7 @@
 ;
 
 
-\ read the following cell from the dictionary and append it
+\ read the following cell from the executing word and append it
 \ to the current dictionary position.
 \ must use call/rcall
 
