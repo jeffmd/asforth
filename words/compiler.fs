@@ -108,8 +108,9 @@
 
 ( -- a-addr ) ( C: "<spaces>name" -- )
 \ Dictionary
-\ create a dictionary header. XT is (constant),
-\ with the address of the data field of name
+\ create a dictionary header that will push the address of the
+\ data field of name.
+\ is used in conjunction with does>
 : create
     rword
     \ leave address after call on tos
@@ -148,9 +149,11 @@
     !i
 ;
 
-( i*x -- j*y ) ( R: nest-sys1 -- ) ( C: colon-sys1 -- colon-sys2 )
+( -- )
 \ Compiler
 \ organize the XT replacement to call other colon code
+\ used in conjunction with create
+\ ie: : name create .... does> .... ;
 : does>
     \ compile pop return to tos which is used as 'THIS' pointer
     compile (does>)

@@ -647,6 +647,12 @@ forthword_ QUIT, 0, 4, "quit"
     ; reset return stack pointers
     call RP0
     rcall RP_STORE
+    rcall ZERO
+    rcall SMUDGE
+    rcall STORE
+    ; restore dp from eeprom
+    rcall DPFETCHE
+    
     ; switch to interpret mode
     rcall LBRACKET
     

@@ -3,14 +3,6 @@ COMPILER: (54 words)
 
 sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- flash-addr count) on stack
 
-does>
-
-
-:       ( -- ) (C: "<spaces>name" -- ) create a named entry in the dictionary. Terminated with ;
-
-;       ( -- ) Immediate: finish colon defintion, compiles a RET(exit) or jmp and returns to interpret state 
-
-:noname
 
 [       ( --  ) Immediate: enter interpreter mode
 
@@ -20,11 +12,18 @@ does>
 
 ,       ( n -- ) compile n into flash at DP (dictionary pointer), advances DP
 
+dp      ( -- f-addr ) address of the next free dictionary cell
+
 dp+1    ( -- ) increment DP (dictionary pointer) by one
 
 dp+     ( offset -- ) add offset to DP (dictionary pointer)
 
-(create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create an vocabulary entry without XT and data field (PF)
+dp!e    ( -- ) backup DP to eeprom
+
+dp!     ( addr -- ) store address of the next free dictionary cell
+
+dp@e    ( -- ) fetch DP from eeprom and put in ram
+
 
 header  ( addr len wid -- voc-link ) creates the vocabulary header without XT and data field (PF) in the wordlist wid
 
@@ -34,13 +33,24 @@ nfa>lfa ( nfa -- lfa ) get the link field address from the name field address
 
 nfa>xtf ( nfa -- [ 0 ] | [ xt xtflags] ) convert name field address to xt and xtflags. 0 if not found.
 
-wid     ( -- wid) get the wid of the current compilation word list
-
-state
+state   ( -- addr ) system state variable
 
 
 Defined in Forth Source:
 
+:       ( -- ) (C: "<spaces>name" -- ) create a named entry in the dictionary. Terminated with ;
+
+;       ( -- ) Immediate: finish colon defintion, compiles a RET(exit) or jmp and returns to interpret state 
+
+:noname ( -- xt ) create an unnamed entry in the dictionary
+
+(create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create an vocabulary entry without XT and data field (PF)
+
+create   ( -- a-addr ) ( C: "<spaces>name" -- ) 
+
+(does>)
+
+does>
 
 >mark    ( -- start ) places current dictionary position for forward branch resolve
 
@@ -122,8 +132,6 @@ up!  ( addr -- ) set user area pointer
 
 
 pad
-
-dp
 
 edp
 

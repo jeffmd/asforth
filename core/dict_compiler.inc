@@ -115,6 +115,14 @@ forthword_ DPPLUSONE, 0, 4, "dp+1"
 ; ( -- )
 ; tail call optimize: change last rcall/call into rjmp/jmp
 forthword_ TAILOPT, 0, 4, ";opt"
+    ; optimize only if smudge is not zero
+    rcall SMUDGE
+    rcall FETCH
+    zerosense_
+    brne TAILOPT_OPT
+    ret
+    
+TAILOPT_OPT:
     ; check fflags to see if tail call optimization can be done
     sbrc fflags, DIS_CALL_OPT_FB
     ; don't optimize tail call, just compile a ret.
