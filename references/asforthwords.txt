@@ -143,6 +143,7 @@ warm ( nx* -- ) (R: ny* -- ) initialize asforth further. EXECs turnkey operation
 
 ee-user
 
+
 Defer:
 ------
 (user) ( -- addr ) runtime part of user. Get the address of the user var which is located at the return address of the caller.

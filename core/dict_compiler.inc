@@ -81,14 +81,20 @@ forthword_ DPSTOREE, 0, 4, "dp!e"
   doliteral_ EE_DP
   rjmp STOREE 
 
+; ( addr -- )
+; System Value
+; store address of the next free dictionary cell
+forthword_ DPSTORE, 0, 3, "dp!"
+  doliteral_ ram_dp
+  rjmp STORE
+
 ; ( -- )
 ; Compiler
 ; fetch DP from eeprom and put in ram
 forthword_ DPFETCHE, 0, 4, "dp@e"
   doliteral_ EE_DP
   rcall FETCHE 
-  doliteral_ ram_dp
-  rjmp STORE
+  rjmp DPSTORE
 
 ; ( offset -- )
 ; Dictionary

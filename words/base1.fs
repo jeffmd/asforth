@@ -1,3 +1,4 @@
+\ requires base0.fs
 #include words/m328pdef.fs
 #include words/time.fs
 #include words/timer.fs

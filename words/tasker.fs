@@ -45,15 +45,15 @@ cvar tcnt
   tcnt + c!
 ;
 
-\ array of task slots in eeprom : max 31 tasks 62 bytes
+\ array of task slots in ram : max 31 tasks 62 bytes
 \ array is a binary process tree
 \                        0                          125 ms
 \             1                      2              250 ms
 \      3           4           5           6        500 ms
 \   7     8     9    10     11   12     13   14     1 s
 \ 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30   2 s
-edp con tasks
-edp 62 + to edp
+var tasks
+60 allot
 
 ( -- )
 \ increment task index to next task idx
@@ -69,7 +69,7 @@ edp 62 + to edp
 ( idx -- task )
 \ get a task at idx slot
 : task@
-  2* tasks + @e 
+  2* tasks + @ 
 ;
 
 ( addr idx -- ) 
@@ -78,7 +78,7 @@ edp 62 + to edp
 : task!
   2*
   tasks +
-  !e
+  !
 ;
 
 \ store a task in a slot

@@ -91,7 +91,7 @@ find r? val fence
       \ nfa is valid
       \ set dp to nfa
       dup           ( nfa nfa )
-      to dp         ( nfa )
+      dp! dp!e      ( nfa )
       \ set context wid to lfa
       nfa>lfa       ( lfa )
       @i            ( nfa )

@@ -3,6 +3,7 @@
 \ uses the lcd module in 4bit mode
 \  v 0.1
 \ for asforth
+\ requires base0.fs and base1.fs
 
 
 
