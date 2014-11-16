@@ -1,6 +1,6 @@
 asforth
 --------
-A subroutine threaded forth writtin in AVR GNU assembly to be compiled with gnu avr assembler. Currently only runs on an Atmega328.
+An experimental subroutine threaded forth like system writtin in AVR GNU assembly to be compiled with gnu avr assembler. Currently only runs on an Atmega328.  This is not an ANSI compliant Forth.
 
 Based on amForth, FlashForth, AVRForth, CamelForth, TurboForth, eForth, FigForth
 
@@ -11,15 +11,17 @@ Converted amForth from indirect threaded code to subroutine threaded.  This resu
 
  Jeff Doyle: conversion of amForth to subroutine threaded.
 
- **amForth:**   *Andy Kirby* - http://amforth.sourceforge.net/
+ **amForth:**   *Matthias Trute* - http://amforth.sourceforge.net/
  
  **FlashForth:**   *Mikael Nordman* - http://flashforth.sourceforge.net/
  
  **CamelForth:**   *Brad Rodriguez* - http://www.camelforth.com
+ 
+ **avrforth:**   *Daniel Kruszyna* - http://krue.net/avrforth/
 
 ### Licensing:
 
-*GNU Public License v2 (GPL)* - as per the Amforth Project.
+*GNU Public License v2 (GPL)* 
 
 ### Targets:
 
@@ -37,12 +39,12 @@ Notes
 
 2. Whilst most errors and problems you encounter are likely to be those I have created rather than the original 
    code on which this is based, please report forward comments, feedback, reports, bugs, fixes and patches etc 
-   through the Amforth Projects development mailing lists and forums etc.
+   through the asforth Github Projects page.
 
 3. The binary asforth images cannot be loaded/programmed using the Arduino Bootloader. An ICSP programmer 
    (avrisp, etc) must be used to load the image.
 
-4. The Arduino bootloader is over writen with the asforth code and is no longer available after programing. 
+4. The Arduino bootloader is over writen with the asforth code and is no longer available after programming. 
    To restore your board for use with the Arduino IDE you must overwrite the asforth image with an Arduino 
    Bootloader image.
  
