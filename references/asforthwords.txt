@@ -106,11 +106,15 @@ compile   ( C: x "<spaces>name" -- ) compile word into pending new word.  Immedi
 cxt       ( xt flags -- ) compile rcall to xt at the current dictionary position (DP) if relative distance is in range
                           otherwise do long call to xt.  If word flag indicates inlining then the word is inlined.
 
+'f
+
+['f]
+
 [']
 
 '
 
-val
+val ( n -- )  ( C: x "<spaces>name" -- ) create a dictionary entry for a value and allocate 1 cell in EEPROM.
 
 to
 
@@ -363,7 +367,9 @@ bin
 decimal
 hex
 bl
-emit
+
+emit ( c -- ) fetch the emit vector and EXEC it. should emit a character from TOS
+
 key
 hld
 hold
@@ -409,10 +415,14 @@ skipbl
 recx
 rec#
 recw
-recu
-tib 
-#tib
-stib
+
+>in     ( -- a-addr ) pointer to current read position in input buffer
+
+tib     ( -- addr ) terminal input buffer address 
+
+#tib    ( -- addr ) variable holding the number of characters in TIB
+
+stib    ( -- addr len ) address and current length of the input buffer
 
 String: (7 words)
 -------
@@ -425,6 +435,7 @@ s"
 
 s,      ( addr len -- ) compiles a string from RAM to Flash
 
+slit
 
 Exceptions: (3 words)
 -----------
@@ -453,7 +464,17 @@ Interrupts:
 -----------
 
 int+
+
 int-
+
+isr ( n c<name> -- ) add an Interrupt Service Routine to the ISR vector table
+ n is the address of the table entry
+ only need to write the address 
+ jmp instruction is already in vector table
+
+:isr ( C: name -- ) start defining an Interrupt Service Routine
+
+;isr ( -- ) finish defining an Interrupt Service Routine
 
 word management:
 ----------------

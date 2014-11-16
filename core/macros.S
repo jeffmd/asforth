@@ -271,15 +271,16 @@
   .word pm(\sym)
 .endm
 
-.macro ascii_ sz, str
-  .word \sz
-  .ascii "\str"
+.macro ascii_ str, flg=0
+  .word (8f - 7f) | \flg
+7:  .ascii "\str"
+8:
   .align 1
 .endm
 
-.macro forthword_ lbl, flags, sz, str 
+.macro forthword_ lbl, flags, str 
 VE_\lbl:
-  ascii_ ((HFLAGS & ~(\flags<<8)) | \sz), "\str"
+  ascii_ "\str", HFLAGS & ~(\flags<<8)
   addr_ VE_HEAD
   .set VE_HEAD, VE_\lbl
 \lbl:

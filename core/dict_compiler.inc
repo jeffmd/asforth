@@ -4,12 +4,12 @@
 ; ( -- addr )
 ; System Variable
 ; system state
-forthword_ STATE, 0, 5, "state"
+forthword_ STATE, 0, "state"
     call DOUSER
     .word USER_STATE
     ret
 
-forthword_ STATEFETCH, 0, 6, "state@"
+forthword_ STATEFETCH, 0, "state@"
     rcall STATE
     rjmp FETCH
 
@@ -20,7 +20,7 @@ ram_CURRENT: .space 2
 ; ( -- addr ) 
 ; System Variable
 ; current vocabulary for new words 
-forthword_ CURRENT, 0, 7, "current"
+forthword_ CURRENT, 0, "current"
     doliteral_ ram_CURRENT
     ret
 
@@ -33,7 +33,7 @@ ram_CONTEXT: .space 2 * 5 ; 5 wordlists max
 ; System Variable
 ; current vocabulary for searching
 ; array of wordlists
-forthword_ CONTEXT, 0, 7, "context"
+forthword_ CONTEXT, 0, "context"
     doliteral_ ram_CONTEXT
     ret
 
@@ -44,7 +44,7 @@ ram_LATEST: .space 2
 ; ( -- addr ) 
 ; System Variable
 ; system LATEST. Get flash program address of latest word being compiled. 
-forthword_ LATEST, 0, 6, "latest"
+forthword_ LATEST, 0, "latest"
     doliteral_ ram_LATEST
     ret
 
@@ -55,7 +55,7 @@ COLON_SMUDGE: .space 2
 ; ( -- addr ) 
 ; System Variable
 ; system SMUDGE. Get flash program address of latest word being compiled. 
-forthword_ SMUDGE, 0, 6, "smudge"
+forthword_ SMUDGE, 0, "smudge"
 
     doliteral_ COLON_SMUDGE
     ret
@@ -69,14 +69,14 @@ ram_dp: .space 2
 ; ( -- f-addr )
 ; System Value
 ; address of the next free dictionary cell
-forthword_ DP, 0, 2, "dp"
+forthword_ DP, 0, "dp"
   doliteral_ ram_dp
   rjmp FETCH
 
 ; ( -- )
 ; Compiler
 ; backup DP to eeprom
-forthword_ DPSTOREE, 0, 4, "dp!e"
+forthword_ DPSTOREE, 0, "dp!e"
   rcall DP
   doliteral_ EE_DP
   rjmp STOREE 
@@ -84,14 +84,14 @@ forthword_ DPSTOREE, 0, 4, "dp!e"
 ; ( addr -- )
 ; System Value
 ; store address of the next free dictionary cell
-forthword_ DPSTORE, 0, 3, "dp!"
+forthword_ DPSTORE, 0, "dp!"
   doliteral_ ram_dp
   rjmp STORE
 
 ; ( -- )
 ; Compiler
 ; fetch DP from eeprom and put in ram
-forthword_ DPFETCHE, 0, 4, "dp@e"
+forthword_ DPFETCHE, 0, "dp@e"
   doliteral_ EE_DP
   rcall FETCHE 
   rjmp DPSTORE
@@ -99,14 +99,14 @@ forthword_ DPFETCHE, 0, 4, "dp@e"
 ; ( offset -- )
 ; Dictionary
 ; add offset to 16 bit (dictionary pointer) DP
-forthword_ DPPLUS, 0, 3, "dp+"
+forthword_ DPPLUS, 0, "dp+"
   doliteral_ ram_dp
   rjmp PLUSSTORE
 
 ; ( -- )
 ; Dictionary
 ; increment 16 bit (dictionary pointer) DP by one
-forthword_ DPPLUSONE, 0, 4, "dp+1"
+forthword_ DPPLUSONE, 0, "dp+1"
     rcall ONE
     rjmp DPPLUS
 
@@ -114,7 +114,7 @@ forthword_ DPPLUSONE, 0, 4, "dp+1"
 
 ; ( -- )
 ; tail call optimize: change last rcall/call into rjmp/jmp
-forthword_ TAILOPT, 0, 4, ";opt"
+forthword_ TAILOPT, 0, ";opt"
     ; optimize only if smudge is not zero
     rcall SMUDGE
     rcall FETCH
@@ -167,7 +167,7 @@ TAILOPT_CALL:
 ; ( -- )
 ; Compiler
 ; update wid from smudge if valid 
-forthword_ UWID, 0, 4, "uwid"
+forthword_ UWID, 0, "uwid"
     rcall SMUDGE
     rcall FETCH
     rcall QDUP
@@ -188,7 +188,7 @@ UWID_end:
 ; ( --  ) 
 ; Compiler
 ; enter compiler mode
-forthword_ RBRACKET, 0, 1, "]"
+forthword_ RBRACKET, 0, "]"
     ; clear rcall/call flags
     cbr fflags, (1<<LAST_RCALL_FB)|(1<<LAST_CALL_FB)
     ; set disable tail optimize flag
@@ -200,7 +200,7 @@ forthword_ RBRACKET, 0, 1, "]"
 ; ( --  ) 
 ; Compiler
 ; enter interpreter mode
-forthword_ LBRACKET, IMMEDIATE_EN, 1, "["
+forthword_ LBRACKET, IMMEDIATE_EN, "["
     rcall ZERO
     rcall STATE
     rjmp STORE
@@ -209,7 +209,7 @@ forthword_ LBRACKET, IMMEDIATE_EN, 1, "["
 ; ( n -- )
 ; Dictionary
 ; compile 16 bit into flash at (dictionary pointer) DP
-forthword_ COMMA, 0, 1, ","
+forthword_ COMMA, 0, ","
     rcall DP
     rcall STOREI
     rjmp DPPLUSONE
@@ -217,7 +217,7 @@ forthword_ COMMA, 0, 1, ","
 ; ( addr len len' -- )
 ; Compiler
 ; compiles a string from RAM to Flash
-forthword_ DOSCOMMA, 0, 4, "(s,)"
+forthword_ DOSCOMMA, 0, "(s,)"
     rcall COMMA        ; ( addr len )
     rcall BTOW         ; ( addr len/2 rem )
     rcall TO_R         ; ( addr len/2 ) (R: rem )
@@ -253,7 +253,7 @@ PFA_SCOMMA3:
 ; ( addr len wid -- voc-link )
 ; Compiler
 ; creates the vocabulary header without XT and data field (PF) in the wordlist wid
-forthword_ HEADER, 0, 6, "header"
+forthword_ HEADER, 0, "header"
     rcall DP              ; ( addr len wid DP )
     rcall TO_R           ; ( addr len wid ) (R: DP )
     rcall TO_R           ; ( addr len ) (R: DP wid )
@@ -283,7 +283,7 @@ HEADER_error:
 ; the search goes up in flash address space
 ; count is number of words to get to match value in flash
 ; or get word index of match
-forthword_ FINDI, 0, 5, "findi"
+forthword_ FINDI, 0, "findi"
     ; fetch from flash and check if equal to match word
     rcall TO_B       ; ( start ) B: match
     dup_             ; ( start start )
@@ -310,7 +310,7 @@ FINDI_BEGIN:
 ; ( start -- )
 ; compiler
 ; copy code to current dictionary entry
-forthword_ INLINE, 0, 6, "inline"
+forthword_ INLINE, 0, "inline"
     ; set disable tail call optimize flag:
     sbr fflags, 1<<DIS_CALL_OPT_FB
     ; find the ret word, want count to ret
@@ -329,7 +329,7 @@ forthword_ INLINE, 0, 6, "inline"
 ; ( nfa -- lfa )
 ; System
 ; get the link field address from the name field address
-forthword_ NFA2LFA, 0, 7, "nfa>lfa"
+forthword_ NFA2LFA, 0, "nfa>lfa"
     rcall ICOUNT 
     zerohigh_
     rcall WALIGN
@@ -337,7 +337,7 @@ forthword_ NFA2LFA, 0, 7, "nfa>lfa"
     
 ; ( nfa -- [ 0 ] | [ xt xtflags] )
 ; convert name field address to xt and xtflags
-forthword_ NFATOXTF, 0, 7, "nfa>xtf"
+forthword_ NFATOXTF, 0, "nfa>xtf"
     dupzerosense_              ; ( n )
     breq NFATOXTF_EXIT
 
@@ -356,7 +356,7 @@ NFATOXTF_EXIT:
 ; Dictionary
 ; set the context and current to root forth vocabulary and remove
 ; other vocabularies
-forthword_ ONLY, IMMEDIATE_EN, 4, "only"
+forthword_ ONLY, IMMEDIATE_EN, "only"
     ; forth vocab always takes slot 0
     doliteral_ EE_FORTHWORDLIST
     dup_

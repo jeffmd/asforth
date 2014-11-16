@@ -5,7 +5,7 @@
 
 ; Store src to dest thru mask, FF00 0551 0333 mask! u. FD11
 ;( dest1 src mask -- dest2 )
-forthword_ MASKNOT, 0, 5, "mask!" 
+forthword_ MASKNOT, 0, "mask!" 
     call ROT          ;( src mask dest1 )
     call OVER         ;( src mask dest1 mask )
     not_              ;( src mask dest1 !mask )
@@ -17,7 +17,7 @@ forthword_ MASKNOT, 0, 5, "mask!"
 
 ; Operands Rd,constant 8bit
 ; Rd,k,     ( Rd k8 opcode mask -- xxxx.kkkk.dddd.kkkk )
-forthword_ RD_K, 0, 5, "Rd,k,"
+forthword_ RD_K, 0, "Rd,k,"
     call TO_R            ;( Rd k8 opcode ) (R: mask )
     call TO_R            ;( Rd k8 ) (R: mask opcode )
     zerohigh_            ;( Rd 00k8 )
@@ -39,7 +39,7 @@ forthword_ RD_K, 0, 5, "Rd,k,"
 ; ( reg n -- )
 ; ex: 2 FF ldi,  R2<--#FF
 
-forthword_ LDI, 0, 4, "ldi,"
+forthword_ LDI, 0, "ldi,"
     doliteral_ 0xE000     ;( reg n 0xe000 )
     doliteral_ 0xF000     ;( reg n 0xe000 0xf000 )
     rjmp  RD_K            ;( )
@@ -47,7 +47,7 @@ forthword_ LDI, 0, 4, "ldi,"
 ; Operands P-port,bit
 ; Assembler
 ; ( Port bit opcode mask -- xxxx.xxxx.PPPP.Pbbb )
-forthword_ P_b_, 0, 4, "P,b,"
+forthword_ P_b_, 0, "P,b,"
     call TO_R
     call TO_R     ; ( P b ) (R: -- mask opcode)
     anditos_ 7    ; ( P b )
@@ -63,7 +63,7 @@ forthword_ P_b_, 0, 4, "P,b,"
 ; Clear bit in I/O port
 ; Assembler
 ;   ( Port bit -- )
-forthword_ CBI_C, 0, 4, "cbi,"
+forthword_ CBI_C, 0, "cbi,"
     doliteral_ 0x9800
     doliteral_ 0xff00
     rjmp P_b_
@@ -71,7 +71,7 @@ forthword_ CBI_C, 0, 4, "cbi,"
 ; Set bit in I/O port
 ; Assembler
 ;   ( Port bit -- )
-forthword_ SBI_C, 0, 4, "sbi,"
+forthword_ SBI_C, 0, "sbi,"
     doliteral_ 0x9a00
     doliteral_ 0xff00
     rjmp P_b_
@@ -79,7 +79,7 @@ forthword_ SBI_C, 0, 4, "sbi,"
 ; Skip next instruction if bit in I/O port is clear
 ; Assembler
 ;   ( Port bit -- )
-forthword_ SBIC_C, 0, 5, "sbic,"
+forthword_ SBIC_C, 0, "sbic,"
     doliteral_ 0x9900
     doliteral_ 0xff00
     rjmp P_b_
@@ -87,7 +87,7 @@ forthword_ SBIC_C, 0, 5, "sbic,"
 ; Skip next instruction if bit in I/O port is set
 ; Assembler
 ;   ( Port bit -- )
-forthword_ SBIS_C, 0, 5, "sbis,"
+forthword_ SBIS_C, 0, "sbis,"
     doliteral_ 0x9b00
     doliteral_ 0xff00
     rjmp P_b_
@@ -97,7 +97,7 @@ forthword_ SBIS_C, 0, 5, "sbis,"
 ; compile load top of stack with immediate value
 ; ( n -- )
 
-forthword_ LIT, 0, 3, "lit"
+forthword_ LIT, 0, "lit"
     ; compile push tos
     doliteral_ 0x939a     ;( n 0x939a )
     call COMMA
@@ -115,20 +115,20 @@ forthword_ LIT, 0, 3, "lit"
 ; compile assembler ret 
 ; ( -- )
 
-forthword_ RET_C, 0, 4, "ret,"
+forthword_ RET_C, 0, "ret,"
     doliteral_ 0x9508     ;( 0x9508 )
     jmp COMMA
     
 ; compile rjmp
 ; ( distance -- )
-forthword_ RJMP, 0, 5, "rjmp,"
+forthword_ RJMP, 0, "rjmp,"
     andi    tosh, 0x0f
     ori     tosh, 0xc0
     jmp     COMMA
 
 ; calc relative distance
 ; ( start dest -- start distance )
-forthword_ RELDIST, 0, 7, "reldist"
+forthword_ RELDIST, 0, "reldist"
     ; calculate relative distance in words from start to dest
     ; rel dist = dest - start
     call OVER            ; ( start dest start )
@@ -139,7 +139,7 @@ forthword_ RELDIST, 0, 7, "reldist"
 
 ; compile rjmp at start address
 ; ( start dest -- )
-forthword_ RJMPC, 0, 5, "rjmpc"
+forthword_ RJMPC, 0, "rjmpc"
     ; clear rcall/call flags
     cbr fflags, (1<<LAST_RCALL_FB)|(1<<LAST_CALL_FB)
     ; set disable tail optimize flag
@@ -156,7 +156,7 @@ forthword_ RJMPC, 0, 5, "rjmpc"
 ; Tools
 ; Determines if a relative distance is within a relative jmp/call range
 ; flag is true if relative distance is between -2048 and 2047
-forthword_ QRDIST, 0, 6, "?rdist"
+forthword_ QRDIST, 0, "?rdist"
     cpi tosh, 0x08
     brsh QDIST_HTEST
 QDIST_INRANGE:
@@ -169,7 +169,7 @@ QDIST_HTEST:
 ; compile rcall to xt at the current dictionary position (DP) if relative distance is in range
 ; otherwise do long call to xt.  If word flag indicates inlining then the word is inlined.
 ; ( xt flags -- )
-forthword_ COMPILEXT, 0, 3, "cxt"
+forthword_ COMPILEXT, 0, "cxt"
     ; default to tail call optimization enabled
     cbr fflags, 1<<DIS_CALL_OPT_FB
     ; check bit 2 of word high byte flags: if set then tail call optimization stays enabled
@@ -211,7 +211,7 @@ DO_RCALLC:
 
 ; compile call at start address
 ; ( xt -- )
-forthword_ CALLC, 0, 5, "callc"
+forthword_ CALLC, 0, "callc"
     ; set compile flags: last instruction compiled was a call
     cbr fflags, 1<<LAST_RCALL_FB ; clear rcall flag bit
     sbr fflags, 1<<LAST_CALL_FB ; set call flag bit
@@ -222,13 +222,13 @@ forthword_ CALLC, 0, 5, "callc"
 
 ; branch 1 word if not zero
 ; ( -- )
-forthword_ BRNZ1_COMPILE, 0, 6, "brnz1,"
+forthword_ BRNZ1_COMPILE, 0, "brnz1,"
     ;compile brne 1w : F409
     doliteral_ 0xf409
     jmp COMMA
 
 ; dupzerosense inline
 ; ( f -- f )
-forthword_ DUPZEROSENSE_COMPILE, 0, 4, "?0?,"
+forthword_ DUPZEROSENSE_COMPILE, 0, "?0?,"
     doliteral_ 0x9700
     jmp COMMA

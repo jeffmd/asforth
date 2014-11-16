@@ -2,14 +2,14 @@
 ; ( --  )  
 ; Interrupt
 ; turns on all interrupts
-forthword_ INTON, INLINE_OPT, 4, "int+"
+forthword_ INTON, INLINE_OPT, "int+"
     sei
     ret
 
 ; ( -- ) 
 ; Interrupt
 ; turns off all interrupts
-forthword_ INTOFF, INLINE_OPT, 4, "int-"
+forthword_ INTOFF, INLINE_OPT, "int-"
     cli
     ret
 
@@ -17,7 +17,7 @@ forthword_ INTOFF, INLINE_OPT, 4, "int-"
 ; ( --  )  
 ; Interrupt
 ; re-enables interrupts in an ISR
-forthword_ ISREND, INLINE_OPT, 4, "reti"
+forthword_ ISREND, INLINE_OPT, "reti"
     reti
     ret ; needed for inline marker
 
@@ -25,7 +25,7 @@ forthword_ ISREND, INLINE_OPT, 4, "reti"
 ; ISR
 ; define the start of an Interrupt Service Routine
 ; must be called
-forthword_ ISTART, DIS_CALL_OPT, 4, "(i:)"
+forthword_ ISTART, DIS_CALL_OPT, "(i:)"
     ; save important registers
     movw isrZL, ZL
     movw isrXL, XL
@@ -44,7 +44,7 @@ forthword_ ISTART, DIS_CALL_OPT, 4, "(i:)"
 ; ( -- )
 ; ISR
 ; define the end of an Interupt Service Routine
-forthword_ IEND, 0, 4, "(i;)"
+forthword_ IEND, 0, "(i;)"
     movw ZL, isrZL
     movw XL, isrXL
     movw temp0, isrt0

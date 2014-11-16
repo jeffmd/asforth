@@ -11,7 +11,7 @@
 ; ( -- )
 ; MCU
 ; initialize usart
-forthword_ USART, 0, 6, "+usart"
+forthword_ USART, 0, "+usart"
 
   doliteral_ USART_B_VALUE
   doliteral_ USART_B

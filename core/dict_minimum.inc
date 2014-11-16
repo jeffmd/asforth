@@ -6,7 +6,7 @@
 ; Numeric IO
 ; location of the cell containing the number conversion radix
 
-forthword_ BASE, 0, 4, "base"
+forthword_ BASE, 0, "base"
     call DOUSER
     .word USER_BASE
 
@@ -14,7 +14,7 @@ forthword_ BASE, 0, 4, "base"
 ; ( -- e-addr )
 ; System Value
 ; address of the next free address in eeprom
-forthword_ EDP, 0, 3, "edp"
+forthword_ EDP, 0, "edp"
     call DOVALUE
     .word EE_EDP
     addr_ FETCHE
@@ -23,7 +23,7 @@ forthword_ EDP, 0, 3, "edp"
 ; ( -- addr )
 ; System Value
 ; address of the next free data space (RAM) cell
-forthword_ HERE, 0, 4, "here"
+forthword_ HERE, 0, "here"
     call DOVALUE
     .word EE_HERE
     addr_ FETCHE
@@ -32,14 +32,14 @@ forthword_ HERE, 0, 4, "here"
 ; ( n -- )
 ; Numeric IO
 ; save base
-forthword_ BASESTORE, 0, 5, "base!"
+forthword_ BASESTORE, 0, "base!"
     rcall BASE
     jmp STORE
 
 ; ( n -- )
 ; Numeric IO
 ; load base
-forthword_ BASEFETCH, 0, 5, "base@"
+forthword_ BASEFETCH, 0, "base@"
     rcall BASE
     jmp FETCH
 
@@ -47,21 +47,21 @@ forthword_ BASEFETCH, 0, 5, "base@"
 ; Numeric IO
 ; set base for number conversion to 2
 
-forthword_ BIN, 0, 3, "bin"
+forthword_ BIN, 0, "bin"
     call TWO
     rjmp BASESTORE
 
 ; ( -- )
 ; Numeric IO
 ; set base for numeric conversion to 10
-forthword_ DECIMAL, 0, 7, "decimal"
+forthword_ DECIMAL, 0, "decimal"
     call TEN
     rjmp BASESTORE
 
 ; ( -- )
 ; Numeric IO
 ; set base for number conversion to 16
-forthword_ HEX, 0, 3, "hex"
+forthword_ HEX, 0, "hex"
     doliteral_ 16
     rjmp BASESTORE
     
@@ -70,7 +70,7 @@ forthword_ HEX, 0, 3, "hex"
 ; System Value
 ; Deferred action during startup/reset
 
-forthword_ TURNKEY, 0, 7, "turnkey"
+forthword_ TURNKEY, 0, "turnkey"
     call DODEFER
     .word EE_TURNKEY
     addr_ FETCHE
@@ -80,7 +80,7 @@ forthword_ TURNKEY, 0, 7, "turnkey"
 ; ( n1 n2 -- n1|n2 )
 ; Compare
 ; compare two values leave the smaller one
-forthword_ MIN, 0, 3, "min"
+forthword_ MIN, 0, "min"
     call TWOOVER
     call GREATER
     ; <if>
@@ -96,7 +96,7 @@ MIN_exit:
 ; ( n1 n2 -- n1|n2 )
 ; Compare
 ; compare two values, leave the bigger one
-forthword_ MAX, 0, 3, "max"
+forthword_ MAX, 0, "max"
     call TWOOVER
     call LESS
     rjmp MIN_TEST
@@ -104,7 +104,7 @@ forthword_ MAX, 0, 3, "max"
 
 ; ( val -- char )
 ; convert low byte of val to a printable hex character    
-forthword_ NHEX, 0, 2, "#h"
+forthword_ NHEX, 0, "#h"
     zerohigh_
     andi tosl, 0x0F
     cpi tosl, 10
@@ -118,13 +118,13 @@ NHEX_NEXT:
 
 ; ( n -- )
 ; simple 4 bit hex print
-forthword_ PNIB, 0, 2, ".h"
+forthword_ PNIB, 0, ".h"
     rcall NHEX
     jmp EMIT
     
 ; ( n -- )
 ; simple 16 bit hex print    
-forthword_ PHEX, 0, 2, ".$"
+forthword_ PHEX, 0, ".$"
     dup_
     highbyte_
     swapnib_
@@ -145,7 +145,7 @@ forthword_ PHEX, 0, 2, ".$"
 ; ( c -- (number|) flag )
 ; Numeric IO
 ; tries to convert a character to a number, set flag accordingly
-forthword_ DIGITQ, 0, 6, "digit?"
+forthword_ DIGITQ, 0, "digit?"
     sbiw tosl, 0x30
     cpi tosl, 10
     brlo PFA_DIGITQ0
@@ -170,7 +170,7 @@ PFA_DIGITQ2:
 ; ( u1 u2 -- flag )
 ; Compare
 ; compare two unsigned numbers, returns true flag if u1 is less then or equal to u2
-forthword_ ULESSEQUAL, 0, 3, "u<="
+forthword_ ULESSEQUAL, 0, "u<="
     call UGREATER
     not_
     ret
@@ -178,7 +178,7 @@ forthword_ ULESSEQUAL, 0, 3, "u<="
 ; ( u1 u2 -- flag )
 ; Compare
 ; compare two unsigned numbers, returns true flag if u1 is greater then or equal to u2
-forthword_ UGREATEREQUAL, 0, 3, "u>="
+forthword_ UGREATEREQUAL, 0, "u>="
     call ULESS
     not_
     ret
@@ -187,7 +187,7 @@ forthword_ UGREATEREQUAL, 0, 3, "u>="
 
 
 ; USER variable used by catch/throw
-forthword_ HANDLER, 0, 6, "handle"
+forthword_ HANDLER, 0, "handle"
     call DOUSER
     .word USER_HANDLER
 
@@ -195,7 +195,7 @@ forthword_ HANDLER, 0, 6, "handle"
 ; Exceptions
 ; setup handler to catch exceptions and then EXEC XT.
 
-forthword_ CATCH, 0, 5, "catch"
+forthword_ CATCH, 0, "catch"
     ; sp@ >r
     call SP_FETCH       ; ( xt SP )
     call TO_R           ; ( xt ) (R: ret -- callerret SP )
@@ -220,7 +220,7 @@ forthword_ CATCH, 0, 5, "catch"
 ; Exceptions
 ; throw an exception
 ; assumes jmp to get here
-forthword_ THROW, 0, 5, "throw"
+forthword_ THROW, 0, "throw"
     dupzerosense_
     brne PFA_THROW1
 	drop_
@@ -243,12 +243,12 @@ PFA_THROW1:
 
 ; ( -- )
 ; send Ctrl-Q (XON) to resume transmission
-;forthword_ XON, 0, 3, "XON"
+;forthword_ XON, 0, "XON"
 ;    doliteral_ 17
 ;    rjmp EMIT
 
 ; send Ctrl-S (XOFF) to pause transmission
-;forthword_ XOFF, 0, 4, "XOFF"
+;forthword_ XOFF, 0, "XOFF"
 ;    doliteral_ 19
 ;    rjmp EMIT
 
@@ -257,7 +257,7 @@ PFA_THROW1:
 ; (c -- ) Numeric IO
 ; R( -- )
 ; set the BASE value depending on the character
-;forthword_ SETBASE, 0, 7, "setbase"
+;forthword_ SETBASE, 0, "setbase"
 SETBASE:        ; ( c -- )
     mov temp0, tosl
     drop_
@@ -285,7 +285,7 @@ PFA_SETBASE2:        ; ( error)
 ; ( addr len -- addr' len' )
 ; Numeric IO
 ; skip a numeric prefix character
-;forthword_ PRAEFIX, 0, 7, "praefix"
+;forthword_ PRAEFIX, 0, "praefix"
 PRAEFIX:        ; ( adr1 len1 -- adr2 len2 )
     call OVER
     call CFETCH
@@ -302,7 +302,7 @@ PFA_PRAEFIX0:
 
 ; (addr len -- addr len flag) Numeric IO
 ; check for - sign
-; forthword_ NUMBERSIGN, 0, A, "numbersign"
+; forthword_ NUMBERSIGN, 0, "numbersign"
 NUMBERSIGN:        ; ( addr len -- )
     call OVER      ; ( addr len addr )
     call CFETCH    ; ( addr len char )
@@ -320,7 +320,7 @@ NUMBERSIGN_HASSIGN:
 ; ( u1 c-addr1 len1 -- u2 c-addr2 len2 )
 ; Numeric IO
 ; convert a string to a number  c-addr2/u2 is the unconverted string
-forthword_ TO_NUMBER, 0, 4, ">num"
+forthword_ TO_NUMBER, 0, ">num"
     dupzerosense_
     breq PFA_TO_NUMBER1
         call OVER            ; ( u adr len adr)
@@ -348,7 +348,7 @@ PFA_TO_NUMBER1:
 ; (addr len -- [n] f)
 ; Numeric IO
 ; convert a string at addr to a number
-forthword_ NUMBER, 0, 3, "num"
+forthword_ NUMBER, 0, "num"
     rcall BASEFETCH
     call TO_R               ; ( addr len ) (R: base)
     rcall NUMBERSIGN
@@ -396,14 +396,14 @@ ram_user1: .space SYSUSERSIZE
 
 ; ( -- ram_mcusr )
 ; get mcusro addr. this is the mcusr read and stored when cold executes.
-forthword_ RAM_MCUSRO, 0, 6, "mcusro"
+forthword_ RAM_MCUSRO, 0, "mcusro"
     doliteral_ ram_mcusro
     ret
 
 ; ( -- )
 ; System
 ; start up asforth.
-forthword_ COLD, 0, 4, "cold"
+forthword_ COLD, 0, "cold"
     in_ r10, MCUSR
     clr r11
     clr zerol
@@ -432,7 +432,7 @@ forthword_ COLD, 0, 4, "cold"
 ; ( nx* -- ) (R: ny* -- )
 ; System
 ; initialize asforth further. EXECs turnkey operation and go to quit
-forthword_ WARM, 0, 4, "warm"
+forthword_ WARM, 0, "warm"
     rcall INITUSER
     doliteral_ pm(NOOP)
     doliteral_ pm(PAUSE)
@@ -443,7 +443,7 @@ forthword_ WARM, 0, 4, "warm"
     rcall USART
     rcall INTON
     call DOSLIT
-    ascii_ 11, "asforth 1.2"
+    ascii_ "asforth 1.2"
     call ITYPE
     call CR
     
@@ -455,14 +455,14 @@ forthword_ WARM, 0, 4, "warm"
 ; ( -- addr)
 ; Stack
 ; start address of the data stack
-forthword_ SP0, 0, 3, "sp0"
+forthword_ SP0, 0, "sp0"
     doliteral_ stackstart
     ret
     
 ; ( -- addr)
 ; Stack
 ; start address of return stack
-forthword_ RP0, 0, 3, "rp0"
+forthword_ RP0, 0, "rp0"
     doliteral_ rstackstart
     ret
 
@@ -472,7 +472,7 @@ forthword_ RP0, 0, 3, "rp0"
 ; String
 ; compares two strings in RAM
 
-;forthword_ COMPARE, 0, 7, "compare"
+;forthword_ COMPARE, 0, "compare"
 ;    movw temp0, tosl
 ;    poptos
 ;    movw XL, tosl
@@ -512,7 +512,7 @@ forthword_ RP0, 0, 3, "rp0"
 ; Memory
 ; copy data in RAM, from lower to higher addresses
 
-;forthword_ CMOVE, 0, 5, "cmove"
+;forthword_ CMOVE, 0, "cmove"
 ;    ld ZL, Y+
 ;    ld ZH, Y+ ; addr-to
 ;    ld XL, Y+
@@ -535,7 +535,7 @@ forthword_ RP0, 0, 3, "rp0"
 ; Memory
 ; copy data in RAM from higher to lower addresses.
 
-;forthword_ CMOVE_G, 0, 2, "c>"
+;forthword_ CMOVE_G, 0, "c>"
 ;    ld ZL, Y+
 ;    ld ZH, Y+ ; addr-to
 ;    ld XL, Y+
@@ -560,7 +560,7 @@ forthword_ RP0, 0, 3, "rp0"
 ; ( ee-addr -- itemn .. item0 n) 
 ; Tools
 ; Get an array from EEPROM and put on the stack
-;forthword_ FETCH_EE_ARRAY, 0, 4, "@e[]"
+;forthword_ FETCH_EE_ARRAY, 0, "@e[]"
 ;    dup_               ; ( ee-addr ee-addr )
 ;    rcall FETCHE       ; ( ee-addr len )
 ;    rcall _A           ; ( ee-addr len ) A: len
@@ -584,7 +584,7 @@ forthword_ RP0, 0, 3, "rp0"
 ; ( recn .. rec0 n ee-addr -- ) 
 ; Tools
 ; Write a list to EEPROM
-;forthword_ STORE_EE_ARRAY, 0, 4, "!e[]"
+;forthword_ STORE_EE_ARRAY, 0, "!e[]"
 ;    rcall TWOOVER   ; ( recn .. rec0 n ee-addr n ee-addr )
 ;    rcall STOREE ; ( recn .. rec0 n e-addr )
 ;    rcall SWAP   ; ( recn .. rec0 e-addr n )
@@ -605,7 +605,7 @@ forthword_ RP0, 0, 3, "rp0"
 ; ( -- n )
 ; Stack
 ; number of single-cell values contained in the data stack before n was placed on the stack.
-forthword_ DEPTH, 0, 5, "depth"
+forthword_ DEPTH, 0, "depth"
     rcall SP0
     call SP_FETCH
     call MINUS
@@ -616,7 +616,7 @@ forthword_ DEPTH, 0, 5, "depth"
 ; ( --  )
 ; Tools
 ; check stack underflow, throw exception -4
-forthword_ QSTACK, 0, 3, "?sp"
+forthword_ QSTACK, 0, "?sp"
     rcall DEPTH
     call LESSZERO
     zerosense_
@@ -630,14 +630,14 @@ PFA_QSTACKERROR:
 ; ( -- v)
 ; System Value
 ; address of the default user area content in eeprom
-forthword_ EEUSER, 0, 4, "ee-u"
+forthword_ EEUSER, 0, "ee-u"
   doliteral_ EE_INITUSER
   ret
 
 ; ( e-addr r-addr len -- )
 ; Memory
 ; copy len cells from eeprom to ram
-forthword_ EE2RAM, 0, 4, "ee>r"
+forthword_ EE2RAM, 0, "ee>r"
     niptoa_              ; ( e-addr len ) A: r-addr
     niptob_              ; ( len ) B: e-addr
 PFA_EE2RAM_1:
@@ -662,7 +662,7 @@ PFA_EE2RAM_2:
 ; ( -- )
 ; Tools
 ; setup the default user area from eeprom
-forthword_ INITUSER, 0, 3, "i-u"
+forthword_ INITUSER, 0, "i-u"
     rcall EEUSER
     call UP_FETCH
     doliteral_ SYSUSERSIZE
@@ -673,7 +673,7 @@ forthword_ INITUSER, 0, 3, "i-u"
 ; ( u1 u2 -- u)
 ; Arithmetics
 ; multiply 2 unsigned cells to a cell
-forthword_ STAR, 0, 1, "*"
+forthword_ STAR, 0, "*"
     rcall MSTAR
     drop_
     ret
@@ -681,7 +681,7 @@ forthword_ STAR, 0, 1, "*"
 ; ( u1 u2 -- u)
 ; Arithmetics
 ; multiply 2 unsigned cells to a cell
-forthword_ MSTAR, 0, 2, "m*"
+forthword_ MSTAR, 0, "m*"
     movw temp0, tosl
     poptos
     movw temp2, tosl
@@ -712,7 +712,7 @@ forthword_ MSTAR, 0, 2, "m*"
 ; ( ud u2 -- rem quot)
 ; Arithmetics
 ; unsigned division ud / u2 with remainder
-forthword_ UMSLASHMOD, 0, 6, "um/mod"
+forthword_ UMSLASHMOD, 0, "um/mod"
     movw temp4, tosl
 
     ld temp2, Y+
@@ -770,7 +770,7 @@ PFA_UMSLASHMODmod_done:
 ; ( n1 -- n2 )
 ; Logic
 ; 2-complement
-forthword_ NEGATE, INLINE_OPT, 3, "neg"
+forthword_ NEGATE, INLINE_OPT, "neg"
     not_
     oneplus_
     ret
@@ -807,7 +807,7 @@ DIV16_16_3:
 ; ( n1 n2 -- rem quot)
 ; Arithmetics
 ; unsigned division n1/n2 with remainder and quotient
-forthword_ USLASHMOD, 0, 5, "u/mod"
+forthword_ USLASHMOD, 0, "u/mod"
     movw temp2, tosl
 
     ld temp0, Y+
@@ -820,7 +820,7 @@ forthword_ USLASHMOD, 0, 5, "u/mod"
 ; ( n1 n2 -- rem quot)
 ; Arithmetics
 ; signed division n1/n2 with remainder and quotient
-forthword_ SLASHMOD, 0, 4, "/mod"
+forthword_ SLASHMOD, 0, "/mod"
     movw temp2, tosl
 
     ld temp0, Y+
@@ -866,7 +866,7 @@ SLASHMOD_end:
 ; Arithmetics
 ; get the absolute value
 
-forthword_ ABS, 0, 3 "abs"
+forthword_ ABS, 0, "abs"
     dup_
     call LESSZERO
     ; <if>
@@ -883,7 +883,7 @@ ABS_exit:
 ; Exceptions
 ; check flag. If true display the parsed text and throw exception -2 
 
-;forthword_ ABORTSTRING, DIS_CALL_OPT, 6, "abort\""
+;forthword_ ABORTSTRING, DIS_CALL_OPT, "abort\""
 ;    ; postpone if
 ;    call DOCOMPILE
 ;    addr_ 0 ; ******* FIXME
