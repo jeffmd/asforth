@@ -5,7 +5,7 @@ also Trial definitions
 \ debug flasher task
 : flash dbg+ 4 msec dbg- ;
 
-\ display seconds in top right corner
+\ display 2 digit number
 : .c c@ <# # # #> type ;
 \ display clock seconds at top right
 : dsec 14 0 pos secs .c ;

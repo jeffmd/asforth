@@ -224,9 +224,9 @@ cvar line
   sio
   reset
   \ clear settings to default
-  0 ctrl c!
-  0 mode c!
-  0 line c!
+  ctrl 0c!
+  mode 0c!
+  line 0c!
   off \ turn display off
   clr \ clear display
   Adc init
