@@ -857,6 +857,13 @@ ZSTORE:
     poptos
     ret
 
+; ( addr -- )
+; write 0 to RAM memory at addr.    
+forthword_ ZEROSTORE, 0, "0!"
+    movw ZL, tosl
+    zerotos_
+    rjmp ZSTORE
+
 ; ( n addr -- ) 
 ; addr is high address
 ; Memory
@@ -884,6 +891,14 @@ ZCSTORE:
     st Z+, tosl
     poptos
     ret
+    
+; ( a-addr -- ) 
+; Memory
+; store a 0 to single byte RAM address
+forthword_ ZEROCSTORE, 0, "0c!"
+    movw ZL, tosl
+    clr tosl
+    rjmp ZCSTORE
 
 ; ( a-addr - c1 ) 
 ; Memory

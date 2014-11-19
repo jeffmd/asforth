@@ -22,7 +22,7 @@ cvar tcnt
   if
     \ greater than 30 so 0
     0:
-    dup tidx c!
+    tidx 0c!
   then
 ;
 
@@ -121,7 +121,7 @@ cvar exms
 : allclr
   \ iterate 0 to 30 and clear tcnt[] and set tasks[] to noop
   0
-  dup tidx c!
+  tidx 0c!
   begin
     0 over cnt!
     dup taskclr 

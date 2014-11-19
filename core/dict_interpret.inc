@@ -596,13 +596,11 @@ forthword_ DOREFILL, 0, "(refill)"
   rcall FETCH              ; ( >in )
   zerosense_               ; ( )
   breq DOREFILL_do
-    rcall ZERO             ; ( 0 )
-    dup_                   ; ( 0 0 )
-    rcall G_IN             ; ( 0 0 >inaddr )
-    rcall STORE            ; ( 0 )
+    rcall G_IN             ; ( >inaddr )
+    rcall ZEROSTORE        ; (  )
     ; reset input buffer cursor position
-    rcall SHARPTIB         ; ( 0 #tibaddr )
-    rcall STORE            ; ( )
+    rcall SHARPTIB         ; ( #tibaddr )
+    rcall ZEROSTORE        ; ( )
     rjmp QP_RD
     
 DOREFILL_do:
@@ -647,9 +645,8 @@ forthword_ QUIT, 0, "quit"
     ; reset return stack pointers
     call RP0
     rcall RP_STORE
-    rcall ZERO
     rcall SMUDGE
-    rcall STORE
+    rcall ZEROSTORE
     ; restore dp from eeprom
     rcall DPFETCHE
     

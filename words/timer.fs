@@ -56,12 +56,12 @@ OVF0 isr T0ms
 \ setup timer 0 for ~1ms timer counter overflow interrupt
 ( -- )
 : T0init
-  0 dup ms ! us !
+  ms 0! us 0!
 \ use prescaler of 64
 \ timer 0 will generate an overflow event 976.5625 times/sec
   %011 TCCR0B c!
 \ setup timer in normal count mode and normal port mode
-  0 TCCR0A c!
+  TCCR0A 0c!
 \ clear overflow flag by setting the flag
   1 TIFR0 c!
 \ enable timer overflow interupt

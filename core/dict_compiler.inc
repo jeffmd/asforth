@@ -3,7 +3,7 @@
 
 ; ( -- addr )
 ; System Variable
-; system state
+; system state variable. 0 is interpret mode. Not 0 is compile mode
 forthword_ STATE, 0, "state"
     call DOUSER
     .word USER_STATE
@@ -176,9 +176,8 @@ forthword_ UWID, 0, "uwid"
        rcall CURRENT
        rcall FETCH
        rcall STOREE
-       rcall ZERO
        rcall SMUDGE
-       rcall STORE
+       rcall ZEROSTORE
        rjmp DPSTOREE
 UWID_end:
     ret
@@ -201,9 +200,8 @@ forthword_ RBRACKET, 0, "]"
 ; Compiler
 ; enter interpreter mode
 forthword_ LBRACKET, IMMEDIATE_EN, "["
-    rcall ZERO
     rcall STATE
-    rjmp STORE
+    rjmp ZEROSTORE
 
 
 ; ( n -- )
@@ -371,7 +369,6 @@ forthword_ ONLY, IMMEDIATE_EN, "only"
     oneminus_
     rcall CSTORE
     ; make second slot have no vocab
-    rcall ZERO
     rcall CONTEXT
     twoplus_
-    rjmp STORE
+    rjmp ZEROSTORE

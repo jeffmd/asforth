@@ -34,10 +34,10 @@ cvar secs
 
 \ clear the clock
 : clr
-  0 dup days !
-  dup hrs c!
-  dup mins c!
-  secs c!
+  days 0!
+  hrs 0c!
+  mins 0c!
+  secs 0c!
 ;
 
 \ run the clock

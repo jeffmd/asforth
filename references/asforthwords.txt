@@ -5,14 +5,22 @@ sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- fl
 
 
 [       ( --  ) Immediate: enter interpreter mode
+         Usually used in a colon-definition in form:
+                           :  xxx    [  words   ]    more   ;
+        It suspends compilation. The words after [ are executed, not compiled.
+        This allows calculation or compilation exceptions before resuming
+        compilation with ] . 
 
-]       ( --  ) enter compiler mode
+]       ( --  ) enter compiler mode.
+        When used within a definition it resumes compilation, to the completion of a colon-definition.
+        Also see [.
+
 
 [char]  ( -- c ) (C: "<space>name" -- ) Immediate: skip leading space delimites, place the first character of the word on the stack
 
-,       ( n -- ) compile n into flash at DP (dictionary pointer), advances DP
+,       ( n -- ) compile n into flash at DP (dictionary pointer), advances DP by one cell
 
-dp      ( -- f-addr ) address of the next free dictionary cell
+dp      ( -- f-addr ) address of the next free dictionary cell in flash/program memory.
 
 dp+1    ( -- ) increment DP (dictionary pointer) by one
 
@@ -33,7 +41,7 @@ nfa>lfa ( nfa -- lfa ) get the link field address from the name field address
 
 nfa>xtf ( nfa -- [ 0 ] | [ xt xtflags] ) convert name field address to xt and xtflags. 0 if not found.
 
-state   ( -- addr ) system state variable
+state   ( -- addr ) system state variable. 0 is interpret mode. Not 0 is compile mode.
 
 
 Defined in Forth Source:
@@ -44,7 +52,7 @@ Defined in Forth Source:
 
 :noname ( -- xt ) create an unnamed entry in the dictionary
 
-(create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create an vocabulary entry without XT and data field (PF)
+(create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create a vocabulary entry without XT and data field (PF)
 
 create   ( -- a-addr ) ( C: "<spaces>name" -- ) 
 
@@ -314,35 +322,68 @@ xor
 Memory: (34 words)
 -------
 
-c!   ( c a-addr -- ) store a single byte to RAM address
-c@   ( a-addr - c1 ) fetch a single byte from RAM address
-+c!  ( n a-addr -- ) add n to content of byte RAM address a-addr
-1+c! ( a-addr -- ) add 1 to content of byte RAM address a-addr
-@    ( a-addr -- n ) read 1 cell from RAM address
+c!   ( c addr -- ) store a single byte to RAM address
+
+0c!  ( addr -- ) store a zero at byte RAM address
+
+c@   ( addr - c1 ) fetch a single byte from RAM address
+
++c!  ( n addr -- ) add n to content of byte RAM address a-addr
+
+1+c! ( addr -- ) add 1 to content of byte RAM address a-addr
+
+@    ( addr -- n ) read 1 cell from RAM address
+
 !    ( n addr -- ) write n to RAM memory at addr, low byte first
-+!   ( n a-addr -- ) add n to content of word RAM address a-addr
-1+!  ( a-addr -- ) add 1 to content of word RAM address a-addr
+
+0!   ( addr -- ) write 0 to to RAM address.
+
++!   ( n addr -- ) add n to content of word RAM address addr
+
+1+!  ( addr -- ) add 1 to content of word RAM address addr
+
 @u   ( index -- n ) read 1 cell from user RAM address + index
+
 !u   ( n index -- ) write n to RAM memory at user RAM addr + index, low byte first
+
 !e   ( n e-addr -- ) write n (2bytes) to eeprom address
+
 @e   ( e-addr - n) read 1 cell from eeprom
+
 !i   ( n f-addr -- ) writes n to flash memory 
+
 @i   ( f-addr -- n1 ) read 1 cell from flash
+
 a@   ( -- n ) Read RAM memory pointed to by register A 
+
 a@i  ( -- n ) Read program memory pointed to by register
+
 ac@  ( -- n ) Read a byte from ram pointed to by register A
+
 a!   ( n -- ) Write memory pointed to by register A 
+
 ac!  ( n -- ) Write char memory pointed to by register A
+
 na!  ( n offs -- ) Write TOS to memory pointed to by register A plus offset
+
 a+   ( -- ) update register A with post increment from last memory operation
+
 >a   ( n -- ) A: n Move TOS to A register
+
 >b   ( n -- ) B: n Move TOS to B register 
+
 :a   ( n -- n ) A: n copy TOS to A register
+
 :b   ( n -- n ) B: n copy TOS to B register
+
 nip>a ( n1 n2 -- n2 ) A: n1 Remove next on stack and write to A register
+
 nip>b ( n1 n2 -- n2 ) B: n1 Remove next on stack and write to B register
+
 a    ( -- n ) put the A register on TOS
+
 b    ( -- n ) put the B register on TOS
+
 itoi
 @e[]
 !e[]
