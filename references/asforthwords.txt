@@ -16,8 +16,6 @@ sliteral (C: addr len -- ) compiles a string to flash, at runtime leaves ( -- fl
         Also see [.
 
 
-[char]  ( -- c ) (C: "<space>name" -- ) Immediate: skip leading space delimites, place the first character of the word on the stack
-
 ,       ( n -- ) compile n into flash at DP (dictionary pointer), advances DP by one cell
 
 dp      ( -- f-addr ) address of the next free dictionary cell in flash/program memory.
@@ -31,7 +29,6 @@ dp!e    ( -- ) backup DP to eeprom
 dp!     ( addr -- ) store address of the next free dictionary cell
 
 dp@e    ( -- ) fetch DP from eeprom and put in ram
-
 
 header  ( addr len wid -- voc-link ) creates the vocabulary header without XT and data field (PF) in the wordlist wid
 
@@ -52,21 +49,26 @@ Defined in Forth Source:
 
 :noname ( -- xt ) create an unnamed entry in the dictionary
 
+[char]  ( -- c ) (C: "<space>name" -- ) Immediate: skip leading space delimites, place the first character of the word on the stack
+
+char    ( "<spaces>name" -- c ) copy the first character of the next word onto the stack
+
 (create) ( --  ) (C: "<spaces>name" -- voc-link ) parse the input and create a vocabulary entry without XT and data field (PF)
 
 create   ( -- a-addr ) ( C: "<spaces>name" -- ) 
 
-(does>)
+(does>)  ( -- ) replace the instruction written by CREATE to call the code that follows does>. Does not return to caller.
 
-does>
+does>    ( -- ) organize the XT replacement to call other colon code used in conjunction with create
+			 ie: : name create .... does> .... ;
 
->mark    ( -- start ) places current dictionary position for forward branch resolve
+>mark    ( -- start ) places current dictionary position for forward branch resolve on TOS and advances DP
 
->resolve ( start -- ) resolve forward jump: compiles relative jump to resolve position at the start position which is on TOS 
+>jmp ( start -- ) resolve forward jump: compiles relative jump to resolve position at the start position which is on TOS 
 
 <mark    ( -- dest ) place destination for backward branch
 
-<resolve ( dest -- ) resolve backward branch: compiles relative jump to start position at the resolve position
+<jmp ( dest -- ) resolve backward branch: compiles relative jump to start position at the resolve position
 
 if       ( f -- ) (C: -- orig ) start conditional branch: compiles zerosense, branch on not equal, and relative jump
 
@@ -114,19 +116,19 @@ compile   ( C: x "<spaces>name" -- ) compile word into pending new word.  Immedi
 cxt       ( xt flags -- ) compile rcall to xt at the current dictionary position (DP) if relative distance is in range
                           otherwise do long call to xt.  If word flag indicates inlining then the word is inlined.
 
-'f
+'f        ( "<spaces>name" -- XT XTflags ) search dictionary for name, returns XT or 0
 
-['f]
+['f]      ( -- ) ( C: "<space>name" -- ) immediate - what 'f does in the interpreter mode, do in colon definitions
+                                         and xt and flag are compiled as two literals
 
-[']
+[']       ( -- ) ( C: "<space>name" -- ) immediate - what ' does in the interpreter mode, do in colon definitions
+                                         compiles xt as literal
 
-'
+'         ( "<spaces>name" -- XT ) search dictionary for name, returns XT if found or 0
 
-val ( n -- )  ( C: x "<spaces>name" -- ) create a dictionary entry for a value and allocate 1 cell in EEPROM.
+val       ( n -- )  ( C: x "<spaces>name" -- ) create a dictionary entry for a value and allocate 1 cell in EEPROM.
 
-to
-
-inline
+inlined   ( -- ) make most current word inlined
 
 lit
 
@@ -178,18 +180,18 @@ defx ( addr -- n ) execute the defer fetch
 
 (val) ( -- n )
 
-(to) ( n -- ) (R: IP -- IP+2) runtime portion of to. Takes TOS and
-stores it in the defer storage location.
-
 edefer ( c<name> -- ) creates a defer vector which is kept in eeprom.
 
 rdefer ( c<name> -- ) creates a RAM based defer vector.
 
-is ( xt1 c<name> -- ) alias for is
 
-to ( xt1 c<name> -- ) stores xt into defer or compiles code to do so at runtime, same as to
+(to) ( n -- ) (R: IP -- IP+2) runtime portion of to. Takes TOS and
+stores it in the defer storage location.
+
+to ( xt1 c<name> -- ) immediate - stores xt into defer or compiles code to do so at runtime, same as to
 can be used on any defer
 
+is ( xt1 c<name> -- ) alias for to
 
 Parameter Stack: (17 words)
 ----------------
@@ -241,7 +243,7 @@ dup>r  ( n -- n ) (R: -- n ) copy TOS to TOR
 
 >r     ( n -- ) (R: -- n ) move TOS to TOR
 
-r@     ( -- x) (R: n -- n ) use TOR as address to fetch content from ram
+r      ( -- n) (R: n -- n ) put a copy of TOR on TOS
 
 r>r+   ( -- n) (R: n -- n+1 ) fetch content of TOR and then increment TOR by 1
 
@@ -251,21 +253,36 @@ rp!    ( addr  -- ) (R: -- x*y) set return stack pointer
 
 rp0    ( -- addr) start address of return stack in ram
 
+popret ( -- retaddr )  pop return onto data stack and exit caller
+                   used if data in program mem and need an address to it
+
+
 
 Operators: (50 words)
 ----------
 
 Compare:
 --------
-<>
-0=
-=
-<
->
-0<
-0>
-u<
-u>
+<>     ( n1 n2 -- flag) flag is true if n1 is not equal to n2
+
+0=     ( n -- flag ) flag is true if TOS equal to 0 (zero)
+
+ntcp   ( n2 n1 -- n1 ) compare top of stack and next on top of stack  and sets mcu status register flags
+
+=      ( n1 n2 -- flag ) flag is true if TOS and NOS are equal
+
+<      ( n1 n2 -- flag)  flag is true if n1 is less than n2
+
+>      ( n1 n2 -- flag ) flag is true if n1 is greater than n2
+
+0<     ( n1 -- flag) flag is true if TOS is less than zero
+
+0>     ( n1 -- flag ) flag is true if n1 is greater than 0
+
+u<     ( u1 u2 -- flag ) flag is true if u1 < u2 (unsigned)
+
+u>     ( u1 u2 -- flag ) flag is true if u1 > u2 (unsigned)
+
 u<=
 u>=
 min
@@ -276,12 +293,18 @@ within
 Arithmetics:
 ------------
 
-0: ( n -- 0 ) replaces TOS with 0
-0
-1
-2
-10
-true
+0:     ( n -- 0 ) replaces TOS with 0
+
+0      ( -- 0 ) push zero onto stack
+
+1      ( -- 1 ) push one onto stack
+
+2      ( -- 2 ) push two onto stack
+
+10     ( -- 10 ) push ten onto stack
+
+true   ( -- -1 ) push true (-1) onto stack
+
 0?
 ?0?
 -
@@ -431,7 +454,6 @@ spaces
 
 accept
 refill
-char
 number
 praefix
 >number

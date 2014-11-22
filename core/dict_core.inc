@@ -165,7 +165,7 @@ forthword_ R_DROP, INLINE_OPT, "r>drop"
     r_drop_
     ret
 
-; ( -- a-addr )
+; ( -- retaddr )
 ; Stack
 ; pop return onto data stack and exit caller
 ; must be called, do not use jmp
@@ -198,7 +198,7 @@ forthword_ TO_R, DIS_CALL_OPT, ">r"
 ; ( -- n) (R: n -- n )
 ; Stack
 ; put a copy of TOR on TOS
-forthword_ R_FETCH, DIS_CALL_OPT, "r@"
+forthword_ R_FETCH, DIS_CALL_OPT, "r"
     in ZL, SPL
     in ZH, SPH
     pushtos
@@ -226,20 +226,20 @@ forthword_ R_FETCHPLUS, DIS_CALL_OPT, "r>r+"
 ;;;;;;;;;;;;; Operators ;;;;;;;;;;;
 ; ( n1 n2 -- flag) 
 ; Compare
-; true if n1 is not equal to n2
+; flag is true if n1 is not equal to n2
 forthword_ NOTEQUAL, 0, "<>"
     rjmp XOR
 
 ; ( n -- flag ) 
 ; Compare
-; compare with 0 (zero)
+; flag is true if TOS equal to 0 (zero)
 forthword_ EQUALZERO, 0, "0="
     or tosh, tosl
     rjmp PFA_EQUALDONE
 
 
 ; ( n2 n1 -- n1 )
-; compare top of stack and next on top of stack 
+; compare top of stack and next on top of stack and sets mcu status register flags
 forthword_ NTCP, 0, "ntcp"
     ld temp0, Y+
     ld temp1, Y+
@@ -249,7 +249,7 @@ forthword_ NTCP, 0, "ntcp"
 
 ; ( n1 n2 -- flag ) 
 ; Compare
-; compares two values for equality
+; flag is true if TOS and NOS are equal
 
 forthword_ EQUAL, 0, "="
     rcall NTCP
@@ -259,7 +259,7 @@ PFA_EQUALDONE:
 
 ; ( n1 n2 -- flag) 
 ; Compare
-; true if n1 is less than n2
+; flag is true if n1 is less than n2
 forthword_ LESS, 0, "<"
     rcall NTCP
 PFA_LESSDONE:
@@ -278,7 +278,7 @@ PFA_GREATERDONE:
 
 ; ( u1 u2 -- flag ) 
 ; Compare
-; true if u1 > u2 (unsigned)
+; flag is true if u1 > u2 (unsigned)
 forthword_ UGREATER, 0, "u>"
     rcall NTCP
     brlo PFA_ZERO1
@@ -287,7 +287,7 @@ forthword_ UGREATER, 0, "u>"
 
 ; ( u1 u2 -- flag) 
 ; Compare
-; true if u1 < u2 (unsigned)
+; flag is true if u1 < u2 (unsigned)
 forthword_ ULESS, 0, "u<"
     rcall NTCP
     brlo PFA_TRUE1
@@ -295,14 +295,14 @@ forthword_ ULESS, 0, "u<"
 
 ; ( n1 -- flag) 
 ; Compare
-; compare with zero
+; flag is true if TOS is less than zero
 forthword_ LESSZERO, 0, "0<"
     sbiw tosl, 0
     rjmp PFA_LESSDONE
 
 ; ( n1 -- flag ) 
 ; Compare
-; true if n1 is greater than 0
+; flag is true if n1 is greater than 0
 forthword_ GREATERZERO, 0, "0>"
     sbiw tosl, 0
     rjmp PFA_GREATERDONE

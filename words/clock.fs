@@ -33,7 +33,7 @@ cvar secs
 ;
 
 \ clear the clock
-: clr
+: clr ( -- )
   days 0!
   hrs 0c!
   mins 0c!
