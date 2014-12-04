@@ -305,10 +305,14 @@ Arithmetics:
 
 true   ( -- -1 ) push true (-1) onto stack
 
-0?
-?0?
--
-+
+0?     ( n -- ) test TOS if zero
+
+?0?    ( n -- n ) test TOS if zero, does not consume TOS
+
+-      ( n1|u1 n2|u2 -- n3|u3 ) subtract n2 from n1
+
++      ( n1 n2 -- n3) add n1 and n2
+
 /
 /mod
 u/mod
