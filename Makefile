@@ -81,11 +81,11 @@ CORE=core
 # PROGRAMMER CONFIGURATION
 # ------------------------
 
-PROGRAMMER=usbtiny
-PORT=
+PROGRAMMER?=usbtiny
+PORT?=/dev/ttyUSB0
 
 AVRDUDE=avrdude
-AVRDUDE_FLAGS= -c $(PROGRAMMER)
+AVRDUDE_FLAGS= -P $(PORT) -c $(PROGRAMMER)
 
 # ----------------
 # ASSEMBLER TO USE
