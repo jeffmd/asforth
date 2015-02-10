@@ -23,7 +23,7 @@ forthword_ DEFGET, 0, "defg"
     dup_                ; ( addr addr )
     ; get address of defer
     rcall FETCHI        ; ( addr valaddr )
-    rjmp SWAP          ; ( valaddr addr )
+    rjmp SWAP           ; ( valaddr addr )
  
 ; ( addr -- n )
 ; System
