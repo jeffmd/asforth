@@ -498,6 +498,10 @@ forthword_ RECX, 0, "recx"
     rcall CR
     ; print unrecognized word
     rcall TYPE
+    rcall DOSLIT
+    ascii_ "<-Unrecognised!"
+    rcall ITYPE
+    
     doliteral_ 0xBAD
     jmp THROW
     
@@ -546,6 +550,10 @@ CHECK_COMPILE_ONLY:
     zerosense_
     brne CHECK_IMMEDIATE
         ; word can only be used in compile state
+        call DOSLIT
+        ascii_ " Only Compile!"
+        call ITYPE
+        
         doliteral_ 0xBC
         jmp THROW
     

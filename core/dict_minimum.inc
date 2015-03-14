@@ -279,6 +279,10 @@ PFA_SETBASE2:        ; ( error)
     dup_
     movw tosl, temp0
     call EMIT
+    call DOSLIT
+    ascii_ " bad base!"
+    call ITYPE
+
     doliteral_ 0xBD
     rjmp THROW
 
@@ -623,6 +627,10 @@ forthword_ QSTACK, 0, "?sp"
     brne PFA_QSTACKERROR
     ret
 PFA_QSTACKERROR:
+
+      call DOSLIT
+      ascii_ " Stack Underflow!"
+      call ITYPE
       
       doliteral_ 0xBEF
       rjmp THROW

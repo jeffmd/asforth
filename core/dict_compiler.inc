@@ -271,6 +271,10 @@ forthword_ HEADER, 0, "header"
     ; <then>
 HEADER_error:
     ; -16: attempted to use zero length string as a name
+    rcall DOSLIT
+    ascii_ "Bad Name!"
+    rcall ITYPE
+    
     rcall TRUE
     jmp THROW
    
