@@ -1,8 +1,13 @@
 \ vocabulary.fs - words for managing the words
 
+\ get context index address
+: contidx ( -- addr )
+  context 1-
+;
+
 \ get context array address using context index
 : context# ( -- addr )
-  context dup 1- c@ 2* +
+  context contidx c@ 2* +
 ;
 
 \ get a wordlist id from context array
@@ -24,7 +29,7 @@
 : also ( -- )
   context@
   \ increment index
-  context 1- 1+c!
+  contidx 1+c!
   context!
   
 ; immediate
@@ -50,7 +55,7 @@
 
 : definitions
     context@
-    current !
+    ?if current ! then
 ; immediate
 
 \ A defining word used in the form:
@@ -130,7 +135,7 @@ context @ 2+
 \ list active vocabularies
 : vocabs ( -- )
   \ get context index and use as counter
-  context 1- c@
+  contidx c@
   begin
   \ iterate through vocab array and print out vocab names
   ?while
