@@ -78,7 +78,7 @@ find r? val fence
 ( c: name -- )
 : forget
   pname
-  current @
+  cur@
   findnfa            ( nfa )
   ?dup
   if
@@ -95,7 +95,7 @@ find r? val fence
       \ set context wid to lfa
       nfa>lfa       ( lfa )
       @i            ( nfa )
-      current @     ( nfa wid )
+      cur@     ( nfa wid )
       !e            (  )
     else
       drop  
