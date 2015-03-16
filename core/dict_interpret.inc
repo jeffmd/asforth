@@ -499,10 +499,7 @@ forthword_ RECX, 0, "recx"
     ; print unrecognized word
     rcall TYPE
     rcall DOSLIT
-    ascii_ "<-Unrecognised!"
-    rcall ITYPE
-    
-    doliteral_ 0xBAD
+    ascii_ " Unknown!"
     jmp THROW
     
 RECX_DONE:
@@ -552,9 +549,6 @@ CHECK_COMPILE_ONLY:
         ; word can only be used in compile state
         call DOSLIT
         ascii_ " Only Compile!"
-        call ITYPE
-        
-        doliteral_ 0xBC
         jmp THROW
     
 
@@ -717,10 +711,10 @@ forthword_ PROMPTOK, 0, ".ok"
 ; System
 ; process the error prompt
 forthword_ PROMPTERROR, 0, ".??"
+	drop_
 	rcall DOSLIT
 	ascii_ " ?? "
-    rcall ITYPE
-    jmp PHEX 
+    rjmp ITYPE
 
 
 ; ( -- flag )

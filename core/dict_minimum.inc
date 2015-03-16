@@ -218,29 +218,22 @@ forthword_ CATCH, 0, "catch"
     r_drop_             ; ( ) (R: callerret)
     jmp ZERO
 
-; ( n -- )
+; ( $addr len -- )
 ; Exceptions
 ; throw an exception
 ; assumes jmp to get here
+; will type the string passed in
 forthword_ THROW, 0, "throw"
-    dupzerosense_
-    brne PFA_THROW1
-	drop_
-    ret
-
-PFA_THROW1:
-    rcall HANDLER      ; ( n haddr )
-    call FETCH         ; ( n RP_handler )
-    call RP_STORE      ; ( n ) (R: callerret SP hxt)
-    call R_FROM        ; ( n hxt ) (R: callerret SP )
-    rcall HANDLER      ; ( n hxt haddr )
-    call STORE         ; ( n )
-    call R_FROM        ; ( n SP ) (R: callerret )
-    call SWAP          ; ( SP n ) (R: callerret )
-    call TO_R          ; ( SP ) (R: callerret n )
+    call ITYPE
+    rcall HANDLER      ; ( haddr )
+    call FETCH         ; ( RP_handler )
+    call RP_STORE      ; ( ) (R: callerret SP hxt)
+    call R_FROM        ; ( hxt ) (R: callerret SP )
+    rcall HANDLER      ; ( hxt haddr )
+    call STORE         ; ( )
+    call R_FROM        ; ( SP ) (R: callerret )
     call SP_STORE      ; ( ... )
-    call R_FROM        ; ( ... n )
-    ret
+    jmp ONE
 
 
 ; ( -- )
@@ -283,9 +276,6 @@ PFA_SETBASE2:        ; ( error)
     call EMIT
     call DOSLIT
     ascii_ " bad base!"
-    call ITYPE
-
-    doliteral_ 0xBD
     rjmp THROW
 
 ; ( addr len -- addr' len' )
@@ -632,9 +622,6 @@ PFA_QSTACKERROR:
 
       call DOSLIT
       ascii_ " Stack Underflow!"
-      call ITYPE
-      
-      doliteral_ 0xBEF
       rjmp THROW
 
 ; ( -- v)
