@@ -134,6 +134,7 @@ context @ 2+
 
 \ list active vocabularies
 : vocabs ( -- )
+  ." Search: "
   \ get context index and use as counter
   contidx c@
   begin
@@ -152,5 +153,7 @@ context @ 2+
     1-
   repeat
   drop
-  ." Forth Root"
+  ." Forth Root" cr
+  ." definitions: "
+  cur@ 2+ @e ?nf cr
 ;
