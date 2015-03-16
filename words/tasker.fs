@@ -33,6 +33,12 @@ cvar tcnt
   tcnt + c@
 ;
 
+\ get the count for current task executing
+( -- n )
+: count
+ tidx@ cnt@
+;
+
 \ increment tcnt array element using idx as index
 ( idx -- )
 : cnt+
