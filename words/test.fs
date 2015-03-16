@@ -3,7 +3,7 @@ vocabulary Trial
 also Trial definitions
 
 \ debug flasher task
-: flash dbg+ 4 msec dbg- ;
+: flash count 1 and if dbg+ else dbg- then ;
 
 \ display 2 digit number
 : .c c@ <# # # #> type ;
