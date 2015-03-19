@@ -113,7 +113,7 @@ context @ 2+
       swap                   ( cnt+1 addr )
     repeat 
 
-    cr .
+    cr ." count: " .
 ;
 
 \ List the names of the definitions in the context vocabulary.
