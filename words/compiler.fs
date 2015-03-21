@@ -376,7 +376,7 @@
 : var ( cchar -- )
     here
     con
-    2
+    dcell
     allot
 ;
 
@@ -401,7 +401,7 @@
     dup                ( n edp edp )
     ,                  ( n edp )
     dup                ( n edp edp )
-    2+                 ( n edp edp+2)
+    dcell+             ( n edp edp+dcell)
     to edp             ( n edp )
     !e                 ( )
     ['] @e ,

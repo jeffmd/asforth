@@ -7,7 +7,7 @@
 
 \ get context array address using context index
 : context# ( -- addr )
-  context contidx c@ 2* +
+  context contidx c@ dcell* +
 ;
 
 \ get a wordlist id from context array
@@ -23,7 +23,7 @@
 
 : wordlist ( -- wid )
   edp 0 over !e \ get head address in eeprom and set to zero
-  dup 2+ 2+ to edp \ allocate  2 words in eeprom
+  dup dcell+ dcell+ to edp \ allocate  2 words in eeprom
 ;
 
 : also ( -- )
@@ -73,7 +73,7 @@
   \ allocate space in eeprom for head and tail of vocab word list
   wordlist dup ,
   \ get nfa and store in second field of wordlist record in eeprom
-  cur@ @e swap 2+ !e
+  cur@ @e swap dcell+ !e
   does>
    @i \ get eeprom header address
    context!
@@ -88,7 +88,7 @@
 \ get forth nfa - its the most recent word created
 cur@ @e
 \ get the forth wid and adjust to name field 
-context @ 2+
+context @ dcell+
 \ write forth nfa to name field
 !e 
 
@@ -140,13 +140,13 @@ context @ 2+
   begin
   \ iterate through vocab array and print out vocab names
   ?while
-    dup 2* context +
+    dup dcell* context +
     \ get context wid
     @
     \ if not zero then print vocab name 
     ?dup if
       \ next cell in eeprom has name field address 
-      2+ @e
+      dcell+ @e
       ?nf
     then
     \ decrement index
@@ -155,5 +155,5 @@ context @ 2+
   drop
   ." Forth Root" cr
   ." definitions: "
-  cur@ 2+ @e ?nf cr
+  cur@ dcell+ @e ?nf cr
 ;

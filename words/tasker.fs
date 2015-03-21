@@ -65,7 +65,7 @@ var tasks
 \ increment task index to next task idx
 \ assume array flat layout and next idx = idx*2 + 1
 : tidx+
-  tidx@ 2* 1+ 
+  tidx@ dcell* 1+ 
   \ if slot count is odd then 1+
   tidx@ cnt@
   1 and +
@@ -75,15 +75,14 @@ var tasks
 ( idx -- task )
 \ get a task at idx slot
 : task@
-  2* tasks + @ 
+  dcell* tasks + @ 
 ;
 
 ( addr idx -- ) 
 \ store a task in a slot
 \ idx is the slot index range: 0 to 30
 : task!
-  2*
-  tasks +
+  dcell* tasks +
   !
 ;
 
