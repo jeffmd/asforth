@@ -125,6 +125,8 @@ forthword_ PNIB, 0, ".h"
 ; ( n -- )
 ; simple 16 bit hex print    
 forthword_ PHEX, 0, ".$"
+    doliteral_ '$
+    call EMIT
     dup_
     highbyte_
     swapnib_
