@@ -218,29 +218,22 @@ forthword_ CATCH, 0, "catch"
     r_drop_             ; ( ) (R: callerret)
     jmp ZERO
 
-; ( n -- )
+; ( $addr len -- )
 ; Exceptions
 ; throw an exception
 ; assumes jmp to get here
+; will type the string passed in
 forthword_ THROW, 0, "throw"
-    dupzerosense_
-    brne PFA_THROW1
-	drop_
-    ret
-
-PFA_THROW1:
-    rcall HANDLER      ; ( n haddr )
-    call FETCH         ; ( n RP_handler )
-    call RP_STORE      ; ( n ) (R: callerret SP hxt)
-    call R_FROM        ; ( n hxt ) (R: callerret SP )
-    rcall HANDLER      ; ( n hxt haddr )
-    call STORE         ; ( n )
-    call R_FROM        ; ( n SP ) (R: callerret )
-    call SWAP          ; ( SP n ) (R: callerret )
-    call TO_R          ; ( SP ) (R: callerret n )
+    call ITYPE
+    rcall HANDLER      ; ( haddr )
+    call FETCH         ; ( RP_handler )
+    call RP_STORE      ; ( ) (R: callerret SP hxt)
+    call R_FROM        ; ( hxt ) (R: callerret SP )
+    rcall HANDLER      ; ( hxt haddr )
+    call STORE         ; ( )
+    call R_FROM        ; ( SP ) (R: callerret )
     call SP_STORE      ; ( ... )
-    call R_FROM        ; ( ... n )
-    ret
+    jmp ONE
 
 
 ; ( -- )
@@ -283,9 +276,6 @@ PFA_SETBASE2:        ; ( error)
     call EMIT
     call DOSLIT
     ascii_ " bad base!"
-    call ITYPE
-
-    doliteral_ 0xBD
     rjmp THROW
 
 ; ( addr len -- addr' len' )
@@ -632,9 +622,6 @@ PFA_QSTACKERROR:
 
       call DOSLIT
       ascii_ " Stack Underflow!"
-      call ITYPE
-      
-      doliteral_ 0xBEF
       rjmp THROW
 
 ; ( -- v)
@@ -887,7 +874,46 @@ forthword_ ABS, 0, "abs"
 ABS_exit:
     ret
 
-
+; ( -- icell )
+; push instruction cell size 
+forthword_ ICELL, INLINE_OPT, "icell"
+    jmp ONE
+  
+; ( n -- n-icell )
+; add instruction cell size to n
+forthword_ ICELLM, INLINE_OPT, "icell-"
+    oneminus_
+    ret
+    
+; ( n -- n+icell )
+; add instruction cell size to n
+forthword_ ICELLP, INLINE_OPT, "icell+"
+    oneplus_
+    ret
+  
+; ( -- dcell )
+; push data cell size 
+forthword_ DCELL, INLINE_OPT, "dcell"
+    jmp TWO
+    ret
+  
+; ( n -- n-dcell )
+; add data cell size to n
+forthword_ DCELLM, INLINE_OPT, "dcell-"
+    twominus_
+    ret
+    
+; ( n -- n+dcell )
+; add data cell size to n
+forthword_ DCELLP, INLINE_OPT, "dcell+"
+    twoplus_
+    ret
+  
+; ( n -- n*dcell )
+; multipley data cell size by n
+forthword_ DCELLS, INLINE_OPT, "dcell*"
+    twostar_
+    ret
     
 ; ( i*x x1 -- | i*x ) (R: j*y -- | j*y ) (C: "ccc<quote>" -- )
 ; Exceptions

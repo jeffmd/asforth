@@ -11,15 +11,18 @@
 .include "dict_asm.inc"
 
 ;**********
-.Set DPSTART, .
+DPSTART:
 
 .org NRWW_START_ADDR * 2, 0xff
+; upper part of the dictionary
 .include "dict_core.inc"
 
-.equiv flashlast, .
+FLASHLAST:
+
+.set flashlast, .
 ;************ FIXME ************
 ; how to calculate how much upper flash has been used?
-;.if (flashlast < (FLASHEND * 2))
+;.if (FLASHLAST < (FLASHEND * 2))
 ;  .error "*** Flash size exceeded, please edit your dict_appl_core file to use less space! Aborting."
 ;.endif
 

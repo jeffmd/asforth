@@ -26,7 +26,7 @@
     ['] @e ,
     ['] !e ,
     \ increment EDP one cell then save it
-    2+              ( -- EDP+2 )
+    dcell+          ( -- EDP+2 )
     to edp
 ;
 
@@ -40,7 +40,7 @@
     compile (def)
 
     here ,
-    2 allot
+    dcell allot
 
     ['] @ ,
     ['] ! ,
@@ -196,10 +196,10 @@ var hld
 \ stack dump
 : .s  ( -- ) 
     sp@     ( limit ) \ setup limit
-    2- 
+    dcell- 
     sp0     ( limit counter )
     begin 
-    2-      ( limit counter-2 )
+    dcell-  ( limit counter-2 )
     2over   ( limit counter-2 limit counter-2 )
     <>      ( limit counter-2 flag )
     while 
