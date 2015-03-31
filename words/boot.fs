@@ -1,12 +1,36 @@
+dp
+pname header dup $FF00 or (s,)
+  current @ @e , 
+  smudge !
+  dp latest !
+  ffrst 1 state !
+    dp >r >r dup $FF00 or (s,) r> @e , r>
+  [
+  ;opt uwid
+
 pname (create) current @ header
-smudge ! dp latest ! ]
-  pname current @ header
-[ ;opt uwid
+  smudge !
+  dp latest !
+  ffrst 1 state !
+    pname current @ header
+  [
+  ;opt uwid
+
+(create) ] 
+  smudge !
+  dp latest !
+  ffrst 1 state !
+    ffrst 1 state !
+  [
+  ;opt uwid
 
 (create) :
-smudge ! dp latest ! ]
-  (create) smudge ! dp latest ! ]
-[ ;opt uwid
+  smudge !
+  dp latest !
+  ]
+    (create) smudge ! dp latest ! ]
+  [
+  ;opt uwid
 
 
 : cur@

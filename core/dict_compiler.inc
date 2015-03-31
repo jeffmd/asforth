@@ -162,8 +162,6 @@ TAILOPT_CALL:
     twominus_          ; ( 0x940c DP-2 )
     rjmp STOREI        ; (  )
 
-
-
 ; ( -- )
 ; Compiler
 ; update wid from smudge if valid 
@@ -182,20 +180,16 @@ forthword_ UWID, 0, "uwid"
 UWID_end:
     ret
 
-
-    
 ; ( --  ) 
 ; Compiler
-; enter compiler mode
-forthword_ RBRACKET, 0, "]"
+; reset forth flags
+forthword_ FFRST, 0, "ffrst"
     ; clear rcall/call flags
     cbr fflags, (1<<LAST_RCALL_FB)|(1<<LAST_CALL_FB)
     ; set disable tail optimize flag
     sbr fflags, 1<<DIS_CALL_OPT_FB
-    rcall ONE
-    rcall STATE
-    rjmp STORE
-
+    ret
+    
 ; ( --  ) 
 ; Compiler
 ; enter interpreter mode
@@ -245,37 +239,7 @@ PFA_SCOMMA2:
     ; then
 PFA_SCOMMA3:
     ret
-
-
-
-; ( addr len wid -- voc-link )
-; Compiler
-; creates the vocabulary header without XT and data field (PF) in the wordlist wid
-forthword_ HEADER, 0, "header"
-    rcall DP              ; ( addr len wid DP )
-    rcall TO_R           ; ( addr len wid ) (R: DP )
-    rcall TO_R           ; ( addr len ) (R: DP wid )
-    ; <if>
-    dupzerosense_
-    breq HEADER_error
-      dup_                ; ( addr len len )
-      ldi tosh, 0xFF      ; ( addr len len' )
-      rcall DOSCOMMA      ; ( )
-      ; make voc link
-      rcall R_FROM        ; ( wid ) (R: DP )
-      rcall FETCHE         ; ( VE_HEAD )
-      rcall COMMA         ; ( )
-      rcall R_FROM         ; ( DP ) (R: )
-      ret
-
-    ; <then>
-HEADER_error:
-    ; -16: attempted to use zero length string as a name
-    rcall DOSLIT
-    ascii_ "Bad Name!"
-    jmp THROW
    
-    
 ; ( start match -- start count )
 ; match is the word value to search for in the flash
 ; start is the start address of the search in flash
