@@ -59,7 +59,7 @@ pname (create) current @ header
 [ ;opt uwid immediate
 
 \ boot.fs - bootstrap the forth compiler
-\ (create) is created manually
+\ header, (create), and ] are created manually
 \ use (create) to make : then define the rest manually
 \ : can now be used to define a new word but must manually 
 \ terminate the definition of a new word

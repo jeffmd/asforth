@@ -56,7 +56,6 @@ COLON_SMUDGE: .space 2
 ; System Variable
 ; system SMUDGE. Get flash program address of latest word being compiled. 
 forthword_ SMUDGE, 0, "smudge"
-
     doliteral_ COLON_SMUDGE
     ret
 
@@ -65,12 +64,18 @@ forthword_ SMUDGE, 0, "smudge"
 ram_dp: .space 2
 .popsection
 
+; ( -- f-addr )
+; System Value
+; address of the next free dictionary cell
+forthword_ DPSHARP, 0, "dp#"
+  doliteral_ ram_dp
+  ret
 
 ; ( -- f-addr )
 ; System Value
 ; address of the next free dictionary cell
 forthword_ DP, 0, "dp"
-  doliteral_ ram_dp
+  rcall DPSHARP
   rjmp FETCH
 
 ; ( -- )
@@ -85,7 +90,7 @@ forthword_ DPSTOREE, 0, "dp!e"
 ; System Value
 ; store address of the next free dictionary cell
 forthword_ DPSTORE, 0, "dp!"
-  doliteral_ ram_dp
+  rcall DPSHARP
   rjmp STORE
 
 ; ( -- )
@@ -100,7 +105,7 @@ forthword_ DPFETCHE, 0, "dp@e"
 ; Dictionary
 ; add offset to 16 bit (dictionary pointer) DP
 forthword_ DPPLUS, 0, "dp+"
-  doliteral_ ram_dp
+  rcall DPSHARP
   rjmp PLUSSTORE
 
 ; ( -- )
