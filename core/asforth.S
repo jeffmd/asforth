@@ -15,7 +15,7 @@ DPSTART:
 
 .org NRWW_START_ADDR * 2, 0xff
 ; upper part of the dictionary
-.include "dict_core.inc"
+.include "core.S"
 
 FLASHLAST:
 

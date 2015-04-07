@@ -1135,7 +1135,7 @@ ITOI_END:
     rjmp DDROP
 
 .include "dict_interpret.inc"
-.include "dict_compiler.inc"
+.include "compiler.S"
 .include "dict_defer.inc"
 
 
