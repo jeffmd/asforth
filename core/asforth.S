@@ -8,7 +8,7 @@
 
 .include "dict_interrupt.inc"
 .include "dict_minimum.inc"
-.include "dict_asm.inc"
+.include "asm.S"
 
 ;**********
 DPSTART:
