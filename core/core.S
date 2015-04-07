@@ -1134,9 +1134,9 @@ ITOI_B:
 ITOI_END:
     rjmp DDROP
 
-.include "dict_interpret.inc"
+.include "interpret.S"
 .include "compiler.S"
-.include "dict_defer.inc"
+.include "defer.S"
 
 
 ; must be last word in core    

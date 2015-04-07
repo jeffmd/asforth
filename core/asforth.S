@@ -6,8 +6,8 @@
 ; this dictionary area contains optional/application words
 ; they may be moved to the core dictionary if needed
 
-.include "dict_interrupt.inc"
-.include "dict_minimum.inc"
+.include "interrupt.S"
+.include "minimum.S"
 .include "asm.S"
 
 ;**********
