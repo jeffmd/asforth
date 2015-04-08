@@ -877,7 +877,8 @@ ABS_exit:
 ; ( -- icell )
 ; push instruction cell size 
 forthword_ ICELL, INLINE_OPT, "icell"
-    jmp ONE
+    call ONE
+    ret
   
 ; ( n -- n-icell )
 ; add instruction cell size to n
@@ -894,7 +895,7 @@ forthword_ ICELLP, INLINE_OPT, "icell+"
 ; ( -- dcell )
 ; push data cell size 
 forthword_ DCELL, INLINE_OPT, "dcell"
-    jmp TWO
+    call TWO
     ret
   
 ; ( n -- n-dcell )
