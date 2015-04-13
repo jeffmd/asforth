@@ -434,7 +434,7 @@ forthword_ WARM, 0, "warm"
     doliteral_ pm(PAUSE)
     call DEFERSTORE
     ; init DP in ram from eeprom
-    call DPFETCHE
+    call RESET
     call ONLY
     rcall USART
     rcall INTON

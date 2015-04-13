@@ -590,6 +590,17 @@ QP_RD_exit:
       rjmp PROMPTCOMPILE
 
 ; ( -- )
+; Reset the input buffer
+forthword_ INRESET, 0, "in_"
+    rcall G_IN             ; ( >inaddr )
+    rcall ZEROSTORE        ; (  )
+    ; reset input buffer cursor position
+    rcall SHARPTIB         ; ( #tibaddr )
+    rcall ZEROSTORE        ; ( )
+    rjmp QP_RD
+
+
+; ( -- )
 ; System
 ; wait for the input buffer to be refilled then interpret
 forthword_ DOREFILL, 0, "(refill)"
@@ -598,12 +609,7 @@ forthword_ DOREFILL, 0, "(refill)"
   rcall FETCH              ; ( >in )
   zerosense_               ; ( )
   breq DOREFILL_do
-    rcall G_IN             ; ( >inaddr )
-    rcall ZEROSTORE        ; (  )
-    ; reset input buffer cursor position
-    rcall SHARPTIB         ; ( #tibaddr )
-    rcall ZEROSTORE        ; ( )
-    rjmp QP_RD
+    rjmp INRESET
     
 DOREFILL_do:
   ; refill the input buffer
@@ -638,6 +644,17 @@ forthword_ DOTASKS, 0, "(tasks)"
     rjmp DOTASKS
 
 ; ( -- )
+; reset input source
+forthword_ RESET, 0, "rst"
+    rcall SMUDGE
+    rcall ZEROSTORE
+    ; restore dp from eeprom
+    rcall DPFETCHE
+    
+    ; switch to interpret mode
+    rjmp LBRACKET
+
+; ( -- )
 ; System
 ; reset stacks and start over again
 forthword_ QUIT, 0, "quit"
@@ -647,17 +664,9 @@ forthword_ QUIT, 0, "quit"
     ; reset return stack pointers
     call RP0
     rcall RP_STORE
-    rcall SMUDGE
-    rcall ZEROSTORE
-    ; restore dp from eeprom
-    rcall DPFETCHE
-    
-    ; switch to interpret mode
-    rcall LBRACKET
-    
+    rcall RESET    
     rjmp DOTASKS
     
-        
 ; ( -- )
 ; System
 ; interpret what is in the input buffer
