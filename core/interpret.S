@@ -638,8 +638,8 @@ forthword_ PAUSE, 0, "pause"
 ; main loop - iterate through scheduled tasks 
 forthword_ DOTASKS, 0, "(tasks)"
     ; <begin>
-      rcall DOREFILL
-      rcall PAUSE
+    rcall DOREFILL
+    rcall PAUSE
     ; <again>
     rjmp DOTASKS
 
@@ -650,7 +650,6 @@ forthword_ RESET, 0, "rst"
     rcall ZEROSTORE
     ; restore dp from eeprom
     rcall DPFETCHE
-    
     ; switch to interpret mode
     rjmp LBRACKET
 
@@ -676,7 +675,6 @@ forthword_ DOINTERPRET, 0, "(interp)"
   doliteral_ pm(INTERPRET)
   call CATCH
   ; check to make sure no throws
-  rcall QDUP
   ; <if>
   zerosense_
   breq DOINTERPRET_ok
@@ -720,7 +718,6 @@ forthword_ PROMPTOK, 0, ".ok"
 ; System
 ; process the error prompt
 forthword_ PROMPTERROR, 0, ".??"
-	drop_
 	rcall DOSLIT
 	ascii_ " ?? "
     rjmp ITYPE
