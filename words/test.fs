@@ -21,5 +21,3 @@ also Trial definitions
   LCD init on 999 dim
   Trial
 ;
-
-' start is turnkey
