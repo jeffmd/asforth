@@ -445,66 +445,6 @@ forthword_ DOSLIT, 0, "(slit)"
   rjmp EXEC
 
 
-; ( -- ) (R: i*x - j*x )
-; System
-; interpret input word by word.
-forthword_ INTERPRET, 0, "interp"
-    ; begin
-    rcall PNAME         ; ( -- addr len )
-
-    ; ?while
-    dupzerosense_       ; ( -- addr len )
-    breq INTERPRET_END
-
-    rcall RECX          ; ( )
-    call QSTACK         ; ( )
-
-    ; repeat
-    rjmp INTERPRET
-
-INTERPRET_END:
-    rjmp DDROP
-
-; ( addr len -- )
-; System
-; recognize and execute name of word in ram using recognizer list.
-forthword_ RECX, 0, "recx"
-    rcall TWOOVER         ; ( addr len addr len  )
-    ; put addr and len on return stack so that
-    ; stack can be manipulated by interpreted word
-    rcall TO_R            ; ( addr len addr ) (R: len )
-    rcall TO_R            ; ( addr len ) (R: len addr )
-    ; test if its a word
-    rcall REC_WORD        ; ( flag ) ( R: len addr )
-    rcall TO_A            ; ( ) A: flag
-    rcall R_FROM          ; ( addr ) (R: n len )
-    rcall R_FROM          ; ( addr len ) (R: n )
-    rcall A_              ; ( addr len flag ) A:  
-    ; <if>
-    zerosense_            ; ( addr len )
-    brne RECX_DONE
-    rcall TWOOVER         ; ( addr len addr len  )
-    rcall TO_R            ; ( addr len addr ) (R: len )
-    rcall TO_R            ; ( addr len ) (R: len addr )
-    ; test if its a number
-    rcall REC_NUM         ; ( flag ) ( R: len addr )
-    rcall TO_A            ; ( ) A: flag
-    rcall R_FROM          ; ( addr ) (R: n len )
-    rcall R_FROM          ; ( addr len ) (R: n )
-    rcall A_              ; ( addr len flag ) A:  
-    zerosense_            ; ( addr len )
-    brne RECX_DONE
-    ; not recognized so throw
-    rcall CR
-    ; print unrecognized word
-    rcall TYPE
-    rcall DOSLIT
-    ascii_ " Unknown!"
-    jmp THROW
-    
-RECX_DONE:
-    rjmp DDROP           ; ( )
-
 
 ; ( addr len -- n f )
 ; Interpreter
@@ -574,6 +514,66 @@ REC_WORD_EXECUTE:
 REC_WORD_OK:
     rjmp TRUE
 
+
+; ( addr len -- )
+; System
+; recognize and execute name of word in ram using recognizer list.
+forthword_ RECX, 0, "recx"
+    rcall TWOOVER         ; ( addr len addr len  )
+    ; put addr and len on return stack so that
+    ; stack can be manipulated by interpreted word
+    rcall TO_R            ; ( addr len addr ) (R: len )
+    rcall TO_R            ; ( addr len ) (R: len addr )
+    ; test if its a word
+    rcall REC_WORD        ; ( flag ) ( R: len addr )
+    rcall TO_A            ; ( ) A: flag
+    rcall R_FROM          ; ( addr ) (R: n len )
+    rcall R_FROM          ; ( addr len ) (R: n )
+    rcall A_              ; ( addr len flag ) A:  
+    ; <if>
+    zerosense_            ; ( addr len )
+    brne RECX_DONE
+    rcall TWOOVER         ; ( addr len addr len  )
+    rcall TO_R            ; ( addr len addr ) (R: len )
+    rcall TO_R            ; ( addr len ) (R: len addr )
+    ; test if its a number
+    rcall REC_NUM         ; ( flag ) ( R: len addr )
+    rcall TO_A            ; ( ) A: flag
+    rcall R_FROM          ; ( addr ) (R: n len )
+    rcall R_FROM          ; ( addr len ) (R: n )
+    rcall A_              ; ( addr len flag ) A:  
+    zerosense_            ; ( addr len )
+    brne RECX_DONE
+    ; not recognized so throw
+    rcall CR
+    ; print unrecognized word
+    rcall TYPE
+    rcall DOSLIT
+    ascii_ " Unknown!"
+    jmp THROW
+    
+RECX_DONE:
+    rjmp DDROP           ; ( )
+
+; ( -- ) (R: i*x - j*x )
+; System
+; interpret input word by word.
+forthword_ INTERPRET, 0, "interp"
+    ; begin
+    rcall PNAME         ; ( -- addr len )
+
+    ; ?while
+    dupzerosense_       ; ( -- addr len )
+    breq INTERPRET_END
+
+    rcall RECX          ; ( )
+    call QSTACK         ; ( )
+
+    ; repeat
+    rjmp INTERPRET
+
+INTERPRET_END:
+    rjmp DDROP
     
 ; ( -- )
 ; System
