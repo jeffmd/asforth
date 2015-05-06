@@ -37,13 +37,14 @@
 
 : previous ( -- )
   \ get current index and decrement by 1
-  context 1- dup c@ 1- dup
+  contidx dup c@ 1- dup
   \ index must be >= 1
-  0> if
-       0 context! swap c!
-     else
-       2drop
-     then
+  0>
+  if
+    0 context! swap c!
+  else
+    2drop
+  then
 ; immediate
 
 \ Used in the form:
