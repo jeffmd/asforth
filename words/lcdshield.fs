@@ -69,6 +69,11 @@ cvar mode
 \ current line for next print
 cvar line
 
+\ dim the light
+: dim ( n -- )
+  OCR1BH h!
+;
+
 \ setup port pins for I/O
 : sio
   \ setup pins 4,5,6,7 on Port D DDR for output
@@ -80,13 +85,9 @@ cvar line
   \ all the way off
   $1B32 TCCR1A !
   1000 ICR1H h!
-  1000 OCR1BH h!
+  1000 dim
 ;
 
-\ dim the light
-: dim ( n -- )
-  OCR1BH h!
-;
 
 \ pulse enable line of lcd
 : pen
