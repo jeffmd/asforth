@@ -47,14 +47,14 @@ also Adc definitions
 
 : aref
   %11 and
-  64 *
+  2* 2* swnib
   $0F ADMUX rbm
 ;
 
 ( -- )
 \ initialize the ADC to default values
 : init
-\ disable digital inputs on first 5 analog inputs
+\ disable digital inputs on first 6 analog inputs
 %00111111 DIDR0 rbs
 \ set voltage ref to AVcc
 %01000000 ADMUX rbs
