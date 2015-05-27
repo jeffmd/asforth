@@ -86,7 +86,7 @@ also Adc definitions
 \ get the Vcc supplying the MCU
 \ example if Vcc is 5.0v then conversion will be 50
 : vcc
-  \ Vcc * 10 = 11264 / 1.1 sample
+  \ Vcc * 10 = 1.1/5.0*1023*50 / (1.1 sample)
   \ sample 1.1 band gap
-  11264 14 amux 1 msec conv /
+  11253 14 amux 1 msec conv /
 ;
