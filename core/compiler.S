@@ -239,7 +239,7 @@ PFA_SCOMMA2:
     zerosense_         ; ( )
     breq PFA_SCOMMA3
       rcall ACFETCH    ; ( c1 )
-      rjmp COMMA      ; ( )
+      rjmp COMMA       ; ( )
 
     ; then
 PFA_SCOMMA3:
@@ -287,7 +287,7 @@ forthword_ INLINE, 0, "inline"
     rcall FINDI              ; ( start count )
 
     ; dp swap dup dp+ itoi
-    rcall DP                  ; ( start count dp )
+    rcall DP                 ; ( start count dp )
     rcall SWAP               ; ( start dp count )
     dup_                     ; ( start dp count count )
     rcall DPPLUS             ; ( start dp count )

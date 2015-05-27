@@ -617,9 +617,9 @@ DOREFILL_do:
   ; <if>
   zerosense_
   breq DOREFILL_end
-  
     ; there is something in the input buffer, try interpreting it      
     rjmp DOINTERPRET
+
 DOREFILL_end:
   ; <then>
   ret      
@@ -731,8 +731,8 @@ forthword_ PROMPTERROR, 0, ".??"
 
 forthword_ ACCEPT, 0, "accept"
     ; <begin>
-    rcall KEY        ; ( k )
-    dupzerosense_    ; ( k )
+    rcall KEY            ; ( k )
+    dupzerosense_        ; ( k )
     brne ACCEPT_haskey
     ret
 
@@ -744,23 +744,23 @@ ACCEPT_haskey:
     ret
 
 ACCEPT_checkreturn:
-    cpi tosl, 13     ; ( k k 13 )
+    cpi tosl, 13         ; ( k k 13 )
     ; <if>
     brne ACCEPT_checkdelete
     ret
 
 ACCEPT_checkdelete:
     ; check delete
-    cpi tosl, 127      ; ( k k 8 )
+    cpi tosl, 127        ; ( k k 8 )
     ; <if>
     brne ACCEPT_checkcontrol
     ; delete previous character
     ; check beginning of line
     ; if cursor is 0 then at begining of input
     rcall SHARPTIB
-    rcall FETCH              ; ( k #tib )
+    rcall FETCH          ; ( k #tib )
     ; <if>
-    zerosense_               ; ( k )
+    zerosense_           ; ( k )
     brne ACCEPT_dodelete
     ; at the beginning of the line, ignore this character
     drop_
@@ -776,7 +776,7 @@ ACCEPT_dodelete:
     ; decrease cursor position by one
     rcall TRUE           ; ( -1 )
     rcall SHARPTIB       ; ( -1 #tibaddr )
-    rcall PLUSSTORE       ; ( )
+    rcall PLUSSTORE      ; ( )
     rjmp ACCEPT_checkmaxinput
 
 ACCEPT_checkcontrol:
@@ -792,7 +792,7 @@ ACCEPT_echo:
     dup_                 ; ( k k)
     rcall EMIT           ; ( k)
     ; now store the key in the input buffer
-    rcall STIB      ; ( k tibaddr #tib)
+    rcall STIB           ; ( k tibaddr #tib)
     rcall PLUS           ; ( k tibaddr+#tib ) 
     rcall CSTORE         ; ( )
 
@@ -818,8 +818,8 @@ ACCEPT_atmaxinput:
 ; System
 ; refills the input buffer - flag is true if buffer has something
 forthword_ REFILLTIB, 0, "reftib"
-    rcall ACCEPT               ; ( f )
-    dupzerosense_              ; ( f )
+    rcall ACCEPT         ; ( f )
+    dupzerosense_        ; ( f )
     breq REFILLTIB_exit
     rjmp CR
     
