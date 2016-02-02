@@ -10,6 +10,10 @@ var batv
 
 \ voltage into controller
 var vin
+\ current into battery
+var iin
+\ current out of battery into load
+var iout
 
 \ last key pressed
 cvar lkey
@@ -44,9 +48,13 @@ INT0 isr trpmpci
   %0001 EIMSK rbs
 ;
 
-\ analog conv high voltage
+\ analog conv high voltage 16v
 : achv ( chan -- conv )
-  Adc amux conv 157 100 */ 
+  Adc amux conv 157 100 */ Turbine
+;
+\ analog conv max 5.11 voltage
+: ac5v ( chan -- conv )
+  Adc amux conv 2/
 ;
 
 Turbine
@@ -59,6 +67,16 @@ Turbine
 \ refresh batv from adc
 : vin~ ( -- )
   2 achv vin !
+;
+
+\ refresh iin
+: iin~ ( -- )
+  3 ac5v iin !
+;
+
+\ refresh iout
+: iout~ ( -- )
+  4 ac5v iout !
 ;
 
 \ convert key analog value to key digit
@@ -105,4 +123,22 @@ also LCD
 \ display batv in fixed notation on LCD
 : dvinf ( -- )
   6 1 pos vin~ vin @ .f
+;
+
+\ display iin in fixed notation on LCD
+: diinf ( -- )
+  0 0 pos iin~ iin @ .f
+;
+
+\ display iout in fixed notation on LCD
+: dioutf ( -- )
+  6 0 pos iout~ iout @ .f
+;
+
+\ start up the display tasks for turbine
+: start
+  ['] dbatvf 7 task!
+  ['] dvinf 8 task!
+  ['] diinf 9 task!
+  ['] dioutf 10 task!
 ;
