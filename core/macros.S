@@ -1,15 +1,4 @@
 
-; some defaults
-
-.set WANT_ISR_TX, 0
-.set WANT_ISR_RX, 0
-
-; Dictionary setup
-.set VE_HEAD, 0x0000
-
-
-.include "user.inc"
-
   ; registers 0, 1 not used except in interrupt service routines
   isrZL = 0
   isrZH = 1
@@ -28,20 +17,24 @@
   bl = 8
   bh = 9
   
-  ; registars 10, 11, 12, 13 not used except in interrupt service routines
+  ; registers 10, 11, 12, 13 not used except in interrupt service routines
   isrt0 = 10
   isrt1 = 11
   isrt2 = 12
   isrt3 = 13
   
+  ; not to be used in ISR
   temp4 = 14
   temp5 = 15
 
-  temp0 = 16
-  temp1 = 17
+  ; registers used for Next on Stack (NOS) and local storage
+  ; these registers get saved during an Interrupt Service Routine
+  temp0 = 16 ; low byte of NOS
+  temp1 = 17 ; high byte of NOS
   temp2 = 18
   temp3 = 19
 
+  ; not to be used in ISR
   temp6 = 20
   temp7 = 21
 

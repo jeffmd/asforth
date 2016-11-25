@@ -1,4 +1,4 @@
-;;;; avr atmega simple forth based on amforth
+;;;; avr atmega simple subroutine threaded forth like environment based on amforth, flashforth, figforth
 ;;;;
 ;;;; GPL V2 (only)
 
@@ -14,7 +14,7 @@
 DPSTART:
 
 .org NRWW_START_ADDR * 2, 0xff
-; upper part of the dictionary
+; upper part of the dictionary that can not be modified once programmed
 .include "core.S"
 
 FLASHLAST:

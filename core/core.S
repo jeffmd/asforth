@@ -902,7 +902,7 @@ forthword_ ZEROCSTORE, 0, "0c!"
 
 ; ( a-addr - c1 ) 
 ; Memory
-; fetch a single byte from memory mapped locations
+; fetch a single byte from RAM
 forthword_ CFETCH, 0, "c@"
     movw ZL, tosl
 
