@@ -20,10 +20,23 @@
   context# !
 ;
 
+\ get a valid wid from the context
+\ tries to get the top vocabulary
+\ if no valid entries then defaults to Forth wid
+: wid@ ( -- wid )
+  context@
+  ?if else drop context @ then
+;
 
 : wordlist ( -- wid )
-  edp 0 over !e \ get head address in eeprom and set to zero
-  dup dcell+ dcell+ to edp \ allocate  2 words in eeprom
+  \ get head address in eeprom and set to zero
+  edp 0 over !e     ( edp )
+  \ allocate  2 words in eeprom
+  dup dcell+ dcell+ ( edp edp+4 )
+  to edp            ( edp )
+  \ store previouse wordlist in link field
+  \ update vocabList with new wid
+
 ;
 
 : also ( -- )
@@ -72,7 +85,7 @@
   create
   [compile] immediate
   \ allocate space in eeprom for head and tail of vocab word list
-  wordlist dup ,
+  wordlist dup , ( wid )
   \ get nfa and store in second field of wordlist record in eeprom
   cur@ @e swap dcell+ !e
   does>
@@ -94,7 +107,7 @@ context @ dcell+
 !e 
 
 \ print name field
-: ?nf ( nfa -- )
+: .nf ( nfa -- )
       $l $FF and             ( cnt addr addr n ) \ mask immediate bit
       itype space            ( cnt addr )
 ;
@@ -106,7 +119,7 @@ context @ dcell+
       ?dup                   ( cnt addr addr )
     while                    ( cnt addr ) \ is nfa = counted string
       dup                    ( cnt addr addr )
-      ?nf                    ( cnt addr )
+      .nf                    ( cnt addr )
       nfa>lfa                ( cnt lfa )
       @i                     ( cnt addr )
       swap                   ( addr cnt )
@@ -121,8 +134,7 @@ context @ dcell+
 \ Does not list other linked vocabularies.
 \ Use words to see all words in the top context search.
 : words ( -- )
-    context@
-    ?if else drop context @ then
+    wid@
     @e                       ( 0 addr )
     lwords
 ;
@@ -134,7 +146,7 @@ context @ dcell+
 ;
 
 \ list active vocabularies
-: vocabs ( -- )
+: order ( -- )
   ." Search: "
   \ get context index and use as counter
   contidx c@
@@ -148,7 +160,7 @@ context @ dcell+
     ?dup if
       \ next cell in eeprom has name field address 
       dcell+ @e
-      ?nf
+      .nf
     then
     \ decrement index
     1-
@@ -156,5 +168,5 @@ context @ dcell+
   drop
   ." Forth Root" cr
   ." definitions: "
-  cur@ dcell+ @e ?nf cr
+  cur@ dcell+ @e .nf cr
 ;
