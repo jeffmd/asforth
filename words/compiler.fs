@@ -220,8 +220,8 @@
 \ continue execution at dest, resolve orig
 \ part of: begin...while...repeat
 : repeat
-  [compile] again
-  >jmp
+    [compile] again
+    >jmp
 ; :ic
 
 
@@ -250,8 +250,7 @@
 \ compile the XT of the word currently
 \ being defined into the dictionary
 : recurse
-    latest  \ ;****FIXME******
-    @ $0400 cxt
+    smudge @ nfa>xtf cxt
 ; :ic
 
 ( n cchar -- ) 
