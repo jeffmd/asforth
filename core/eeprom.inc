@@ -14,6 +14,8 @@ EE_TURNKEY:
 EE_FORTHWORDLIST:
     addr_ 0      ; pre-defined (compiled in) top of root forth wordlist
     addr_ 0      ; VE_FORTH pointer
+    addr_ 0      ; vocabulary sibling link
+    addr_ 0		 ; child vocabulary link
 
 ; default user area
 EE_INITUSER:

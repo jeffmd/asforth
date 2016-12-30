@@ -28,15 +28,43 @@
   ?if else drop context @ then
 ;
 
-: wordlist ( -- wid )
-  \ get head address in eeprom and set to zero
-  edp 0 over !e     ( edp )
-  \ allocate  2 words in eeprom
-  dup dcell+ dcell+ ( edp edp+4 )
-  to edp            ( edp )
-  \ store previouse wordlist in link field
-  \ update vocabList with new wid
+\ wordlist record fields:
+\ [0] word:dcell: address to nfa of most recent word added to this wordlist
+\ [1] Name:dcell: address to nfa of vocabulary name 
+\ [2] link:dcell: address to previous sibling wordlist to form vocabulary linked list
+\ [3] child:dcell: address to head of child wordlist
 
+\ add link field offset
+: wid:link ( wid -- wid:link) dcell+ dcell+ ;
+\ add child field offset
+: wid:child ( wid -- wid:child ) 3 dcell* + ;
+
+\ initialize wid fields of definitions vocabulary
+: widinit ( wid -- wid )
+  \ wid.word = 0
+  0 over !e ( wid )
+
+  \ parent wid child field is in cur@->child
+  dup cur@ wid:child  ( wid wid parentwid.child )
+  2over ( wid wid parentwid.child wid parentwid.child )
+  @e   ( wid wid parentwid.child wid childLink )
+  swap wid:link ( wid wid parentwid.child childLink wid.link )
+
+  \ wid.child = 0
+  0 over dcell+ !e ( wid wid parentwid.child childLink wid.link )
+  \ wid.link = childLink
+  !e ( wid wid parentwid.child )
+  \ parentwid.child = wid
+  !e ( wid )
+;
+
+: wordlist ( -- wid )
+  \ get head address in eeprom for wid
+  edp      ( wid )
+  \ allocate  4 16bit words in eeprom
+  dup 4 dcell* + ( wid edp+8 )
+  to edp       ( wid )
+  widinit  ( wid )
 ;
 
 : also ( -- )
@@ -56,7 +84,7 @@
   if
     0 context! swap c!
   else
-    2drop
+    2drop [compile] only
   then
 ; immediate
 
@@ -100,11 +128,18 @@
 
 \ setup forth name pointer in forth wid name field
 \ get forth nfa - its the most recent word created
-cur@ @e
-\ get the forth wid and adjust to name field 
-context @ dcell+
+cur@ @e ( nfa )
+\ get the forth wid, initialize it and set name field
+\ forthwid.word is already initialized
+context @ dcell+ ( nfa forthwid.name )
 \ write forth nfa to name field
-!e 
+\ forthwid.name = nfa
+tuck !e ( forthwid.name )
+\ forthwid.link = 0
+dcell+ 0 over !e ( forthwid.link )
+\ forthwid.child = 0
+dcell+ 0 swap !e ( )
+
 
 \ print name field
 : .nf ( nfa -- )
@@ -169,4 +204,40 @@ context @ dcell+
   ." Forth Root" cr
   ." definitions: "
   cur@ dcell+ @e .nf cr
+;
+
+\ print child vocabularies
+: .childvocs ( spaces wid -- )
+  begin
+  \ while link is not zero
+  ?while  ( spaces linkwid )
+    \ print indent
+    over spaces
+    \ get name from name field
+    dcell+ dup @e ( spaces linkwid.name name )
+    \ print name and line feed
+    .nf cr ( spaces link.name )
+    \ get link field
+    dcell+ ( spaces linkwid.link )
+    \ increase spaces for indenting child vocabularies
+    over 2+ over ( spaces linkwid.link spaces+2 linkwid.link )
+    \ get child link and recurse: print child vocabularies
+    dcell+ @e recurse ( spaces linkwid.link )
+    \ get link for next sibling
+    @e
+  repeat
+  2drop
+;
+
+\ list all child vocabularies in the context vocabulary
+\ order is newest to oldest
+: vocs ( -- )
+  \ start spaces at 2
+  2
+  \ get top search vocabulary address
+  \ it is the head of the vocabulary linked list
+  wid@  ( wid )
+  \ get child link of linked list
+  wid:child @e ( linkwid )
+  .childvocs cr
 ;
