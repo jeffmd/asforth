@@ -38,23 +38,12 @@ forthword_ CONTEXT, 0, "context"
     ret
 
 .pushsection .noinit
-ram_LATEST: .space 2
-.popsection
-
-; ( -- addr ) 
-; System Variable
-; system LATEST. Get flash program address of latest word being compiled. 
-forthword_ LATEST, 0, "latest"
-    doliteral_ ram_LATEST
-    ret
-
-.pushsection .noinit
 COLON_SMUDGE: .space 2
 .popsection
 
 ; ( -- addr ) 
 ; System Variable
-; system SMUDGE. Get flash program address of latest word being compiled. 
+; system SMUDGE. Get flash name address of current word being compiled. 
 forthword_ SMUDGE, 0, "smudge"
     doliteral_ COLON_SMUDGE
     ret

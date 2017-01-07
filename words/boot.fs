@@ -2,7 +2,6 @@ dp
 pname header dup $FF00 or (s,)
   current @ @e , 
   smudge !
-  dp latest !
   ffrst 1 state !
     dp >r >r dup $FF00 or (s,) r> @e , r>
   [
@@ -10,7 +9,6 @@ pname header dup $FF00 or (s,)
 
 pname (create) current @ header
   smudge !
-  dp latest !
   ffrst 1 state !
     pname current @ header
   [
@@ -18,7 +16,6 @@ pname (create) current @ header
 
 (create) ] 
   smudge !
-  dp latest !
   ffrst 1 state !
     ffrst 1 state !
   [
@@ -26,9 +23,8 @@ pname (create) current @ header
 
 (create) :
   smudge !
-  dp latest !
   ]
-    (create) smudge ! dp latest ! ]
+    (create) smudge ! ]
   [
   ;opt uwid
 
