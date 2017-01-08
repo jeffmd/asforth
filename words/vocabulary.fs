@@ -29,9 +29,11 @@
 ;
 
 \ wordlist record fields:
-\ [0] word:dcell: address to nfa of most recent word added to this wordlist
+\ [0] word:dcell: address to nfa of most recent word
+\     added to this wordlist
 \ [1] Name:dcell: address to nfa of vocabulary name 
-\ [2] link:dcell: address to previous sibling wordlist to form vocabulary linked list
+\ [2] link:dcell: address to previous sibling wordlist to
+\     form vocabulary linked list
 \ [3] child:dcell: address to head of child wordlist
 
 \ add link field offset
@@ -212,7 +214,7 @@ dcell+ 0 swap !e ( )
   \ while link is not zero
   ?while  ( spaces linkwid )
     \ print indent
-    over spaces
+    over spaces ." |- "
     \ get name from name field
     dcell+ dup @e ( spaces linkwid.name name )
     \ print name and line feed
@@ -229,7 +231,7 @@ dcell+ 0 swap !e ( )
   2drop
 ;
 
-\ list all child vocabularies in the context vocabulary
+\ list context vocabulary and all child vocabularies
 \ order is newest to oldest
 : vocs ( -- )
   \ start spaces at 2
@@ -237,6 +239,8 @@ dcell+ 0 swap !e ( )
   \ get top search vocabulary address
   \ it is the head of the vocabulary linked list
   wid@  ( wid )
+  \ print context vocabulary
+  dup dcell+ @e .nf cr
   \ get child link of linked list
   wid:child @e ( linkwid )
   .childvocs cr
