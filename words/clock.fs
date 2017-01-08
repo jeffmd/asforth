@@ -1,5 +1,6 @@
 \ clock.fs
-\ uses tasker to keep track of days, hours, minutes, seconds since starting
+\ uses tasker to keep track of days, hours, minutes, seconds
+\ since starting
 
 only Tasker
 vocabulary Clock
