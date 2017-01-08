@@ -53,7 +53,8 @@
 
 ( -- )
 \ Compiler
-\ replace the instruction written by CREATE to call the code that follows does>
+\ replace the instruction written by CREATE to call
+\ the code that follows does>
 \ does not return to caller
 : (does>)
     \ change call at XT to code after (does>)
