@@ -222,7 +222,7 @@ dcell+ 0 swap !e ( )
     \ get link field
     dcell+ ( spaces linkwid.link )
     \ increase spaces for indenting child vocabularies
-    over 2+ over ( spaces linkwid.link spaces+2 linkwid.link )
+    over 4+ over ( spaces linkwid.link spaces+4 linkwid.link )
     \ get child link and recurse: print child vocabularies
     dcell+ @e recurse ( spaces linkwid.link )
     \ get link for next sibling

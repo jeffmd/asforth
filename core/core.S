@@ -481,11 +481,25 @@ forthword_ TWOPLUS, INLINE_OPT, "2+"
     twoplus_
     ret
 
+; ( n1|u1 -- n2|u2 ) 
+; Arithmetics
+; optimized four increment
+forthword_ FOURPLUS, INLINE_OPT, "4+"
+    fourplus_
+    ret
+
 ; (S: n1 -- n2 )
 ; Arithmetics
-; optimized decrement
+; optimized 2 decrement
 forthword_ TWOMINUS, INLINE_OPT, "2-"
     twominus_
+    ret
+
+; (S: n1 -- n2 )
+; Arithmetics
+; optimized 4 decrement
+forthword_ FOURMINUS, INLINE_OPT, "4-"
+    fourminus_
     ret
 
 ; ( n1 -- n2/2 ) 

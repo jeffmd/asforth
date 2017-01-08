@@ -127,8 +127,16 @@
     adiw tosl, 2
 .endm
 
+.macro fourplus_
+    adiw tosl, 4
+.endm
+
 .macro twominus_
     sbiw tosl, 2
+.endm
+
+.macro fourminus_
+    sbiw tosl, 4
 .endm
 
 .macro twoslash_
